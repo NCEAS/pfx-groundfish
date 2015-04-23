@@ -132,6 +132,19 @@
 	title = {Plankton dynamics: observed and modelled responses to physical conditions in Prince William Sound, Alaska},
 	journal = {Fisheries Oceanography}
 }
+@article{Feder_1998,
+	doi = {10.1016/s0025-326x(97)87420-6},
+	url = {http://dx.doi.org/10.1016/S0025-326X(97)87420-6},
+	year = 1998,
+	month = {feb},
+	publisher = {Elsevier {BV}},
+	volume = {36},
+	number = {2},
+	pages = {118--130},
+	author = {Howard M. Feder and Arny Blanchard},
+	title = {The deep benthos of Prince William Sound, Alaska, 16 months after the Exxon Valdez oil spill},
+	journal = {Marine Pollution Bulletin}
+}
 @article{Gaichas_2008,
 	doi = {10.1139/f08-104},
 	url = {http://dx.doi.org/10.1139/F08-104},
@@ -236,10 +249,10 @@
 	title = {Oceanographic influences on patterns in North Pacific salmon abundance},
 	journal = {Canadian Journal of Fisheries and Aquatic Sciences}
 }
-@article{Thorne_2007,
+@article{Thorne_2008,
 	doi = {10.1093/icesjms/fsm176},
 	url = {http://dx.doi.org/10.1093/icesjms/fsm176},
-	year = 2007,
+	year = 2008,
 	month = {nov},
 	publisher = {Oxford University Press ({OUP})},
 	volume = {65},
@@ -248,4 +261,17 @@
 	author = {R. E. Thorne and G. L. Thomas},
 	title = {Herring and the \textit{Exxon Valdez} oil spill: an investigation into historical data conflicts},
 	journal = {{ICES} Journal of Marine Science}
+}
+@article{Vallina_2011,
+	doi = {10.1016/j.jtbi.2010.11.043},
+	url = {http://dx.doi.org/10.1016/j.jtbi.2010.11.043},
+	year = 2011,
+	month = {mar},
+	publisher = {Elsevier {BV}},
+	volume = {272},
+	number = {1},
+	pages = {160--173},
+	author = {Sergio M. Vallina and Corinne Le Qu{\'{e}}r{\'{e}}},
+	title = {Stability of complex food webs: Resilience, resistance and the average interaction strength},
+	journal = {Journal of Theoretical Biology}
 }
