@@ -1,12 +1,12 @@
 rm(list=ls())
 library(INLA)
-
+library(dataone) 
 
 #Define directories for the data and for the plots
-plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/Output plots/"
-data.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"
+#plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/Output plots/"
+#data.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"
 
-#### GO GET THE OBSERVED TRAWL DATA from the GOA portal: goa.nceas.ucsb.edu
+#### GO GET THE OBSERVED TRAWL DATA from the GOA portal: goa.nceas.ucsb.edu 
 
 mn_uri <- "https://goa.nceas.ucsb.edu/goa/d1/mn/v1"  ## define goa portal as mn
 mn <- MNode(mn_uri)
@@ -15,11 +15,11 @@ pid <- "df35b.257.1"
 obj <- get(mn, pid)
 dat <- read.csv(text=rawToChar(obj))
 
-##	go get the species of interest list 
-# setwd(paste(data.dir,"March-17-2015",sep=""))
+##	go get the species of interest list from portal
+pidSIL <- "df35b.275.1"
+objSIL <- get(mn, pidSIL)
+dat.names <- read.csv(text=rawToChar(objSIL))
 
-setwd("/Users/ole.shelton/Desktop/_TEMP/goaTrawl/March-17-2015/")
-dat.names	<-	read.csv("final species list.csv")
 NAMES.sci	<-	dat.names$Scientific
 NAMES.com	<-	dat.names$Common
 #########################################################################################	
@@ -79,7 +79,7 @@ temp	<-	all.years[,12:ncol(all.years)]
 temp[is.na(temp==T)]	<-	0
 all.years[,12:ncol(all.years)]	<- temp
 
-write.csv(all.years,file="goa_trawl_top63.csv")
+#write.csv(all.years,file="goa_trawl_top63.csv")
 
 
 
