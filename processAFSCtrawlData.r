@@ -6,11 +6,14 @@ library(INLA)
 plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/Output plots/"
 data.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"
 
-#### GO GET THE OBSERVED TRAWL DATA
+#### GO GET THE OBSERVED TRAWL DATA from the GOA portal: goa.nceas.ucsb.edu
 
-# setwd(data.dir)
-setwd("/Users/ole.shelton/Desktop/_TEMP/goaTrawl/")
-dat = read.csv("goa_data.csv")
+mn_uri <- "https://goa.nceas.ucsb.edu/goa/d1/mn/v1"  ## define goa portal as mn
+mn <- MNode(mn_uri)
+
+pid <- "df35b.257.1"
+obj <- get(mn, pid)
+dat <- read.csv(text=rawToChar(obj))
 
 ##	go get the species of interest list 
 # setwd(paste(data.dir,"March-17-2015",sep=""))
