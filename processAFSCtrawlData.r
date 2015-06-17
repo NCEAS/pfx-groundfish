@@ -15,7 +15,8 @@ pid <- "df35b.257.1"   # unique identifier for this data file
 obj <- get(mn, pid)
 dat <- read.csv(text=rawToChar(obj))  # read in file as text 
 # temporary way to get the data using httr()
-dat <- GET(paste(mn_uri, "/object/", pid, sep=""))
+datGet <- GET(paste(mn_uri, "/object/", pid, sep=""))
+dat <- content(datGet, as='parsed')
 
 
 ##	Go get the species of interest list from portal: goa.nceas.ucsb.edu 
@@ -23,7 +24,8 @@ pidSIL <- "df35b.275.1"        # unique identifier for this data file
 objSIL <- get(mn, pidSIL)
 dat.names <- read.csv(text=rawToChar(objSIL))    # read in file as text 
 # temporary way to get the data using httr()
-dat.names <- GET(paste(mn_uri, "/object/", pidSIL, sep=""))
+dat.namesGet <- GET(paste(mn_uri, "/object/", pidSIL, sep=""))
+dat.names <- content(dat.namesGet, as='parsed')
 
 
 NAMES.sci	<-	dat.names$Scientific
