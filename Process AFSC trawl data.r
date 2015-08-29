@@ -3,16 +3,45 @@ rm(list=ls())
 # You need to install all the stuff associated with GDAL for this script to work.
 library(rgdal)
 library(mgcv)
+library(INLA)
+#library(dataone) 
+library(httr)
 
 #Define directories for the data and for the plots
 plot.dir	<-	"/Users/ole.shelton/Documents/GitHub/exxonValdez_nceas/goaTrawl/Output plots/"
 data.dir	<-	"/Users/ole.shelton/Documents/GitHub/exxonValdez_nceas/goaTrawl/Raw Trawl Data/"
 
+#Define directories for the data and for the plots
+#plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/Output plots/"
+#data.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"
+
+#### GO GET THE OBSERVED TRAWL DATA from the GOA portal: goa.nceas.ucsb.edu 
+mn_uri <- "https://goa.nceas.ucsb.edu/goa/d1/mn/v1"  ## define goa portal as DataONE member node
+# mn <- MNode(mn_uri) ## needed for dataone client
+
+pid <- "df35b.257.1"   # unique identifier for this data file
+# obj <- get(mn, pid)
+# dat <- read.csv(text=rawToChar(obj))  # read in file as text 
+### temporary way to get the data using httr()
+datGet <- GET(paste(mn_uri, "/object/", pid, sep=""))
+dat <- content(datGet, as='parsed')
+dat<-dat[!dat$NUMCPUE==-9999,] ## remove -9999 (NAs?)
+
+##	Go get the species of interest list from portal: goa.nceas.ucsb.edu 
+pidSIL <- "df35b.275.1"        # unique identifier for this data file
+# objSIL <- get(mn, pidSIL)
+# dat.names <- read.csv(text=rawToChar(objSIL))    # read in file as text 
+### temporary way to get the data using httr()
+dat.namesGet <- GET(paste(mn_uri, "/object/", pidSIL, sep=""))
+dat.names <- content(dat.namesGet, as='parsed')
+
+
+
 #### GO GET THE OBSERVED TRAWL DATA
  setwd(data.dir)
 #setwd("/Users/ole.shelton/Desktop/_TEMP/goaTrawl/")
-dat 		<- read.csv("goa_data.csv")
-dat[is.na(dat)==T]	<-	-9999	# make sure missing data is -9999
+#dat 		<- read.csv("goa_data.csv")
+#dat[is.na(dat)==T]	<-	-9999	# make sure missing data is -9999
 
 #Summarize
 #A		<- aggregate(dat$WTCPUE,by=list(cruise=dat$CRUISE,
@@ -35,7 +64,7 @@ dat.size.breaks	<-	read.csv("size_breaks_6_sp.csv")
 # setwd(paste(data.dir,"March-17-2015",sep=""))
 # setwd("/Users/ole.shelton/Desktop/_TEMP/goaTrawl/March-17-2015/")
 
-dat.names	<-	read.csv("final species list.csv")
+# dat.names	<-	read.csv("final species list.csv")
 NAMES.sci	<-	dat.names$Scientific
 NAMES.com	<-	dat.names$Common
 #########################################################################################	
