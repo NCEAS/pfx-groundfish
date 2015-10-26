@@ -1,0 +1,679 @@
+#params for state 1#
+#mean#
+u_st1 <- 50#
+#sd#
+sd_1 <- 50#
+#number of points#
+n_1 <- 25
+u_st2 <- 800#
+sd_2 <- 10#
+n_2 <- 25#
+#
+#number of cycles#
+cycles <- 7#
+# Create a vector of data that is just state 1 pasted onto state 2 with some "randomeness" associated with each state #
+#
+m <- c(abs(rnorm(n_1, mean=u_st1, sd=sd_1)), abs(rnorm(n_2, mean=u_st2, sd=sd_2)))#
+# create a covariate basically the index that the data point occurs in the cycle#
+index <- 1:length(m)#
+for(i in 1:(cycles-1)){#
+    x <- c(abs(rnorm(n_1, mean=u_st1, sd=sd_1)), abs(rnorm(n_2, mean=u_st2, sd=sd_2)))#
+    m <- c(m, x)#
+    index <- c(index, 1:length(x))#
+}#
+plot(m, type="b", ylim = rev(range(m)))#
+#plot(diff(m), type="b")#
+plot(index, type="b")
+cat("#
+    model#
+{#
+#
+    first.loc[1] <- y[1]#
+    #    DCRWS model from Ian D Jonsen, Joanna Mills Flemming and Ransom A Myers#
+    #    Robust state-space modeling of animal movement data#
+    #    ijonsen@dal.ca#
+    #    Created by Ian Jonsen, 10/29/2004, last modified, 01/08/2013#
+    ## priors on process uncertainty#
+    proTau ~ dgamma(0.001,0.001);#
+    proSig <- 1/sqrt(proTau);#
+    # Gamma represent the movement rates / time#
+    gamma[1] ~ dnorm(0, 1)T(0,);   ## prior for gamma in b=1#
+    dev ~ dnorm(0, 1)T(0,);			## rnd deviate to ensure gamma[2] > gamma[1]#
+    gamma[2] <- gamma[1] + dev; #
+    alpha[1] ~ dbeta(1, 1);		## prob of being in b 1 at t, given in b 1 at t-1#
+    alpha[2] ~ dbeta(1, 1);		## prob of being in b 1 at t, given in b 2 at t-1#
+    lambda[1] ~ dunif(0, 1);#
+    lambda[2] <- 1 - lambda[1];#
+    b[1] ~ dcat(lambda[]); 		## assign b for first obs#
+    ## Priors for first location#
+    x[1] ~ dnorm(first.loc[1],0.01);#
+    ## Assume simple random walk to estimate 2nd regular position#
+    x[2] ~ dnorm(x[1], proTau);#
+    #for(i in 1:2) {#
+        #coef.1[i]~dnorm(0,1);#
+        #coef.2[i]~dnorm(0,1);#
+    #}#
+    ## Transition equation#
+    ##	Measurement equation#
+    obsTau ~ dgamma(0.001,0.001);#
+    obsSig <- 1/sqrt(obsTau);    #
+    for(t in 2:(RegN-1)){#
+        phi[t,1] <- alpha[b[t-1]];#
+        phi[t,2] <- 1 - alpha[b[t-1]];#
+        b[t] ~ dcat(phi[t,]); # b[t] is the categorical state#
+        #pred.x[t] <- gamma[b[t]];#
+            #+ coef.1[b[t]]*covar1[t];#
+            #+ coef.2[b[t]]*covar2[t];  #
+        y[t] ~ dnorm(gamma[b[t]],obsTau);      	#
+        #x[t+1] ~ dnorm(pred.x[t], proTau);	#
+    }#
+}#
+    ", file = "model2.txt")
+y = m#
+covar1 = index#
+#
+RegN = length(y) # don't change this line#
+#
+jags.data = list("y"=y,"RegN"=RegN)#
+                 #,"covar1"=covar1)#
+                 #"covar2"=covar2)#
+jags.params=c("b","x")#
+              #,"coef.1")#
+              #"coef.2")
+jags.params=c("b")#
+              #,"coef.1")#
+              #"coef.2")
+model.loc=("model2.txt")#
+sim.model = jags(jags.data, inits=NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)
+library(R2jags)
+model.loc=("model2.txt")#
+sim.model = jags(jags.data, inits=NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)
+#MCMC paramaters#
+mcmc.chainLength <- as.integer(6000)  # post-burn #
+mcmc.burn <- as.integer(5000) #
+mcmc.thin = 1#
+mcmc.chains = 1
+model.loc=("model2.txt")#
+sim.model = jags(jags.data, inits=NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)
+attach.jags(sim.model)
+plot(m, type="b", ylim=rev(range(m)))#
+plot(apply(b,2,mean), type="b")
+m
+plot(m)
+plot(m, type="b", ylim=rev(range(m)))
+plot(apply(b,2,mean), type="b")
+plot(m, type="b", ylim=rev(range(m)))#
+lines(apply(b,2,mean), type="b",col='blue')
+jags.params=c("b","gamma")#
+              #,"coef.1")#
+              #"coef.2")
+model.loc=("model2.txt")#
+sim.model = jags(jags.data, inits=NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)
+cat("#
+    model#
+{#
+#
+    first.loc[1] <- y[1]#
+    #    DCRWS model from Ian D Jonsen, Joanna Mills Flemming and Ransom A Myers#
+    #    Robust state-space modeling of animal movement data#
+    #    ijonsen@dal.ca#
+    #    Created by Ian Jonsen, 10/29/2004, last modified, 01/08/2013#
+    ## priors on process uncertainty#
+    proTau ~ dgamma(0.001,0.001);#
+    proSig <- 1/sqrt(proTau);#
+    # Gamma represent the movement rates / time#
+    gamma[1] ~ dnorm(0, 1)T(0,);   ## prior for gamma in b=1#
+    dev ~ dnorm(0, 1)T(0,);			## rnd deviate to ensure gamma[2] > gamma[1]#
+    gamma[2] <- gamma[1] + dev; #
+    alpha[1] ~ dbeta(1, 1);		## prob of being in b 1 at t, given in b 1 at t-1#
+    alpha[2] ~ dbeta(1, 1);		## prob of being in b 1 at t, given in b 2 at t-1#
+    lambda[1] ~ dunif(0, 1);#
+    lambda[2] <- 1 - lambda[1];#
+    b[1] ~ dcat(lambda[]); 		## assign b for first obs#
+    ## Priors for first location#
+    x[1] ~ dnorm(first.loc[1],0.01);#
+    ## Assume simple random walk to estimate 2nd regular position#
+    x[2] ~ dnorm(x[1], proTau);#
+    #for(i in 1:2) {#
+        #coef.1[i]~dnorm(0,1);#
+        #coef.2[i]~dnorm(0,1);#
+    #}#
+    pred.x[1] <- gamma[b[1]];#
+    ## Transition equation#
+    ##	Measurement equation#
+    obsTau ~ dgamma(0.001,0.001);#
+    obsSig <- 1/sqrt(obsTau);    #
+    for(t in 2:(RegN-1)){#
+        phi[t,1] <- alpha[b[t-1]];#
+        phi[t,2] <- 1 - alpha[b[t-1]];#
+        b[t] ~ dcat(phi[t,]); # b[t] is the categorical state#
+        #pred.x[t] <- gamma[b[t]];#
+            #+ coef.1[b[t]]*covar1[t];#
+            #+ coef.2[b[t]]*covar2[t]; #
+        pred.x[t] <- gamma[b[t]];#
+        y[t] ~ dnorm(gamma[b[t]],obsTau);      	#
+        #x[t+1] ~ dnorm(pred.x[t], proTau);	#
+    }#
+}#
+    ", file = "model2.txt")#
+#
+#MCMC paramaters#
+mcmc.chainLength <- as.integer(6000)  # post-burn #
+mcmc.burn <- as.integer(5000) #
+mcmc.thin = 1#
+mcmc.chains = 1
+y = m#
+covar1 = index#
+#
+RegN = length(y) # don't change this line#
+#
+jags.data = list("y"=y,"RegN"=RegN)#
+                 #,"covar1"=covar1)#
+                 #"covar2"=covar2)#
+jags.params=c("b","gamma")#
+              #,"coef.1")#
+              #"coef.2")
+jags.params=c("b","x")#
+              #,"coef.1")#
+              #"coef.2")
+model.loc=("model2.txt")#
+sim.model = jags(jags.data, inits=NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)
+jags.params=c("b","pred.x")#
+              #,"coef.1")#
+              #"coef.2")#
+model.loc=("model2.txt")#
+sim.model = jags(jags.data, inits=NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)  #
+#
+attach.jags(sim.model)
+plot(m, type="b", ylim=rev(range(m)))
+dim(pred.x)
+apply(pred.x,2,mean)
+pred.x[1,]
+pred.x[2,]
+RegN
+dim(pred.x)
+pred.x[,1]
+hist(pred.x[,1])
+hist(pred.x[,2])
+apply(pred.x,2,mean)
+plot(apply(pred.x,2,mean))
+y
+plot(y)
+cat("#
+    model#
+{#
+#
+    first.loc[1] <- y[1]#
+    #    DCRWS model from Ian D Jonsen, Joanna Mills Flemming and Ransom A Myers#
+    #    Robust state-space modeling of animal movement data#
+    #    ijonsen@dal.ca#
+    #    Created by Ian Jonsen, 10/29/2004, last modified, 01/08/2013#
+    ## priors on process uncertainty#
+    proTau ~ dgamma(0.001,0.001);#
+    proSig <- 1/sqrt(proTau);#
+    # Gamma represent the movement rates / time#
+    #gamma[1] ~ dnorm(0, 1)T(0,);   ## prior for gamma in b=1#
+    #dev ~ dnorm(0, 1)T(0,);			## rnd deviate to ensure gamma[2] > gamma[1]#
+    #gamma[2] <- gamma[1] + dev; #
+    gamma[1] ~ dunif(0,1000);#
+    dev ~ dunif(0,1000);#
+    gamma[2] <- gamma[1] + dev;#
+    alpha[1] ~ dbeta(1, 1);		## prob of being in b 1 at t, given in b 1 at t-1#
+    alpha[2] ~ dbeta(1, 1);		## prob of being in b 1 at t, given in b 2 at t-1#
+    lambda[1] ~ dunif(0, 1);#
+    lambda[2] <- 1 - lambda[1];#
+    b[1] ~ dcat(lambda[]); 		## assign b for first obs#
+    ## Priors for first location#
+    x[1] ~ dnorm(first.loc[1],0.01);#
+    ## Assume simple random walk to estimate 2nd regular position#
+    x[2] ~ dnorm(x[1], proTau);#
+    #for(i in 1:2) {#
+        #coef.1[i]~dnorm(0,1);#
+        #coef.2[i]~dnorm(0,1);#
+    #}#
+    pred.x[1] <- gamma[b[1]];#
+    ## Transition equation#
+    ##	Measurement equation#
+    obsTau ~ dgamma(0.001,0.001);#
+    obsSig <- 1/sqrt(obsTau);    #
+    for(t in 2:(RegN-1)){#
+        phi[t,1] <- alpha[b[t-1]];#
+        phi[t,2] <- 1 - alpha[b[t-1]];#
+        b[t] ~ dcat(phi[t,]); # b[t] is the categorical state#
+        #pred.x[t] <- gamma[b[t]];#
+            #+ coef.1[b[t]]*covar1[t];#
+            #+ coef.2[b[t]]*covar2[t]; #
+        pred.x[t] <- gamma[b[t]];#
+        y[t] ~ dnorm(gamma[b[t]],obsTau);      	#
+        #x[t+1] ~ dnorm(pred.x[t], proTau);	#
+    }#
+}#
+    ", file = "model2.txt")#
+#
+#MCMC paramaters#
+mcmc.chainLength <- as.integer(6000)  # post-burn #
+mcmc.burn <- as.integer(5000) #
+mcmc.thin = 1#
+mcmc.chains = 1#
+y = m#
+covar1 = index#
+#
+RegN = length(y) # don't change this line#
+#
+jags.data = list("y"=y,"RegN"=RegN)#
+                 #,"covar1"=covar1)#
+                 #"covar2"=covar2)#
+jags.params=c("b","pred.x")#
+              #,"coef.1")#
+              #"coef.2")#
+model.loc=("model2.txt")#
+sim.model = jags(jags.data, inits=NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)  #
+#
+attach.jags(sim.model)
+plot(apply(pred.x,2,mean))
+plot(m, type="b", ylim=rev(range(m)),col="black")#
+#lines(apply(b,2,mean), type="b",col='blue')#
+lines(apply(pred.x,2,mean),col="blue",lty=2)
+library(R2jags)#
+#
+transients = read.csv(file.choose())#
+nAnimals = dim(transients)[1]#
+# make matrix of ages from 0 - 42#
+Y = matrix(0, nAnimals, 42)#
+for(i in 1:nAnimals) {#
+	# fill in Y[i,] values#
+	birthAges = transients[i,-c(1:2)] - transients[i,2]#
+	indx = which(is.na(birthAges)==F)#
+	Y[i,as.numeric(birthAges[indx])] = 1#
+	Y[i,as.numeric(birthAges[indx])-1] = 0#
+	Y[i,as.numeric(birthAges[indx])+1] = 0		#
+}#
+#
+# Fill in the z matrix#
+z = matrix(NA, nAnimals,42)#
+for(i in 1:nAnimals) {#
+	indx = which(Y[i,]==1)#
+	z[i,indx] = 1#
+	z[i,indx-1] = 0#
+	z[i,indx+1] = 0#
+}#
+#
+# truncate first 9 years#
+z = z[,-c(1:8)]#
+Y = Y[,-c(1:8)]#
+z[,1] = 0 # 9 year olds can't give birth#
+Y[,1] = NA#
+z = z + 1#
+#
+model = cat("#
+model {#
+   # Set up occupancy modeling type framework for latent states#
+   # state 1 = not pregnant#
+   # state 2 = pregnant#
+   #alpha[1] ~ dbeta(1,1);#prob of being in b 1 at t, given in b 1 at t-1(staying in state 1)#
+   ## 1 minus alpha[1] = probability of switching out of state 1 to state 2 (becoming pregnant)#
+   #alpha[2] <- 1;### prob of being in b 1 at t, given in b 2 at t-1 (switching from 2 to 1)#
+   ## 1 minus alpha[2] = the probability of remaining in state 2 = 0#
+   for(i in 1:5) {#
+   		B[i]~dnorm(0,1);#
+   }#
+   for(ind in 1:nAnimals) {#
+   	   for(a in 1:34) {#
+   	   	   # probability of animal i in time t, ages 1:33#
+   	   	   alpha[2,ind,a] <- 1;#
+   	   	   logit(prob[ind,a]) <- B[1] + B[2] * (a+9) + B[3] * pow((a+9),2) + B[4]*pow((a+9),3) + B[5]*pow((a+9),4);#
+   	   	   alpha[1,ind,a] <- 1-prob[ind,a];#
+   	   }#
+   }#
+   #for(i in 1:nAnimals) {#
+   #z[i,1] <- 1; # not pregnant in first state#
+   #}#
+   for(i in 1:nAnimals) {#
+      for(j in 2:34) {#
+         phi[i,j,1] <- alpha[z[i,j-1],i,j];#
+         phi[i,j,2] <- 1 - alpha[z[i,j-1],i,j];#
+         z[i,j] ~ dcat(phi[i,j,1:2]); # z[i] is the true state (2 = pregnant, 1 = not)#
+         trueState[i,j] <- z[i,j] - 1; # convert to 0-1#
+         Y[i,j] ~ dbern(trueState[i,j]);#
+      }#
+   }#
+}#
+#
+", file = "model.txt")#
+mcmc.chainLength <- as.integer(10000)  # burn-in plus post-burn#
+mcmc.burn = as.integer(5000)#
+mcmc.thin = 1#
+mcmc.chains = 3     # needs to be at least 2 for DIC#
+#
+jags.params=c("B")#
+jags.data = list("Y","z","nAnimals")#
+model.loc = paste("model.txt",sep="")#
+model = jags(jags.data, inits = NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)#
+#
+attach.jags(model)#
+#
+estBirth = matrix(0, dim(B)[1],42)#
+#
+for(i in 1:dim(estBirth)[1]) {#
+	estBirth[i,] = B[i,1] + B[i,2]*seq(1,42) + B[i,3]*(seq(1,42)^2) + B[i,4]*(seq(1,42)^3) + B[i,5]*(seq(1,42)^4)#
+}
+dim(estBirth)
+apply(estBirth,2,mean)
+estBirth = exp(estBirth)/(1+exp(estBirth))
+apply(estBirth,2,mean)
+plot(apply(estBirth,2,mean))
+estBirth[,1:9] = 09
+estBirth[,1:9] = 0
+plot(apply(estBirth,2,mean))
+34+9
+model = cat("#
+model {#
+   # Set up occupancy modeling type framework for latent states#
+   # state 1 = not pregnant#
+   # state 2 = pregnant#
+   #alpha[1] ~ dbeta(1,1);#prob of being in b 1 at t, given in b 1 at t-1(staying in state 1)#
+   ## 1 minus alpha[1] = probability of switching out of state 1 to state 2 (becoming pregnant)#
+   #alpha[2] <- 1;### prob of being in b 1 at t, given in b 2 at t-1 (switching from 2 to 1)#
+   ## 1 minus alpha[2] = the probability of remaining in state 2 = 0#
+   for(i in 1:5) {#
+   		B[i]~dnorm(0,1);#
+   }#
+   for(ind in 1:nAnimals) {#
+   	   for(a in 1:34) {#
+   	   	   # probability of animal i in time t, ages 1:33#
+   	   	   alpha[2,ind,a] <- 1;#
+   	   	   logit(prob[ind,a]) <- B[1] + B[2] * (a+9) + B[3] * pow((a+9),2) + B[4]*pow((a+9),3) + B[5]*pow((a+9),4);#
+   	   	   alpha[1,ind,a] <- 1-prob[ind,a];#
+   	   }#
+   }#
+   pDetect~dunif(0,1);#
+   for(i in 1:nAnimals) {#
+      for(j in 2:34) {#
+         phi[i,j,1] <- alpha[z[i,j-1],i,j];#
+         phi[i,j,2] <- 1 - alpha[z[i,j-1],i,j];#
+         z[i,j] ~ dcat(phi[i,j,1:2]); # z[i] is the true state (2 = pregnant, 1 = not)#
+         trueState[i,j] <- pDetect*(z[i,j] - 1); # convert to 0-1#
+         Y[i,j] ~ dbern(trueState[i,j]);#
+      }#
+   }#
+}#
+#
+", file = "model.txt")
+mcmc.chainLength <- as.integer(2000)  # burn-in plus post-burn#
+mcmc.burn = as.integer(1000)#
+mcmc.thin = 1#
+mcmc.chains = 2     # needs to be at least 2 for DIC
+jags.params=c("B")#
+jags.data = list("Y","z","nAnimals")#
+model.loc = paste("model.txt",sep="")#
+model = jags(jags.data, inits = NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)#
+#
+attach.jags(model)
+jags.params=c("B","pDetect")#
+jags.data = list("Y","z","nAnimals")#
+model.loc = paste("model.txt",sep="")#
+model = jags(jags.data, inits = NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)#
+#
+attach.jags(model)
+model
+hist(pDetect)
+hist(pDetect,100)
+hist(B[,1])
+hist(B[,2])
+hist(B[,3])
+hist(B[,4])
+hist(deviance)
+mcmc.chainLength <- as.integer(10000)  # burn-in plus post-burn#
+mcmc.burn = as.integer(5000)#
+mcmc.thin = 1#
+mcmc.chains = 2     # needs to be at least 2 for DIC#
+#
+jags.params=c("B","pDetect")#
+jags.data = list("Y","z","nAnimals")#
+model.loc = paste("model.txt",sep="")#
+model = jags(jags.data, inits = NULL, parameters.to.save= jags.params, model.file=model.loc, n.chains = mcmc.chains, n.burnin = mcmc.burn, n.thin = mcmc.thin, n.iter = mcmc.chainLength, DIC = TRUE)#
+#
+attach.jags(model)
+library(INLA)#
+library(rgdal)#
+library(sp)#
+library(ggplot2)#
+#
+#### GO GET THE OBSERVED TRAWL DATA#
+#
+myWD = "/Users/eric.ward/documents/exxonValdez_nceas/goaTrawl/"#
+#
+setwd(myWD)#
+df = read.csv("goa_500trawls_albers.csv")#
+df<-df[order(df$Year,df$Lat),]#
+#
+### Remove NA entries in BottomDepth and Bottom Temp for now#
+df<-df[is.na(df$BottomDepth)==F,]#
+df<-df[is.na(df$BottomTemp)==F,]#
+#
+df$Station = as.character(df$Station)#
+df$Year = as.numeric(df$Year)#
+df$LonUTMAlbers <- df$LonUTMAlbers/1000#
+df$LatUTMAlbers <- df$LatUTMAlbers/1000#
+#
+#### GO GET THE PROJECTION POINTS#
+dat.project	<- read.csv("goa_projection_points.csv")#
+#
+#### Exclude points that end up on land.#
+dat.project$NGDC24_M	<-	-dat.project$NGDC24_M	#
+dat.project$SRTM_M		<-	-dat.project$SRTM_M	#
+dat.project				<-	dat.project[dat.project$NGDC24 > 0,]#
+#
+#### CHOOSE A MODEL#
+model = "positive"#
+species = names(df)[10:dim(df)[2]]#
+speciesList = read.csv("species names.csv")#
+species = species[which(speciesList[,2]==1)]#
+comm = speciesList$Common.Name[which(speciesList[,2]==1)]#
+#
+#par(mfrow =c(6,5),mai=c(0.1,0.2,0.1,0.1))#
+#for(i in 61:90) {#length(species)) {#
+#	subdat = df[,c(1:9,which(names(df)==species[i]))]#
+#	subdat[which(is.na(subdat[,10])),10] = 0#
+#	agg = aggregate(ceiling(subdat[,10]/1.0e10),by=list(subdat$Year),mean,na.rm=T)#
+#	plot(agg[,1],agg[,2],main=species[i],xlab="",ylab="",type="l",cex.main=0.6)#
+#}#
+fitModel = TRUE
+names(subdat)
+names(dat)
+data
+names(df)
+subdat = df#
+  #Center the covariates #
+  Covar	<- subdat[,1:9]#
+  Covar$log.depth			<-	log(Covar$BottomDepth)#
+  Covar$cent.log.depth	<-	Covar$log.depth - mean(Covar$log.depth,na.rm=T)#
+  Covar$cent.log.depth.2	<-	Covar$log.depth^2 #
+  Covar$cent.temp			<-	Covar$BottomTemp - mean(Covar$BottomTemp)#
+  Covar$cent.temp.2		<-	Covar$cent.temp^2 #
+  setwd(myWD)#
+	#call basic plotting routine for raw data#
+	  #if(model == "binomial"){#
+	  #	source("trawl_plot_binom.r")#
+	  #}
+# Grab X-Y coords in UTM space#
+  subcoords = cbind(subdat$LonUTMAlbers[match(unique(subdat$Station),subdat$Station)],subdat$LatUTMAlbers[match(unique(subdat$Station),subdat$Station)])#
+  bnd = inla.nonconvex.hull(subcoords, convex=80)#
+  mesh1 = inla.mesh.2d(boundary=bnd,max.edge=c(100,1200),cutoff=90)#
+  # "cutoff" parameter is used to avoid building many small triangles around clustered input locations, #
+  # "offset" species the size of the inner and outer extensions around the data locations,#
+  # "max.edge" species the maximum allowed triangle edge lengths in the inner domain and in the outer extension.#
+  #mesh1 = inla.mesh.2d(subcoords,max.edge=c(150,150),cutoff=50)#
+  #plot(mesh1)#
+  #points(subcoords,col="red")#
+  # Make SPDE based on mesh#
+  spde=inla.spde2.matern(mesh1, alpha=3/2)#
+  n= max(as.numeric(as.factor(as.character(subdat$Station)))) # unique stations#
+  subdat$yearID = match(subdat$Year,as.numeric(names(table(subdat$Year))))#
+  subdat$stationID = as.numeric(as.factor(subdat$Station))#
+  k = max(subdat$yearID)#
+  ymat = matrix(NA,n,k)#
+  ymat01 = matrix(0,n,k)#
+  cent.log.depth = matrix(NA,n,k)#
+  cent.temp = matrix(NA,n,k)#
+  #yearF = matrix(0,n,k)#
+  for(j in 1:dim(subdat)[1]) {#
+    if(is.na(subdat[j,10])==F & subdat[j,10]>0) ymat[subdat$stationID[j],subdat$yearID[j]] = subdat[j,10] # species always in col 10#
+    if(is.na(subdat[j,10])==F) ymat01[subdat$stationID[j],subdat$yearID[j]] = ceiling(subdat[i,10]/1.0e10) # convert to 0/1#
+    # include depth, depth2, temp, temp2 as fixed effects#
+    cent.temp[subdat$stationID[j],subdat$yearID[j]] = Covar$cent.temp[j]#
+    cent.log.depth[subdat$stationID[j],subdat$yearID[j]] = Covar$cent.log.depth[j]#
+    # Include year as fixed effect design matrix#
+    #yearF[subdat$stationID[j],subdat$yearID[j]] = 1#
+  }
+names(subdat)
+subdat = df#
+  #Center the covariates #
+  Covar	<- subdat[,1:9]#
+  Covar$log.depth			<-	log(Covar$BottomDepth)#
+  Covar$cent.log.depth	<-	Covar$log.depth - mean(Covar$log.depth,na.rm=T)#
+  Covar$cent.log.depth.2	<-	Covar$log.depth^2 #
+  Covar$cent.temp			<-	Covar$BottomTemp - mean(Covar$BottomTemp)#
+  Covar$cent.temp.2		<-	Covar$cent.temp^2 #
+  setwd(myWD)#
+	#call basic plotting routine for raw data#
+	  #if(model == "binomial"){#
+	  #	source("trawl_plot_binom.r")#
+	  #}#
+	#call basic plotting routine for raw data#
+	  if(model == "positive"){#
+	  	source("trawl_plot_positive.r")#
+	  }#
+#
+  # Grab X-Y coords in UTM space#
+  subcoords = cbind(subdat$LonUTMAlbers[match(unique(subdat$Station),subdat$Station)],subdat$LatUTMAlbers[match(unique(subdat$Station),subdat$Station)])#
+  bnd = inla.nonconvex.hull(subcoords, convex=80)#
+  mesh1 = inla.mesh.2d(boundary=bnd,max.edge=c(100,1200),cutoff=90)#
+  # "cutoff" parameter is used to avoid building many small triangles around clustered input locations, #
+  # "offset" species the size of the inner and outer extensions around the data locations,#
+  # "max.edge" species the maximum allowed triangle edge lengths in the inner domain and in the outer extension.#
+  #mesh1 = inla.mesh.2d(subcoords,max.edge=c(150,150),cutoff=50)#
+  #plot(mesh1)#
+  #points(subcoords,col="red")
+# Make SPDE based on mesh#
+  spde=inla.spde2.matern(mesh1, alpha=3/2)#
+  n= max(as.numeric(as.factor(as.character(subdat$Station)))) # unique stations#
+  subdat$yearID = match(subdat$Year,as.numeric(names(table(subdat$Year))))#
+  subdat$stationID = as.numeric(as.factor(subdat$Station))
+k = max(subdat$yearID)#
+  ymat = matrix(NA,n,k)#
+  ymat01 = matrix(0,n,k)#
+  cent.log.depth = matrix(NA,n,k)#
+  cent.temp = matrix(NA,n,k)
+subdat[,10] = subdat[,9]#
+  #yearF = matrix(0,n,k)#
+  for(j in 1:dim(subdat)[1]) {#
+    if(is.na(subdat[j,10])==F & subdat[j,10]>0) ymat[subdat$stationID[j],subdat$yearID[j]] = subdat[j,10] # species always in col 10#
+    if(is.na(subdat[j,10])==F) ymat01[subdat$stationID[j],subdat$yearID[j]] = ceiling(subdat[i,10]/1.0e10) # convert to 0/1#
+    # include depth, depth2, temp, temp2 as fixed effects#
+    cent.temp[subdat$stationID[j],subdat$yearID[j]] = Covar$cent.temp[j]#
+    cent.log.depth[subdat$stationID[j],subdat$yearID[j]] = Covar$cent.log.depth[j]#
+    # Include year as fixed effect design matrix#
+    #yearF[subdat$stationID[j],subdat$yearID[j]] = 1#
+  }
+k = max(subdat$yearID)#
+  ymat = matrix(NA,n,k)#
+  ymat01 = matrix(0,n,k)#
+  cent.log.depth = matrix(NA,n,k)#
+  cent.temp = matrix(NA,n,k)#
+  subdat[,10] = subdat[,9]#
+  #yearF = matrix(0,n,k)#
+  for(j in 1:dim(subdat)[1]) {#
+    if(is.na(subdat[j,10])==F & subdat[j,10]>0) ymat[subdat$stationID[j],subdat$yearID[j]] = subdat[j,10] # species always in col 10#
+    if(is.na(subdat[j,10])==F) ymat01[subdat$stationID[j],subdat$yearID[j]] = ceiling(subdat[i,10]/1.0e10) # convert to 0/1#
+    # include depth, depth2, temp, temp2 as fixed effects#
+    cent.temp[subdat$stationID[j],subdat$yearID[j]] = Covar$cent.temp[j]#
+    cent.log.depth[subdat$stationID[j],subdat$yearID[j]] = Covar$cent.log.depth[j]#
+    # Include year as fixed effect design matrix#
+    #yearF[subdat$stationID[j],subdat$yearID[j]] = 1#
+  }
+k = max(subdat$yearID)#
+  ymat = matrix(NA,n,k)#
+  ymat01 = matrix(0,n,k)#
+  cent.log.depth = matrix(NA,n,k)#
+  cent.temp = matrix(NA,n,k)#
+  subdat[,10] = subdat[,9]
+k = max(subdat$yearID)#
+  ymat = matrix(NA,n,k)#
+  ymat01 = matrix(0,n,k)#
+  cent.log.depth = matrix(NA,n,k)#
+  cent.temp = matrix(NA,n,k)#
+  subdat[,10] = subdat[,9]#
+  #yearF = matrix(0,n,k)#
+  for(j in 1:dim(subdat)[1]) {#
+    if(is.na(subdat[j,10])==F & subdat[j,10]>0) ymat[subdat$stationID[j],subdat$yearID[j]] = subdat[j,10] # species always in col 10#
+    if(is.na(subdat[j,10])==F) ymat01[subdat$stationID[j],subdat$yearID[j]] = ceiling(subdat[j,10]/1.0e10) # convert to 0/1#
+    # include depth, depth2, temp, temp2 as fixed effects#
+    cent.temp[subdat$stationID[j],subdat$yearID[j]] = Covar$cent.temp[j]#
+    cent.log.depth[subdat$stationID[j],subdat$yearID[j]] = Covar$cent.log.depth[j]#
+    # Include year as fixed effect design matrix#
+    #yearF[subdat$stationID[j],subdat$yearID[j]] = 1#
+  }
+# make depth and temperature values for unobserved locations #
+	# (calculate mean for each station and replace missing values with average covariate value)#
+	temp.depth	<- rowMeans(cent.log.depth,na.rm=T)#
+	temp.temp	<- rowMeans(cent.temp,na.rm=T)#
+#
+	for(j in 1:n){#
+		cent.log.depth[j,][is.na(cent.log.depth[j,])==T]	<-	 temp.depth[j]#
+		cent.temp[j,][is.na(cent.temp[j,])==T]	<-	 temp.temp[j]#
+	}
+ymat
+hist(ymat)
+df[,9]
+hist(df[,9])
+if(model != "binomial") {#
+    z = ymat#
+  }
+#dat <- data.frame(y=as.vector((z)), time=rep(1:k, each=n), xcoo=rep(subcoords[,1], k),ycoo=rep(subcoords[,2], k), cent.temp = as.vector(cent.temp), cent.temp2 = as.vector(cent.temp^2),#
+  #cent.log.depth=as.vector(cent.log.depth),cent.log.depth2=as.vector(cent.log.depth^2))#
+  dat <- data.frame(y=as.vector((z)), time=rep(1:k, each=n), xcoo=rep(subcoords[,1], k),ycoo=rep(subcoords[,2], k),cent.log.depth=as.vector(cent.log.depth),cent.log.depth2=as.vector(cent.log.depth^2))#
+  if(fitModel==TRUE) {  #
+  # Make a design matrix where the first year is the intercept, tack on year effects#
+  YEARS <- paste("Y",names(table(subdat$Year)),sep="")#
+  dat[YEARS] = 0	#
+  dat[,YEARS[1]]	 <- 1#
+  for(j in 1:length(YEARS)){#
+		dat[dat$time == j,YEARS[j]]	<-	1#
+  }#
+  iset = inla.spde.make.index("i2D", n.spde=mesh1$n, n.group = k)  #
+  # Make the covariates#
+  X.1 = dat[,-c(1:4)]#
+  Covar.names <- colnames(X.1)#
+   XX.list <- as.list(X.1)#
+   effect.list <- list()						#
+   effect.list[[1]] <- c(iset, list(Intercept=1))#
+   for (j in 1:ncol(X.1)) effect.list[[j+1]] <- XX.list[[j]]#
+   names(effect.list) <- c("1", Covar.names)#
+#
+   A <- inla.spde.make.A(mesh=mesh1, loc=cbind(dat$xcoo, dat$ycoo),group = dat$time)#
+   A.list = list()#
+   A.list[[1]] = A#
+   for (j in 1:ncol(X.1)) A.list[[j+1]] <- 1#
+   sdat <- inla.stack(tag='stdata', data=list(y=dat$y), A=A.list, effects=effect.list)#
+#
+  formula = as.formula(paste0("y ~ -1 +",  paste(Covar.names, collapse="+"), "+ f(i2D, model=spde, group = i2D.group, control.group = list(model='ar1'))"))		# field evolves with AR1 by year
+inlaModel <- inla(formula, family = "gaussian", data=inla.stack.data(sdat),control.predictor=list(compute=TRUE, A=inla.stack.A(sdat)), verbose = TRUE, debug=TRUE, keep=FALSE,control.compute = list(dic=TRUE, cpo=TRUE), control.fixed = list(correlation.matrix=TRUE),control.results=list(return.marginals.random=F))
+iset = inla.spde.make.index("i2D", n.spde=mesh1$n, n.group = k)  #
+  # Make the covariates#
+  X.1 = dat[,-c(1:4)]#
+  Covar.names <- colnames(X.1)#
+   XX.list <- as.list(X.1)#
+   effect.list <- list()						#
+   effect.list[[1]] <- c(iset, list(Intercept=1))#
+   for (j in 1:ncol(X.1)) effect.list[[j+1]] <- XX.list[[j]]#
+   names(effect.list) <- c("1", Covar.names)#
+#
+   A <- inla.spde.make.A(mesh=mesh1, loc=cbind(dat$xcoo, dat$ycoo),group = dat$time)#
+   A.list = list()#
+   A.list[[1]] = A#
+   for (j in 1:ncol(X.1)) A.list[[j+1]] <- 1#
+   sdat <- inla.stack(tag='stdata', data=list(y=dat$y), A=A.list, effects=effect.list)
+formula = as.formula(paste0("y ~ -1 +",  paste(Covar.names, collapse="+"), "+ f(i2D, model=spde, group = i2D.group, control.group = list(model='ar1'))"))		# field evolves with AR1 by year
+inlaModel <- inla(formula, family = "gaussian", data=inla.stack.data(sdat),control.predictor=list(compute=TRUE, A=inla.stack.A(sdat)), verbose = TRUE, debug=TRUE, keep=FALSE,control.compute = list(dic=TRUE, cpo=TRUE), control.fixed = list(correlation.matrix=TRUE),control.results=list(return.marginals.random=F))
+save.image("tempModel.Rdata")

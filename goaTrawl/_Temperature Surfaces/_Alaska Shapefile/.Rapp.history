@@ -1,0 +1,541 @@
+mean(a)
+a<-rnorm(1000000,1,2)
+b=a*2
+mean(b)
+var(b)
+mu=1;sig=2; a<-rnorm(1000000,mu,sig);c=3;b=c*a
+mean(b)
+var(b)
+c*mu
+c^2*sig^2
+exp(-0.5)
+exp(-0.5)*exp(-0.5)
+exp(-2*0.5)
+rnorm(1e7,2,0.2)
+A<-rnorm(1e7,2,0.2)
+par(mfrow=c(2,1))
+hist(A)
+hist(A^3)
+mean(A)
+mean(A^3)
+median(A)
+median(A^3)
+mean(c(A,A^3))
+mu=2sig=1A<-rnorm(1e7,mu,sig)par(mfrow=c(2,1))hist(A)hist(A^3)#
+mean(A)median(A)sd(A)#
+mean(A^3)median(A^3)sd(A^3)
+(7/6)^3
+7^3/6^3
+libPAths()
+.libPaths()
+load("/Users/ole.shelton/Documents/Science/Active projects/Eulachon/codeforplots/forOle.Rdata")
+library(INLA)#
+library(lattice)#
+library(PBSmapping)#
+library(date)#
+library(ncdf)#
+library(fields)#
+library(mvtnorm)#
+library(splancs)
+source("http://www.math.ntnu.no/inla/givemeINLA.R")
+?geom_map
+library(ggplot2)
+?geom_map
+p1	<-	ggplot(shore,aes(lat,long,group=group,colour=grey(0.5)))p1	<-	p1 + geom_map(map=shore,map_id=shore$id)
+update.packages()
+p2	<-	ggplot()+		geom_polygon(data=shore.df[shore.df$POLYTYPE == "Land" | shore.df$POLYTYPE == "Island" ,], fill=grey(0.5),color=NA) +			aes(long,lat,group=group) +		coord_cartesian(xlim = x.lim,ylim=y.lim) +		bGrid +bAxis + bBack + bTics +# 		scale_size_continuous(range=c(4,12))+ 		scale_colour_gradient(low = "blue",high="red", breaks = Breaks,limits=(0,1))+    	geom_point(data=Y.out,alpha=0.7,    			mapping=aes(long,lat,group,colour=Mean,size=plot.range)) p2
+x.lim	<- c(min(dat.seg.order$coords.x1)-1000,max(dat.seg.order$coords.x1)+100)y.lim	<- c(min(dat.seg.order$coords.x2)-1000,max(dat.seg.order$coords.x2)+200)z.lim	<-	c(0,1)Breaks	<-	c(0,0.25,0.5,0.75,1)#
+bGrid <-theme(panel.grid =element_blank())bBack <-theme(panel.background =element_blank())bAxis <-theme(axis.title.y =element_blank())bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+p1	<-	ggplot()+		geom_polygon(data=shore.df[shore.df$POLYTYPE == "Land" | shore.df$POLYTYPE == "Island" ,], fill=grey(0.5),color=NA) +			aes(long,lat,group=group) +		coord_cartesian(xlim = x.lim,ylim=y.lim) +		bGrid +bAxis + bBack + bTics +    	geom_point(data=dat.eel.fin)+    			aes(long,lat,group=group,colour="red")p1p2	<-	ggplot()+		geom_polygon(data=shore.df[shore.df$POLYTYPE == "Land" | shore.df$POLYTYPE == "Island" ,], fill=grey(0.5),color=NA) +			aes(long,lat,group=group) +		coord_cartesian(xlim = x.lim,ylim=y.lim) +		bGrid +bAxis + bBack + bTics +# 		scale_size_continuous(range=c(4,12))+ 		scale_colour_gradient(low = "blue",high="red",breaks=Breaks,limits=(0,1)) +    	geom_point(data=Y.out,alpha=0.7,    			mapping=aes(long,lat,group,colour=Mean,size=plot.range)) p2
+data(SPDEtoy)#
+str(SPDEtoy)#
+#
+spde5 <- inla.spde2.matern(mesh5, alpha=2)#
+coords <- as.matrix(SPDEtoy[,1:2])#
+A5 <- inla.spde.make.A(mesh5, loc=coords)#
+# We have that the SPDE approach defines a model on the mesh nodes, and usually the#
+# number of nodes are not equal to the number of locations where we have data observed.#
+# The inla.stack function allow us to work with predictors that includes terms with different#
+# dimentions. The three main inla.stack() arguments are the data vectors list, a#
+# list of projector matrices (each one related to one block effect) and the effects.#
+# We need two projector matrices, the projector matrix for the latent field and a matrix#
+# to map one-to-one the ’covariate’ and the response. This last one can be just a constant#
+# instead a diagonal matrix. So, we have#
+#
+stk5 <- inla.stack(data=list(resp=SPDEtoy$y), #
+		A=list(A5,1),#
+		effects=list(i=1:spde5$n.spde,m=rep(1,nrow(SPDEtoy))), #
+		tag='est')#
+#
+res5 <- inla(resp ~ 0 + m + f(i, model=spde5),#
+		data=inla.stack.data(stk5),#
+		control.predictor=list(A=inla.stack.A(stk5)))
+library(INLA)
+data(SPDEtoy)#
+str(SPDEtoy)#
+#
+spde5 <- inla.spde2.matern(mesh5, alpha=2)#
+coords <- as.matrix(SPDEtoy[,1:2])#
+A5 <- inla.spde.make.A(mesh5, loc=coords)#
+# We have that the SPDE approach defines a model on the mesh nodes, and usually the#
+# number of nodes are not equal to the number of locations where we have data observed.#
+# The inla.stack function allow us to work with predictors that includes terms with different#
+# dimentions. The three main inla.stack() arguments are the data vectors list, a#
+# list of projector matrices (each one related to one block effect) and the effects.#
+# We need two projector matrices, the projector matrix for the latent field and a matrix#
+# to map one-to-one the ’covariate’ and the response. This last one can be just a constant#
+# instead a diagonal matrix. So, we have#
+#
+stk5 <- inla.stack(data=list(resp=SPDEtoy$y), #
+		A=list(A5,1),#
+		effects=list(i=1:spde5$n.spde,m=rep(1,nrow(SPDEtoy))), #
+		tag='est')#
+#
+res5 <- inla(resp ~ 0 + m + f(i, model=spde5),#
+		data=inla.stack.data(stk5),#
+		control.predictor=list(A=inla.stack.A(stk5)))
+data(SPDEtoy)#
+str(SPDEtoy)#
+pl.dom <- cbind(c(0,1,1,0.7,0), c(0,0,0.7,1,1))#
+mesh5 <- inla.mesh.2d(, pl.dom, max.e=c(0.092, 0.2))#
+spde5 <- inla.spde2.matern(mesh5, alpha=2)#
+coords <- as.matrix(SPDEtoy[,1:2])#
+A5 <- inla.spde.make.A(mesh5, loc=coords)
+stk5 <- inla.stack(data=list(resp=SPDEtoy$y), #
+		A=list(A5,1),#
+		effects=list(i=1:spde5$n.spde,m=rep(1,nrow(SPDEtoy))), #
+		tag='est')#
+#
+res5 <- inla(resp ~ 0 + m + f(i, model=spde5),#
+		data=inla.stack.data(stk5),#
+		control.predictor=list(A=inla.stack.A(stk5)))
+res5$summary.hyperpar
+which(substr(rownames(result$summary.hyperpar),1,6) == "Theta2")
+plot(field.2D$marginals.range.nominal$variance.nominal.1)
+plot(field.2D$marginals.variance.nominal$variance.nominal.1)
+########################################################################################### Predicted Values##########################################################################################	output	<-	inla.spde2.result(res.2D.group.ar1,"i2D",spde2D)	obs.index = inla.stack.index(stack.2D, "2D.obs")$data	pred.index = inla.stack.index(stack.2D, "2D.pred")$data	######################################################################################	### Merge model output back to the data frame with the observations.	######################################################################################	DAT.out	<-	data.frame(cbind(DAT,				Mean =  result$summary.fitted.values$mean[obs.index],				q.025 = result$summary.fitted.values$"0.025quant"[obs.index],				q.975 = result$summary.fitted.values$"0.975quant"[obs.index]))	temp	<- 	DAT.out[is.na(DAT.out$Ntrials)==T,]	DAT.out[is.na(DAT.out$Ntrials)==T,c('Mean', 'q.025', 'q.975')]	<- ANTI.LOGIT(DAT.out[is.na(DAT.out$Ntrials)==T,c('Mean', 'q.025
+', 'q.975')])	DAT.miss.out	<-	data.frame(cbind(DAT.miss,				Mean = ANTI.LOGIT(result$summary.fitted.values$mean[pred.index]),				q.025 = ANTI.LOGIT(result$summary.fitted.values$"0.025quant"[pred.index]),				q.975 = ANTI.LOGIT(result$summary.fitted.values$"0.975quant"[pred.index])))#
+	DAT.all	<-	data.frame(rbind(DAT.out,DAT.miss.out))	DAT.all	<-	DAT.out#
+	DAT.all$Range 		<-	DAT.all$q.975- DAT.all$q.025	DAT.all$plot.range	<-	sqrt(1 / DAT.all$Range)	DAT.all$group 		<- 1 	DAT.all$long		<- DAT.all$X.loc *1000	DAT.all$lat			<- DAT.all$Y.loc *1000########################################################################################### Write Results to File and Make Plots###########################################################################################
+##########################################################################################p	<-	list()for(i in 1:nrow(Year.Group)){TEMP	<-	 DAT.all[DAT.all$year.group == Year.Group$label[i],]p2	<-	ggplot()+		geom_polygon(data=shore.df[shore.df$POLYTYPE == "Land" | shore.df$POLYTYPE == "Island" ,], fill=grey(0.5),color=NA) +			aes(long,lat,group=group) +		coord_cartesian(xlim = x.lim,ylim=y.lim) +		bGrid +bAxis + bBack + bTics +# 		scale_size_continuous(range=c(4,12))+ 		scale_colour_gradient(low = "blue",high="red",breaks=Breaks,limits=c(0,1)) +    	geom_point(data=TEMP,alpha=0.7,    			mapping=aes(long,lat,group,colour=Mean,size=plot.range))+     	ggtitle(paste("PO-PM Eelgrass\n Years: ",substr(Year.Group$label[i],3,11)))p[[i]]	<-	 p2#
+}for(i in 1:nrow(Year.Group)){	quartz()	print(p[[i]])}
+p2	<-	ggplot()+		geom_polygon(data=shore.df[shore.df$POLYTYPE == "Land" | shore.df$POLYTYPE == "Island" ,], fill=grey(0.5),color=NA) +			aes(long,lat,group=group) +		coord_cartesian(xlim = x.lim,ylim=y.lim) +		bGrid +bAxis + bBack + bTics +# 		scale_size_continuous(range=c(4,12))+ 		scale_colour_gradient(low = "blue",high="red",breaks=Breaks,limits=c(0,1), 				labels=c("A","B","C","D"))+    	geom_point(data=TEMP,alpha=0.7,    			mapping=aes(long,lat,group,colour=Mean,size=plot.range))+     	ggtitle(paste("PO-PM Eelgrass\n Years: ",substr(Year.Group$label[i],3,11)))p2
+p2	<-	ggplot()+		geom_polygon(data=shore.df[shore.df$POLYTYPE == "Land" | shore.df$POLYTYPE == "Island" ,], fill=grey(0.5),color=NA) +			aes(long,lat,group=group) +		coord_cartesian(xlim = x.lim,ylim=y.lim) +		bGrid +bAxis + bBack + bTics +# 		scale_size_continuous(range=c(4,12))+ 		scale_colour_gradient(low = "blue",high="red",breaks=Breaks,limits=c(0,1), 				labels=c("A","B","C","D","E"))+    	geom_point(data=TEMP,alpha=0.7,    			mapping=aes(long,lat,group,colour=Mean,size=plot.range))+     	ggtitle(paste("PO-PM Eelgrass\n Years: ",substr(Year.Group$label[i],3,11)))p2
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10B2[1]<- 10SD	 = 0.5gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i] ) / (1 + BETA * B[i] ))* exp(rnorm(1,0,SD)-0.5*SD^2)	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i]) / (1 + BETA * B2[i]))* rgamma(1,gamma.beta,gamma.beta)}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETA# par(mfrow=c(2,1))# plot(B,pch=".",ylab="LOG-NORM")# abline(h=EQUIL,col=2)# plot(B2,pch=".",ylab="GAMMA")# abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)# }
+j=1
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10B2[1]<- 10SD	 = 0.5gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i] ) / (1 + BETA * B[i] ))* exp(rnorm(1,0,SD)-0.5*SD^2)	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i]) / (1 + BETA * B2[i]))* rgamma(1,gamma.beta,gamma.beta)}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETA# par(mfrow=c(2,1))# plot(B,pch=".",ylab="LOG-NORM")# abline(h=EQUIL,col=2)# plot(B2,pch=".",ylab="GAMMA")# abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)# }
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)J[1]J2[1]
+EQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETA# par(mfrow=c(2,1))# plot(B,pch=".",ylab="LOG-NORM")# abline(h=EQUIL,col=2)# plot(B2,pch=".",ylab="GAMMA")# abline(h=EQUIL,col=2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10B2[1]<- 10SD	 = 0.5gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i] ) / (1 + BETA * B[i] ))* exp(rnorm(1,0,SD)-0.5*SD^2)	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i]) / (1 + BETA * B2[i]))* rgamma(1,gamma.beta,gamma.beta)}#
+# equilibrium# EQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETA# # par(mfrow=c(2,1))# # plot(B,pch=".",ylab="LOG-NORM")# # abline(h=EQUIL,col=2)# # plot(B2,pch=".",ylab="GAMMA")# # abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)J[1]J2[1]# }
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10B2[1]<- 10SD	 = 0.5gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i] ) / (1 + BETA * B[i] ))* exp(rnorm(1,0,SD)-0.5*SD^2)	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i]) / (1 + BETA * B2[i]))* rgamma(1,gamma.beta,gamma.beta)}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)J[1]J2[1]
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10B2[1]<- 10SD	 = 0.5gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i] ) / (1 + BETA * B[i] ))* exp(rnorm(1,0,SD)-0.5*SD^2)	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i]) / (1 + BETA * B2[i]))* rgamma(1,gamma.beta,gamma.beta)}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)# J[1]# J2[1] }par(mfrow=c(2,1))hist(J,breaks=50)abline(v=EQUIL,col=2)hist(J2,breaks=50)abline(v=EQUIL,col=2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10B2[1]<- 10SD	 = 0.5gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i] ) / (1 + BETA * B[i] ))* exp(rnorm(1,0,SD)-0.5*SD^2)	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i]) / (1 + BETA * B2[i]))* rgamma(1,gamma.beta,gamma.beta)}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETA# par(mfrow=c(2,1))# plot(B,pch=".",ylab="LOG-NORM")# abline(h=EQUIL,col=2)# plot(B2,pch=".",ylab="GAMMA")# abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)# J[1]# J2[1] }
+par(mfrow=c(2,1))hist(J,breaks=50)abline(v=EQUIL,col=2)hist(J2,breaks=50)abline(v=EQUIL,col=2)
+X<-rgamma(100000,gamma.beta,gamma.beta)hist(X)mean(X)
+X<-rgamma(100000,gamma.beta,gamma.beta)hist(X)mean(X)var(X)sd(X)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10B2[1]<- 10SD	 = 0.000001gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10B2[1]<- 10SD	 = 0.000001gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10000B2[1]<- 10000SD	 = 0.000001gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 100030B2[1]<- 10030SD	 = 0.000001gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10030B2[1]<- 10030SD	 = 0.000001gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10030B2[1]<- 10030SD	 = 0.1gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)
+EQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j) J[1] J2[1]
+j=1
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10030B2[1]<- 10030SD	 = 0.1gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)# for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j) J[1] J2[1]#  }
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10030B2[1]<- 10030SD	 = 0.1gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)  for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETApar(mfrow=c(2,1))plot(B,pch=".",ylab="LOG-NORM")abline(h=EQUIL,col=2)plot(B2,pch=".",ylab="GAMMA")abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)#  J[1]#  J2[1]  }par(mfrow=c(2,1))hist(J,breaks=50)abline(v=EQUIL,col=2)hist(J2,breaks=50)abline(v=EQUIL,col=2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10030B2[1]<- 10030SD	 = 0.1gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)  for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETA# par(mfrow=c(2,1))# plot(B,pch=".",ylab="LOG-NORM")# abline(h=EQUIL,col=2)# plot(B2,pch=".",ylab="GAMMA")# abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)#  J[1]#  J2[1]  }par(mfrow=c(2,1))hist(J,breaks=50)abline(v=EQUIL,col=2)hist(J2,breaks=50)abline(v=EQUIL,col=2)
+par(mfrow=c(2,1))hist(J,breaks=50)abline(v=EQUIL,col=2)abline(v=mean(J),col=4,lwd=2)hist(J2,breaks=50)abline(v=EQUIL,col=2,lwd=2)abline(v=mean(J2),col=4,lwd=2)
+N	<- 10000#
+B	<- rep(0,N)#
+B2	<- rep(0,N)#
+B[1]<- 10030#
+B2[1]<- 10030#
+#
+SD	 = 0.5#
+gamma.beta	<-	1/SD^2#
+#
+M	 = 0.2	#
+ALP  = 2#
+BETA = 0.001#
+#
+J	<-	 rep(0,1000)#
+J2	<-	 rep(0,1000)#
+#
+  for(j in 1:1000){#
+for(i in 1:(N-1)){#
+	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))#
+	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))#
+}#
+# equilibrium#
+#
+EQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETA#
+# par(mfrow=c(2,1))#
+# plot(B,pch=".",ylab="LOG-NORM")#
+# abline(h=EQUIL,col=2)#
+# plot(B2,pch=".",ylab="GAMMA")#
+# abline(h=EQUIL,col=2)#
+SD#
+EQUIL#
+J[j] <- mean(B[1000:N])#
+J2[j] <- mean(B2[1000:N])#
+print(j)#
+#  J[1]#
+#  J2[1]#
+  }#
+#
+par(mfrow=c(2,1))#
+hist(J,breaks=50)#
+abline(v=EQUIL,col=2)#
+abline(v=mean(J),col=4,lwd=2)#
+hist(J2,breaks=50)#
+abline(v=EQUIL,col=2,lwd=2)#
+abline(v=mean(J2),col=4,lwd=2)
+EQUIL - mean(J)EQUIL - mean(J2)
+N	<- 10000B	<- rep(0,N)B2	<- rep(0,N)B[1]<- 10030B2[1]<- 10030SD	 = 0.5gamma.beta	<-	1/SD^2M	 = 0.2	ALP  = 2BETA = 0.001J	<-	 rep(0,1000)J2	<-	 rep(0,1000)  for(j in 1:1000){for(i in 1:(N-1)){	B[i+1]	<-	B[i] *exp(-M) + ((ALP * B[i]  * exp(rnorm(1,0,SD)-0.5*SD^2) )    / (1 + BETA * B[i] ))	B2[i+1]	<-	B2[i]*exp(-M) + ((ALP * B2[i] * rgamma(1,gamma.beta,gamma.beta)) / (1 + BETA * B2[i]))}#
+# equilibriumEQUIL	<-	 (ALP / (BETA*(1-exp(-M)) )) - 1 / BETA# par(mfrow=c(2,1))# plot(B,pch=".",ylab="LOG-NORM")# abline(h=EQUIL,col=2)# plot(B2,pch=".",ylab="GAMMA")# abline(h=EQUIL,col=2)#
+SDEQUILJ[j] <- mean(B[1000:N])J2[j] <- mean(B2[1000:N])print(j)#  J[1]#  J2[1]  }par(mfrow=c(2,1))hist(J,breaks=50)abline(v=EQUIL,col=2)abline(v=mean(J),col=4,lwd=2)hist(J2,breaks=50)abline(v=EQUIL,col=2,lwd=2)abline(v=mean(J2),col=4,lwd=2)EQUIL - mean(J)EQUIL - mean(J2)
+load("/Users/ole.shelton/Documents/Science/Active projects/Herring/Puget Sound Herring/_WDFW data/historical data entry/_CP code/_OUTPUT FITS/2014-11-07 ;CP Eel.Grass ; A08 ; ;Time = Grouped , five.year ;Space = 1D ;AR = Constant ;Int.only = TRUE.RData")
+ls()
+Output
+names(Output)
+log(5)
+log(3)
+log(1000)
+log(995)
+jags.model.rand
+samps <- coda.samples(jags.model.rand, jags.params)
+samps <- coda.samples(jags.model.rand, jags.params,Niter)
+######################################################################################################################################################################################### FIXED for the match between the tags + primer and the substrate#####	+ RANDOM EFFECT shared for each species nd ##########################################################################################N.gammas	<-	1#length(COVAR)jagsscript = cat("model {	for(l in 1:N.t){	  	for(k in 1:N.tag){		  	for(j in 1:N.sp){	  			for(i in 1:N.rep){  					DATA[i,j,k,l] ~ dpois(exp(lambda[i,j,k,l]))				}			} 		} 	}#
+	for(l in 1:N.t){		for(k in 1:N.tag){				for(i in 1:N.rep){					lambda[i,1,k,l]		<- betas[1,l] 				+ gammas*COVAR.F[i,1,k,l] + eta[i,1,k,l] + phi[i,1,k,l] #+ gammas[2]*COVAR.R[i,1,k,l] 				}  			for(j in 2:N.sp){				for(i in 1:N.rep){					lambda[i,j,k,l]		<- betas[1,l] + betas[j,l] 	+ gammas*COVAR.F[i,j,k,l] + eta[i,1,k,l] + phi[i,1,k,l] #+ gammas[2]*COVAR.R[i,j,k,l] + eta[i,j,k,l] + phi[i,j,k,l]				}			}			}	}	for(l in 1:N.t){		for(k in 1:N.tag){	  		for(j in 1:N.sp){	  			for(i in 1:N.rep){  					eta[i,j,k,l] ~ dnorm(0, 1/sigma2)  					phi[i,j,k,l] ~ dnorm(0, 1/tau2[j])				} 			} 		}	}	### Derived Quantities		for(l in 1:N.t){		p[1,l] <- exp(betas[1,l])		for(j in 2:N.sp){			p[j,l]	<-	exp(betas[1,l] + betas[j,l])			}	}		for(l in 1:N.t){		for(j in 1:N.sp){			P[j,l]	<-	p[j,l] / sum(p[,l])		}	  	}#
+  	### Priors	for(l in 1:N.t){	  	for(j in 1:N.sp){		 	betas[j,l] ~ dunif(-1000,1000)     	}	}#   	for(i in 1:N.gammas){		 gammas ~ dnorm(0,0.001) #    	}#
+ 	sigma2 ~ dunif(0,10000) 	for(j in 1:N.sp){	 	tau2[j] ~ dunif(0,10000)	}#
+}", file="jags_dummy1.txt")  jags.data     = list("DATA","N.t","N.sp","N.tag","N.rep","COVAR.F") #,"COVAR.R","N.gammas"  jags.params   = c("betas","gammas","sigma2","tau2","P")  model.loc		= c("jags_dummy1.txt")	Nburn = 10000	Niter = 10000	Nchain=	3	Inits = NULL	for(i in 1:Nchain){		Inits[[i]]	<- list("betas"=matrix(runif(N.t*N.sp,-10,10),N.sp,N.t), 						"gammas"=runif(N.gammas,-10,10),						"sigma2"=runif(1,1,10),						"tau2"=runif(N.sp,1,10))	}  	jags.model.rand = jags(jags.data, inits = Inits, parameters.to.save= jags.params, model.file=model.loc,   						n.chains = Nchain, n.burnin = Nburn, n.thin = 1, n.iter = Nburn+Niter, DIC = TRUE)
+##########################################################################################N.gammas	<-	1#length(COVAR)jagsscript = cat("model {	for(l in 1:N.t){	  	for(k in 1:N.tag){		  	for(j in 1:N.sp){	  			for(i in 1:N.rep){  					DATA[i,j,k,l] ~ dpois(exp(lambda[i,j,k,l]))				}			} 		} 	}#
+	for(l in 1:N.t){		for(k in 1:N.tag){				for(i in 1:N.rep){					lambda[i,1,k,l]		<- betas[1,l] 				+ gammas*COVAR.F[i,1,k,l] + eta[i,1,k,l] #+ phi[i,1,k,l] #+ gammas[2]*COVAR.R[i,1,k,l] 				}  			for(j in 2:N.sp){				for(i in 1:N.rep){					lambda[i,j,k,l]		<- betas[1,l] + betas[j,l] 	+ gammas*COVAR.F[i,j,k,l] + eta[i,1,k,l] #+ phi[i,1,k,l] #+ gammas[2]*COVAR.R[i,j,k,l] + eta[i,j,k,l] + phi[i,j,k,l]				}			}			}	}	for(l in 1:N.t){		for(k in 1:N.tag){	  		for(j in 1:N.sp){# 					phi.temp[j,k,l]	~ dnorm(0, 1/tau2[j])	  			for(i in 1:N.rep){  					eta[i,j,k,l] ~ dnorm(0, 1/sigma2)				} 			} 		}	}	### Derived Quantities		for(l in 1:N.t){		p[1,l] <- exp(betas[1,l])		for(j in 2:N.sp){			p[j,l]	<-	exp(betas[1,l] + betas[j,l])			}	}		for(l in 1:N.t){		for(j in 1:N.sp){			P[j,l]	<-	p[j,l] / sum(p[,l])		}	  	}#
+  	### Priors	for(l in 1:N.t){	  	for(j in 1:N.sp){		 	betas[j,l] ~ dunif(-30,1000)     	}	}#   	for(i in 1:N.gammas){		 gammas ~ dnorm(0,0.001) #    	}#
+ 	sigma2 ~ dunif(0,100)#  	for(j in 1:N.sp){# 	 	tau2[j] ~ dunif(0,100)# 	}#
+}", file="jags_dummy1.txt")  jags.data     = list("DATA","N.t","N.sp","N.tag","N.rep","COVAR.F") #,"COVAR.R","N.gammas"  jags.params   = c("betas","gammas","sigma2","P") #"tau2"  model.loc		= c("jags_dummy1.txt")	Nburn = 10000	Niter = 10000	Nchain=	3	Inits = NULL	for(i in 1:Nchain){		Inits[[i]]	<- list("betas"=matrix(runif(N.t*N.sp,-10,10),N.sp,N.t), 						"gammas"=runif(N.gammas,-10,10),						"sigma2"=runif(1,1,10),						"tau2"=runif(N.sp,1,10))	}  	jags.model.rand = jags(jags.data, inits = Inits, parameters.to.save= jags.params, model.file=model.loc,   						n.chains = Nchain, n.burnin = Nburn, n.thin = 1, n.iter = Nburn+Niter, DIC = TRUE)
+1/1000
+Quad/100000
+# A stochastic exponential growth model, where ln(lambda(t)) ~ N(0,q), and lambda(t) = N(t+1)/N(t) #
+# ln(N(t+1)/N(t)) is normal; a 10x increase is as likely as a 1/10 decrease#
+# we assume no density dependence#
+# this version adds temporal autocorrelation to the growth rates#
+#
+library(boot) # required for corr function = weighted correlation, with weights inversely proportional to variance#
+nsim=100000 #number of simulations#
+T=20 #10 yrs assessment and 10 year response period#
+u= 0 # long-term (parametric) population growth rate, in log space#
+q = 0.02 #some reasonable vertebrate process standard deviation.#
+n0=1000  # initial N#
+rho = 0 # autocorrelation parameter; -1 < rho < 1#
+#
+Step=matrix(rnorm(T*nsim,u - 0.5*q^2,q),nsim,T)  # fill a dummy matrix#
+# for each simulation, use the first random growth rate to re-calculate the rest#
+# the mean for each random draw is the product of rho and the growth rate in the previous time period#
+# for (j in 1:nsim){ #
+  	for (i in 2:T){#
+   		Step[,i] <- rnorm(nsim,Step[,i-1]*rho - 0.5*q^2,q)#
+#    	Step[,i] <- rnorm(nsim,Step[,i-1]*rho ,q)#
+	}#
+# }#
+# each row of Step is a replicate simulation of t temporally-autocorrelated growth rates#
+simts = log(n0)+apply(Step, 1, cumsum)#
+# apply changed each simulation to appear in columns with cumulative sums of log-space growth rates#
+# each column is a replicate simulation of log(N(t))#
+# now to make this just like real data, convert back to non-log scale#
+N = exp(simts)#
+mean(N[T,])#
+#
+# N has t rows and nsim columns#
+# each column is a random walk of N values#
+#
+# you can plot some of the simulations#
+par(mfrow=c(2,4))#
+    for(i in 1:8)#
+ plot(N[,i],ylab="N", xlab="years", main=paste("simulation",i))#
+Quad = seq(1:4)#
+grow1 = seq(1:nsim)#
+grow2 = seq(1:nsim)#
+time1 = seq(1:10)#
+time2 = seq(1:10)#
+W = seq(1:nsim)#
+#
+for (j in 1:nsim) {  #
+  firstdata = N[1:10,j]#
+  firstdata = log(firstdata)#
+  Adata = data.frame(time1,firstdata)#
+  colnames(Adata)<- c("time","LogN")#
+  secondata = N[11:20,j]#
+  secondata = log(secondata)#
+  Bdata = data.frame(time2,secondata)#
+  colnames(Bdata)<- c("time","LogN")#
+  A1 <- lm(LogN ~ time, data = Adata)#
+  A <- A1$coef[2]#
+  W1 <- summary(A1)$coefficients[2,2]#
+  grow1[j] = exp(A) - 1#
+  B1 <- lm(LogN ~ time, data = Bdata)#
+  B <- B1$coef[2]#
+  W2 <- summary(B1)$coefficients[2,2]#
+  grow2[j] = exp(B) - 1#
+  W[j] = 2/(W1+W2)#
+}  #
+#
+# get the standard and weighted correlations of grow1, grow2#
+cor(grow2,grow1)#
+AB <- cbind(grow1,grow2)#
+corr(AB,W)#
+#
+# the Quad routine places each time series in one of the 4 quadrants, based on growth rates in time1 and time2#
+Quad[1] = 0#
+Quad[2] = 0#
+Quad[3] = 0#
+Quad[4] = 0#
+for (i in 1:nsim) {#
+if(grow2[i]>0) {#
+   if(grow1[i]>0)    {#
+   Quad[1] = Quad[1] + 1}#
+   else          {#
+   Quad[2] = Quad[2] + 1}#
+   }#
+else if(grow1[i]>0)  {#
+   Quad[3] = Quad[3] + 1}#
+else {#
+   Quad[4] = Quad[4] + 1}#
+}  #
+Quad
+Quad/100000
+?seq
+log(6)
+log(3+3)
+log(3)+log(3)
+library(ncdf)library(reshape2)library(rgdal)library(mgcv)library(ggplot2)library(scales)#import datanc <- open.ncdf("/Users/ole.shelton/Documents/Science/Active projects/Exxon/ROMS models/shelikof.nc")#
+#what is insideprint(nc)#pull out the variableslon		<-	get.var.ncdf(nc,"LONGITUDE51_134")lat		<-	get.var.ncdf(nc,"LATITUDE68_234")Time	<-	get.var.ncdf(nc,"TIME1")Depth	<-	get.var.ncdf(nc,"ZSALT")Temp	<-	get.var.ncdf(nc,"TEMP")Date	<- as.Date(as.POSIXct(nc$dim$TIME1$vals, origin="1900-01-01"))# Get rid of extra months and years	MONTHS	<-	which(substr(Date,6,7) == "06" | 					substr(Date,6,7) == "07" |					substr(Date,6,7) == "08" |					substr(Date,6,7) == "09" )	Date.month	<-	Date[MONTHS]	YEARS	<-	which(substr(Date,1,4) == "1999" | 					substr(Date,1,4) == "2001" |					substr(Date,1,4) == "2003" |					substr(Date,1,4) == "2005" |					substr(Date,1,4) == "2007" |					substr(Date,1,4) == "2009" |					substr(Date,1,4) == "2011" )	these.temp		<-	YEARS[match(MONTHS,YEARS)]	THESE  		<- 	these.temp[is.na(these.temp)==F]Date.names <- as.character(Date[THESE])Temp	<-	Temp[,,,c(THESE)]dimnames(Temp)	<- list(Lon=lon,Lat=lat,Depth=Depth,Date=Date.names)########################################################################################### Subset by year and create a 2D array##########################################################################################YEAR	<-	c("1999","2001","2003","2005","2007","2009","2011")All.years	<- NULLfor (i in 1:length(YEAR)){	THESE	<-	which(substr(Date.names,1,4)==YEAR[i])	NAME.temp	<- paste("Y.",YEAR[i],sep="")		assign(NAME.temp,apply(Temp[,,,c(THESE)],c(1,2,3),mean,na.rm=T))	temp.dat	<-	melt(eval(as.name(NAME.temp)),c("lon","lat","depth"))	temp.dat	<-	temp.dat[is.nan(temp.dat$value)==F,]	temp.dat	<-	cbind(Year = YEAR[i],temp.dat)	All.years	<- rbind(All.years,temp.dat)}## Cull to only include the maximum depth available at each location
+All.years.trim	<-	aggregate(All.years$depth,by=list(lon=All.years$lon,lat=All.years$lat),max)
+All.years.trim[1:!0,]
+All.years.trim[1:10,]
+All.years.trim$lon - 360
+All.years.trim[1:10,]
+All.years.trim	<-	aggregate(All.years$depth,by=list(lon=All.years$lon,lat=All.years$lat),max)colnames(All.years.trim)[3]	<-	"depth"
+All.years.trim[1:10,]
+A <- merge(All.years,All.years.trim)
+dim(A)
+dim(All.years.trim)
+A[1:100,]
+All.temp.dat <- merge(All.years,All.years.trim)All.temp.dat$lon 	<-	 All.temp.dat$lon-360############################################################################################### Convert to Albers projection##########################################################################################aea.proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"new	<-	 cbind(All.temp.dat$lon,All.temp.dat$lat)new.sp	<- SpatialPoints(new,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))new.sp.albers	<- spTransform(new.sp, CRS(aea.proj))new.dat		<- as(new.sp.albers,"data.frame")All.temp.dat$LonUTMAlbers	<-	new.dat$coords.x1All.temp.dat$LatUTMAlbers	<-	new.dat$coords.x2
+All.temp.dat[1:10,]
+library(ncdf)library(reshape2)library(rgdal)library(mgcv)library(ggplot2)library(scales)#import datanc <- open.ncdf("/Users/ole.shelton/Documents/Science/Active projects/Exxon/ROMS models/shelikof.nc")#
+#what is insideprint(nc)#pull out the variableslon		<-	get.var.ncdf(nc,"LONGITUDE51_134")lat		<-	get.var.ncdf(nc,"LATITUDE68_234")Time	<-	get.var.ncdf(nc,"TIME1")Depth	<-	get.var.ncdf(nc,"ZSALT")Temp	<-	get.var.ncdf(nc,"TEMP")Date	<- as.Date(as.POSIXct(nc$dim$TIME1$vals, origin="1900-01-01"))# Get rid of extra months and years	MONTHS	<-	which(substr(Date,6,7) == "06" | 					substr(Date,6,7) == "07" |					substr(Date,6,7) == "08" |					substr(Date,6,7) == "09" )	Date.month	<-	Date[MONTHS]	YEARS	<-	which(substr(Date,1,4) == "1999" | 					substr(Date,1,4) == "2001" |					substr(Date,1,4) == "2003" |					substr(Date,1,4) == "2005" |					substr(Date,1,4) == "2007" |					substr(Date,1,4) == "2009" |					substr(Date,1,4) == "2011" )	these.temp		<-	YEARS[match(MONTHS,YEARS)]	THESE  		<- 	these.temp[is.na(these.temp)==F]Date.names <- as.character(Date[THESE])Temp	<-	Temp[,,,c(THESE)]dimnames(Temp)	<- list(Lon=lon,Lat=lat,Depth=Depth,Date=Date.names)########################################################################################### Subset by year and create a 2D array##########################################################################################YEAR	<-	c("1999","2001","2003","2005","2007","2009","2011")All.years	<- NULLfor (i in 1:length(YEAR)){	THESE	<-	which(substr(Date.names,1,4)==YEAR[i])	NAME.temp	<- paste("Y.",YEAR[i],sep="")		assign(NAME.temp,apply(Temp[,,,c(THESE)],c(1,2,3),mean,na.rm=T))	temp.dat	<-	melt(eval(as.name(NAME.temp)),c("lon","lat","depth"))	temp.dat	<-	temp.dat[is.nan(temp.dat$value)==F,]	temp.dat	<-	cbind(Year = YEAR[i],temp.dat)	All.years	<- rbind(All.years,temp.dat)}## Cull to only include the maximum depth available at each locationAll.years.trim	<-	aggregate(All.years$depth,by=list(lon=All.years$lon,lat=All.years$lat),max)colnames(All.years.trim)[3]	<-	"depth"All.temp.dat <- merge(All.years,All.years.trim)All.temp.dat$lon 	<-	 All.temp.dat$lon-360All.temp.dat$log.BottomDepth		<-	log(All.temp.dat$depth)############################################################################################### Convert to Albers projection##########################################################################################aea.proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"new	<-	 cbind(All.temp.dat$lon,All.temp.dat$lat)new.sp	<- SpatialPoints(new,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))new.sp.albers	<- spTransform(new.sp, CRS(aea.proj))new.dat		<- as(new.sp.albers,"data.frame")All.temp.dat$LonUTMAlbers	<-	new.dat$coords.x1All.temp.dat$LatUTMAlbers	<-	new.dat$coords.x2
+All.temp.dat[1:10,]
+#########################################################################################  Go get the Trawl Temperature Data ########################################################################################## This is a duplicate of the Temperature Map create code# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999								,1:14]#
+#### Fit a spatial GAM to the observed data for each yearall.dat	<- NULL
+i=1
+dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)
+dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]
+new.dat[1:!0,]
+new.dat[1:10,]
+### predict for all points in the projection set	new.dat	<- All.temp.dat[,c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)
+### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)
+All.temp.dat[1:20,]
+All.temp.dat	<- All.temp.dat[order(All.temp.dat$Year),]############################################################################################### Convert to Albers projection##########################################################################################aea.proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"new	<-	 cbind(All.temp.dat$lon,All.temp.dat$lat)new.sp	<- SpatialPoints(new,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))new.sp.albers	<- spTransform(new.sp, CRS(aea.proj))new.dat		<- as(new.sp.albers,"data.frame")All.temp.dat$LonUTMAlbers	<-	new.dat$coords.x1All.temp.dat$LatUTMAlbers	<-	new.dat$coords.x2#########################################################################################  Go get the Trawl Temperature Data ########################################################################################## This is a duplicate of the Temperature Map create code# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999								,1:14]#
+#### Fit a spatial GAM to the observed data for each yearall.dat	<- NULL
+i=1
+dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)
+All.temp.dat[1:!0,]
+All.temp.dat[1:10,]
+plot(value~gam.pred.temp,data=All.temp.dat)
+abline(0,1)
+library(ncdf)library(reshape2)library(rgdal)library(mgcv)library(ggplot2)library(scales)#import datanc <- open.ncdf("/Users/ole.shelton/Documents/Science/Active projects/Exxon/ROMS models/shelikof.nc")#what is insideprint(nc)#pull out the variableslon		<-	get.var.ncdf(nc,"LONGITUDE51_134")lat		<-	get.var.ncdf(nc,"LATITUDE68_234")Time	<-	get.var.ncdf(nc,"TIME1")Depth	<-	get.var.ncdf(nc,"ZSALT")Temp	<-	get.var.ncdf(nc,"TEMP")Date	<- as.Date(as.POSIXct(nc$dim$TIME1$vals, origin="1900-01-01"))# Get rid of extra months and years	MONTHS	<-	which(substr(Date,6,7) == "06" | 					substr(Date,6,7) == "07" |					substr(Date,6,7) == "08" )#					substr(Date,6,7) == "09" )	Date.month	<-	Date[MONTHS]	YEARS	<-	which(substr(Date,1,4) == "1999" | 					substr(Date,1,4) == "2001" |					substr(Date,1,4) == "2003" |					substr(Date,1,4) == "2005" |					substr(Date,1,4) == "2007" |					substr(Date,1,4) == "2009" |					substr(Date,1,4) == "2011" )	these.temp		<-	YEARS[match(MONTHS,YEARS)]	THESE  		<- 	these.temp[is.na(these.temp)==F]Date.names <- as.character(Date[THESE])Temp	<-	Temp[,,,c(THESE)]dimnames(Temp)	<- list(Lon=lon,Lat=lat,Depth=Depth,Date=Date.names)########################################################################################### Subset by year and create a 2D array##########################################################################################YEAR	<-	c("1999","2001","2003","2005","2007","2009","2011")All.years	<- NULLfor (i in 1:length(YEAR)){	THESE	<-	which(substr(Date.names,1,4)==YEAR[i])	NAME.temp	<- paste("Y.",YEAR[i],sep="")		assign(NAME.temp,apply(Temp[,,,c(THESE)],c(1,2,3),mean,na.rm=T))	temp.dat	<-	melt(eval(as.name(NAME.temp)),c("lon","lat","depth"))	temp.dat	<-	temp.dat[is.nan(temp.dat$value)==F,]	temp.dat	<-	cbind(Year = YEAR[i],temp.dat)	All.years	<- rbind(All.years,temp.dat)}## Cull to only include the maximum depth available at each locationAll.years.trim	<-	aggregate(All.years$depth,by=list(lon=All.years$lon,lat=All.years$lat),max)colnames(All.years.trim)[3]	<-	"depth"All.temp.dat <- merge(All.years,All.years.trim)All.temp.dat$lon 	<-	 All.temp.dat$lon-360All.temp.dat$log.BottomDepth		<-	log(All.temp.dat$depth)All.temp.dat	<- All.temp.dat[order(All.temp.dat$Year),]############################################################################################### Convert to Albers projection##########################################################################################aea.proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"new	<-	 cbind(All.temp.dat$lon,All.temp.dat$lat)new.sp	<- SpatialPoints(new,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))new.sp.albers	<- spTransform(new.sp, CRS(aea.proj))new.dat		<- as(new.sp.albers,"data.frame")All.temp.dat$LonUTMAlbers	<-	new.dat$coords.x1All.temp.dat$LatUTMAlbers	<-	new.dat$coords.x2#########################################################################################  Go get the Trawl Temperature Data ########################################################################################## This is a duplicate of the Temperature Map create code# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999								,1:14]#
+#### Fit a spatial GAM to the observed data for each yearall.dat	<- NULLfor(i in 1:length(YEAR)){	dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)}
+plot(value~gam.pred.temp,data=All.temp.dat)
+abline(0,1)
+nc <- open.ncdf("/Users/ole.shelton/Documents/Science/Active projects/Exxon/ROMS models/shelikof.nc")#what is insideprint(nc)#pull out the variableslon		<-	get.var.ncdf(nc,"LONGITUDE51_134")lat		<-	get.var.ncdf(nc,"LATITUDE68_234")Time	<-	get.var.ncdf(nc,"TIME1")Depth	<-	get.var.ncdf(nc,"ZSALT")Temp	<-	get.var.ncdf(nc,"TEMP")Date	<- as.Date(as.POSIXct(nc$dim$TIME1$vals, origin="1900-01-01"))# Get rid of extra months and years	MONTHS	<-	which(substr(Date,6,7) == "05" | 					substr(Date,6,7) == "06" | 					substr(Date,6,7) == "07" |					substr(Date,6,7) == "08" )					substr(Date,6,7) == "09" )	Date.month	<-	Date[MONTHS]	YEARS	<-	which(substr(Date,1,4) == "1999" | 					substr(Date,1,4) == "2001" |					substr(Date,1,4) == "2003" |					substr(Date,1,4) == "2005" |					substr(Date,1,4) == "2007" |					substr(Date,1,4) == "2009" |					substr(Date,1,4) == "2011" )	these.temp		<-	YEARS[match(MONTHS,YEARS)]	THESE  		<- 	these.temp[is.na(these.temp)==F]Date.names <- as.character(Date[THESE])Temp	<-	Temp[,,,c(THESE)]dimnames(Temp)	<- list(Lon=lon,Lat=lat,Depth=Depth,Date=Date.names)########################################################################################### Subset by year and create a 2D array##########################################################################################YEAR	<-	c("1999","2001","2003","2005","2007","2009","2011")All.years	<- NULLfor (i in 1:length(YEAR)){	THESE	<-	which(substr(Date.names,1,4)==YEAR[i])	NAME.temp	<- paste("Y.",YEAR[i],sep="")		assign(NAME.temp,apply(Temp[,,,c(THESE)],c(1,2,3),mean,na.rm=T))	temp.dat	<-	melt(eval(as.name(NAME.temp)),c("lon","lat","depth"))	temp.dat	<-	temp.dat[is.nan(temp.dat$value)==F,]	temp.dat	<-	cbind(Year = YEAR[i],temp.dat)	All.years	<- rbind(All.years,temp.dat)}## Cull to only include the maximum depth available at each locationAll.years.trim	<-	aggregate(All.years$depth,by=list(lon=All.years$lon,lat=All.years$lat),max)colnames(All.years.trim)[3]	<-	"depth"All.temp.dat <- merge(All.years,All.years.trim)All.temp.dat$lon 	<-	 All.temp.dat$lon-360All.temp.dat$log.BottomDepth		<-	log(All.temp.dat$depth)All.temp.dat	<- All.temp.dat[order(All.temp.dat$Year),]############################################################################################### Convert to Albers projection##########################################################################################aea.proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"new	<-	 cbind(All.temp.dat$lon,All.temp.dat$lat)new.sp	<- SpatialPoints(new,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))new.sp.albers	<- spTransform(new.sp, CRS(aea.proj))new.dat		<- as(new.sp.albers,"data.frame")All.temp.dat$LonUTMAlbers	<-	new.dat$coords.x1All.temp.dat$LatUTMAlbers	<-	new.dat$coords.x2#########################################################################################  Go get the Trawl Temperature Data ########################################################################################## This is a duplicate of the Temperature Map create code# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999								,1:14]#
+#### Fit a spatial GAM to the observed data for each yearall.dat	<- NULLfor(i in 1:length(YEAR)){	dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)}
+All.temp.dat[1:10,]
+i=1
+plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],] )
+i=1
+lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )
+lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)
+min(All.temp.dat$depth)
+sort(All.temp.dat$depth)
+par(mfrow(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}
+par(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}
+library(ncdf)library(reshape2)library(rgdal)library(mgcv)library(ggplot2)library(scales)#import datanc <- open.ncdf("/Users/ole.shelton/Documents/Science/Active projects/Exxon/ROMS models/shelikof.nc")#what is insideprint(nc)#pull out the variableslon		<-	get.var.ncdf(nc,"LONGITUDE51_134")lat		<-	get.var.ncdf(nc,"LATITUDE68_234")Time	<-	get.var.ncdf(nc,"TIME1")Depth	<-	get.var.ncdf(nc,"ZSALT")Temp	<-	get.var.ncdf(nc,"TEMP")Date	<- as.Date(as.POSIXct(nc$dim$TIME1$vals, origin="1900-01-01"))# Get rid of extra months and years	MONTHS	<-	which(substr(Date,6,7) == "05" | 					substr(Date,6,7) == "06" | 					substr(Date,6,7) == "07" |					substr(Date,6,7) == "08" |					substr(Date,6,7) == "09" |					substr(Date,6,7) == "10" )	Date.month	<-	Date[MONTHS]	YEARS	<-	which(substr(Date,1,4) == "1999" | 					substr(Date,1,4) == "2001" |					substr(Date,1,4) == "2003" |					substr(Date,1,4) == "2005" |					substr(Date,1,4) == "2007" |					substr(Date,1,4) == "2009" |					substr(Date,1,4) == "2011" )	these.temp		<-	YEARS[match(MONTHS,YEARS)]	THESE  		<- 	these.temp[is.na(these.temp)==F]Date.names <- as.character(Date[THESE])Temp	<-	Temp[,,,c(THESE)]dimnames(Temp)	<- list(Lon=lon,Lat=lat,Depth=Depth,Date=Date.names)########################################################################################### Subset by year and create a 2D array##########################################################################################YEAR	<-	c("1999","2001","2003","2005","2007","2009","2011")All.years	<- NULLfor (i in 1:length(YEAR)){	THESE	<-	which(substr(Date.names,1,4)==YEAR[i])	NAME.temp	<- paste("Y.",YEAR[i],sep="")		assign(NAME.temp,apply(Temp[,,,c(THESE)],c(1,2,3),mean,na.rm=T))	temp.dat	<-	melt(eval(as.name(NAME.temp)),c("lon","lat","depth"))	temp.dat	<-	temp.dat[is.nan(temp.dat$value)==F,]	temp.dat	<-	cbind(Year = YEAR[i],temp.dat)	All.years	<- rbind(All.years,temp.dat)}## Cull to only include the maximum depth available at each locationAll.years.trim	<-	aggregate(All.years$depth,by=list(lon=All.years$lon,lat=All.years$lat),max)colnames(All.years.trim)[3]	<-	"depth"All.temp.dat <- merge(All.years,All.years.trim)All.temp.dat$lon 	<-	 All.temp.dat$lon-360All.temp.dat$log.BottomDepth		<-	log(All.temp.dat$depth)All.temp.dat	<- All.temp.dat[order(All.temp.dat$Year),]############################################################################################### Convert to Albers projection##########################################################################################aea.proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"new	<-	 cbind(All.temp.dat$lon,All.temp.dat$lat)new.sp	<- SpatialPoints(new,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))new.sp.albers	<- spTransform(new.sp, CRS(aea.proj))new.dat		<- as(new.sp.albers,"data.frame")All.temp.dat$LonUTMAlbers	<-	new.dat$coords.x1All.temp.dat$LatUTMAlbers	<-	new.dat$coords.x2#########################################################################################  Go get the Trawl Temperature Data ########################################################################################## This is a duplicate of the Temperature Map create code# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999								,1:14]#
+#### Fit a spatial GAM to the observed data for each yearall.dat	<- NULLfor(i in 1:length(YEAR)){	dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)}#
+par(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}
+library(ncdf)library(reshape2)library(rgdal)library(mgcv)library(ggplot2)library(scales)#import datanc <- open.ncdf("/Users/ole.shelton/Documents/Science/Active projects/Exxon/ROMS models/shelikof.nc")#what is insideprint(nc)#pull out the variableslon		<-	get.var.ncdf(nc,"LONGITUDE51_134")lat		<-	get.var.ncdf(nc,"LATITUDE68_234")Time	<-	get.var.ncdf(nc,"TIME1")Depth	<-	get.var.ncdf(nc,"ZSALT")Temp	<-	get.var.ncdf(nc,"TEMP")Date	<- as.Date(as.POSIXct(nc$dim$TIME1$vals, origin="1900-01-01"))# Get rid of extra months and years	MONTHS	<-	which(substr(Date,6,7) == "05" | 					substr(Date,6,7) == "06" | 					substr(Date,6,7) == "07" |					substr(Date,6,7) == "08" )# 					substr(Date,6,7) == "09" |# 					substr(Date,6,7) == "10" )	Date.month	<-	Date[MONTHS]	YEARS	<-	which(substr(Date,1,4) == "1999" | 					substr(Date,1,4) == "2001" |					substr(Date,1,4) == "2003" |					substr(Date,1,4) == "2005" |					substr(Date,1,4) == "2007" |					substr(Date,1,4) == "2009" |					substr(Date,1,4) == "2011" )	these.temp		<-	YEARS[match(MONTHS,YEARS)]	THESE  		<- 	these.temp[is.na(these.temp)==F]Date.names <- as.character(Date[THESE])Temp	<-	Temp[,,,c(THESE)]dimnames(Temp)	<- list(Lon=lon,Lat=lat,Depth=Depth,Date=Date.names)########################################################################################### Subset by year and create a 2D array##########################################################################################YEAR	<-	c("1999","2001","2003","2005","2007","2009","2011")All.years	<- NULLfor (i in 1:length(YEAR)){	THESE	<-	which(substr(Date.names,1,4)==YEAR[i])	NAME.temp	<- paste("Y.",YEAR[i],sep="")		assign(NAME.temp,apply(Temp[,,,c(THESE)],c(1,2,3),mean,na.rm=T))	temp.dat	<-	melt(eval(as.name(NAME.temp)),c("lon","lat","depth"))	temp.dat	<-	temp.dat[is.nan(temp.dat$value)==F,]	temp.dat	<-	cbind(Year = YEAR[i],temp.dat)	All.years	<- rbind(All.years,temp.dat)}## Cull to only include the maximum depth available at each locationAll.years.trim	<-	aggregate(All.years$depth,by=list(lon=All.years$lon,lat=All.years$lat),max)colnames(All.years.trim)[3]	<-	"depth"All.temp.dat <- merge(All.years,All.years.trim)All.temp.dat$lon 	<-	 All.temp.dat$lon-360All.temp.dat$log.BottomDepth		<-	log(All.temp.dat$depth)All.temp.dat	<- All.temp.dat[order(All.temp.dat$Year),]############################################################################################### Convert to Albers projection##########################################################################################aea.proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"new	<-	 cbind(All.temp.dat$lon,All.temp.dat$lat)new.sp	<- SpatialPoints(new,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))new.sp.albers	<- spTransform(new.sp, CRS(aea.proj))new.dat		<- as(new.sp.albers,"data.frame")All.temp.dat$LonUTMAlbers	<-	new.dat$coords.x1All.temp.dat$LatUTMAlbers	<-	new.dat$coords.x2#########################################################################################  Go get the Trawl Temperature Data ########################################################################################## This is a duplicate of the Temperature Map create code# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999								,1:14]#
+#### Fit a spatial GAM to the observed data for each yearall.dat	<- NULLfor(i in 1:length(YEAR)){	dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)}### Diagnostic Plotspar(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}
+### Plot in Spacesetwd(paste(plot.dir,"_Alaska Shapefile",sep=""))shp.alaska	 <-	readOGR(dsn=".",layer="Alaska-Albers")dat.alaska   <- fortify(shp.alaska,"data.frame")# Some Arguments for making prettier plotsbGrid <-theme(panel.grid =element_blank())bBack <-theme(panel.background =element_blank())bAxis <-theme(axis.title.y =element_blank())bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+### ADD trawl locations## Get rid of deep areasz.lim	<-	rep((max(abs(min(All.temp.dat$Resid.dat)),abs(max(All.temp.dat$Resid.dat))),2)z.lim[1]	<- z.lim[1] * -1
+abs(min(All.temp.dat$Resid.dat))
+z.lim	<-	rep((max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp))),2)
+abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp))
+abs(min(All.temp.dat$Resid.temp))
+All.temp.dat$Resid.temp <- All.temp.dat$value - All.temp.dat$gam.pred.temp#
+### Diagnostic Plotspar(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}### Plot in Spacesetwd(paste(plot.dir,"_Alaska Shapefile",sep=""))shp.alaska	 <-	readOGR(dsn=".",layer="Alaska-Albers")dat.alaska   <- fortify(shp.alaska,"data.frame")# Some Arguments for making prettier plotsbGrid <-theme(panel.grid =element_blank())bBack <-theme(panel.background =element_blank())bAxis <-theme(axis.title.y =element_blank())bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+### ADD trawl locations## Get rid of deep areasz.lim	<-	rep((max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp))),2)
+min(All.temp.dat$Resid.temp)
+abs(min(All.temp.dat$Resid.temp))
+abs(max(All.temp.dat$Resid.temp)))
+z.lim	<-	rep((max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp)),2)
+z.lim	<-	rep(max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp)),2)
+\ttemp.dat\t<-\ttemp.dat[is.nan(temp.dat$value)==F,]\r
+z.lim	<-	rep(max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp)),2)
+z.lim	<-	rep(max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp))),2)
+z.lim	<-	rep(max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp))),2)
+z.lim
+## Get rid of deep areasz.lim	<-	rep(max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp))),2)z.lim[1]	<- z.lim[1] * -1
+z.lim
+j=1
+p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"white",muted("red")))+    	geom_point(data= All.temp.dat ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1
+p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"white",muted("red")))+    	geom_point(data= All.temp.dat ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1
+P	<-	list()
+p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"white",muted("red")))+    	geom_point(data= All.temp.dat ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1
+p1
+p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c("blue","white","red"))+    	geom_point(data= All.temp.dat ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack
+p1
+i=2
+p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c("blue","white","red"))+    	geom_point(data= All.temp.dat ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack
+p1
+j=2
+p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c("blue","white","red"))+    	geom_point(data= All.temp.dat ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack
+p1
+### Diagnostic Plotspar(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}
+z.lim=c(-3,3)
+P	<-	list()
+p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c("blue","white","red"))+    	geom_point(data= All.temp.dat ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1
+p1
+j
+j=3
+p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c("blue","white","red"))+    	geom_point(data= All.temp.dat[All.temp.dat$Year == YEAR[j],] ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1
+p1
+P	<-	list()for(j in 1:length(YEAR)){	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c("blue","white","red"))+    	geom_point(data= All.temp.dat[All.temp.dat$Year == YEAR[j],] ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1}
+P[j]
+P[1]
+P[3]
+P[4]
+P[5]
+library(ncdf)library(reshape2)library(rgdal)library(mgcv)library(ggplot2)library(scales)#import datanc <- open.ncdf("/Users/ole.shelton/Documents/Science/Active projects/Exxon/ROMS models/shelikof.nc")#what is insideprint(nc)#pull out the variableslon		<-	get.var.ncdf(nc,"LONGITUDE51_134")lat		<-	get.var.ncdf(nc,"LATITUDE68_234")Time	<-	get.var.ncdf(nc,"TIME1")Depth	<-	get.var.ncdf(nc,"ZSALT")Temp	<-	get.var.ncdf(nc,"TEMP")Date	<- as.Date(as.POSIXct(nc$dim$TIME1$vals, origin="1900-01-01"))# Get rid of extra months and years	MONTHS	<-	which(substr(Date,6,7) == "05" | 					substr(Date,6,7) == "06" | 					substr(Date,6,7) == "07" |					substr(Date,6,7) == "08" )# 					substr(Date,6,7) == "09" |# 					substr(Date,6,7) == "10" )	Date.month	<-	Date[MONTHS]	YEARS	<-	which(substr(Date,1,4) == "1999" | 					substr(Date,1,4) == "2001" |					substr(Date,1,4) == "2003" |					substr(Date,1,4) == "2005" |					substr(Date,1,4) == "2007" |					substr(Date,1,4) == "2009" |					substr(Date,1,4) == "2011" )	these.temp		<-	YEARS[match(MONTHS,YEARS)]	THESE  		<- 	these.temp[is.na(these.temp)==F]Date.names <- as.character(Date[THESE])Temp	<-	Temp[,,,c(THESE)]dimnames(Temp)	<- list(Lon=lon,Lat=lat,Depth=Depth,Date=Date.names)########################################################################################### Subset by year and create a 2D array##########################################################################################YEAR	<-	c("1999","2001","2003","2005","2007","2009","2011")All.years	<- NULLfor (i in 1:length(YEAR)){	THESE	<-	which(substr(Date.names,1,4)==YEAR[i])	NAME.temp	<- paste("Y.",YEAR[i],sep="")		assign(NAME.temp,apply(Temp[,,,c(THESE)],c(1,2,3),mean,na.rm=T))	temp.dat	<-	melt(eval(as.name(NAME.temp)),c("lon","lat","depth"))	temp.dat	<-	temp.dat[is.nan(temp.dat$value)==F,]	temp.dat	<-	cbind(Year = YEAR[i],temp.dat)	All.years	<- rbind(All.years,temp.dat)}## Cull to only include the maximum depth available at each locationAll.years.trim	<-	aggregate(All.years$depth,by=list(lon=All.years$lon,lat=All.years$lat),max)colnames(All.years.trim)[3]	<-	"depth"All.temp.dat 		<- merge(All.years,All.years.trim)All.temp.dat$lon 	<-	 All.temp.dat$lon-360All.temp.dat	<-	All.temp.dat[All.temp.dat$depth > 20,]All.temp.dat$log.BottomDepth		<-	log(All.temp.dat$depth)All.temp.dat	<- All.temp.dat[order(All.temp.dat$Year),]############################################################################################### Convert to Albers projection##########################################################################################aea.proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"new	<-	 cbind(All.temp.dat$lon,All.temp.dat$lat)new.sp	<- SpatialPoints(new,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))new.sp.albers	<- spTransform(new.sp, CRS(aea.proj))new.dat		<- as(new.sp.albers,"data.frame")All.temp.dat$LonUTMAlbers	<-	new.dat$coords.x1All.temp.dat$LatUTMAlbers	<-	new.dat$coords.x2#########################################################################################  Go get the Trawl Temperature Data ########################################################################################## This is a duplicate of the Temperature Map create code# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999								,1:14]#
+#### Fit a spatial GAM to the observed data for each yearall.dat	<- NULLfor(i in 1:length(YEAR)){	dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)}All.temp.dat$Resid.temp <- All.temp.dat$value - All.temp.dat$gam.pred.temp#
+### Diagnostic Plotspar(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}### Plot in Spacesetwd(paste(plot.dir,"_Alaska Shapefile",sep=""))shp.alaska	 <-	readOGR(dsn=".",layer="Alaska-Albers")dat.alaska   <- fortify(shp.alaska,"data.frame")# Some Arguments for making prettier plotsbGrid <-theme(panel.grid =element_blank())bBack <-theme(panel.background =element_blank())bAxis <-theme(axis.title.y =element_blank())bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+### ADD trawl locations## Get rid of deep areasz.lim	<-	rep(max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp))),2)z.lim[1]	<- z.lim[1] * -1z.lim=c(-3,3)P	<-	list()for(j in 1:length(YEAR)){	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c("blue","white","red"))+    	geom_point(data= All.temp.dat[All.temp.dat$Year == YEAR[j],] ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1}
+P[[1]]
+P[[2]]
+P[[3]]
+P[[4]]
+P[[5]]
+P[[6]]
+P[[7]]
+pdf("Compare Trawl and ROMS Temperature.pdf",onefile=TRUE,width=15,5)setwd(plot.dir)par(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}## write plots to file	for(j in 1:length(YEAR)){		print(P[j])	}dev.off()
+### Diagnostic Plotssetwd(plot.dir)pdf("Compare Trawl and ROMS Temperature.pdf",onefile=TRUE,width=15,5)par(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}## write plots to file	for(j in 1:length(YEAR)){		print(P[j])	}dev.off()
+# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers+temp.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999								,1:14]#
+#### Fit a spatial GAM to the observed data for each yearall.dat	<- NULLfor(i in 1:length(YEAR)){	dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- All.temp.dat[All.temp.dat$Year == YEAR[i],c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	All.temp.dat[All.temp.dat$Year == YEAR[i],"gam.pred.temp"]		<- predict.gam(out.2,new.dat)}All.temp.dat$Resid.temp <- All.temp.dat$value - All.temp.dat$gam.pred.temp#
+### Plot in Spacesetwd(paste(plot.dir,"_Alaska Shapefile",sep=""))shp.alaska	 <-	readOGR(dsn=".",layer="Alaska-Albers")dat.alaska   <- fortify(shp.alaska,"data.frame")# Some Arguments for making prettier plotsbGrid <-theme(panel.grid =element_blank())bBack <-theme(panel.background =element_blank())bAxis <-theme(axis.title.y =element_blank())bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+### ADD trawl locations## Get rid of deep areasz.lim	<-	rep(max(abs(min(All.temp.dat$Resid.temp)),abs(max(All.temp.dat$Resid.temp))),2)z.lim[1]	<- z.lim[1] * -1z.lim=c(-3,3)P	<-	list()for(j in 1:length(YEAR)){	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c("blue","white","red"))+    	geom_point(data= All.temp.dat[All.temp.dat$Year == YEAR[j],] ,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	Resid.temp )) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Difference Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(trawl.dat$LonUTMAlbers),max(trawl.dat$LonUTMAlbers)), ylim = c(min(trawl.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1}#
+## Write plots to file### Diagnostic Plotssetwd(plot.dir)pdf("Compare Trawl and ROMS Temperature.pdf",onefile=TRUE,width=15,5)par(mfrow=c(2,4))for(i in 1:length(YEAR)){	lim	<-	c(min(All.temp.dat$value,All.temp.dat$gam.pred.temp),max(All.temp.dat$value,All.temp.dat$gam.pred.temp))	plot(value~gam.pred.temp,data=All.temp.dat[All.temp.dat$Year ==YEAR[i],],xlim=lim,ylim=lim )	abline(0,1,lty=2,col=2,lwd=3)	title(YEAR[i])}## write plots to file	for(j in 1:length(YEAR)){		print(P[j])	}dev.off()
+rm(list=ls())# Using GAMs to make temperature surfaces for the Gulf of Alaskalibrary(mgcv)library(ggplot2)library(rgdal)library(scales)# Read in the datadata.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"plot.dir	<-	"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Temperature Surfaces/"# Go get the datasetwd(data.dir)trawl.dat	<-	read.csv(file="goa_trawl_final_albers.csv",header=T)project.dat	<-	read.csv(file="goa_projection_points.csv",header=T)### GET RID OF NAstrawl.dat2	<-	trawl.dat[is.na(trawl.dat$BottomDepth)==F,]trawl.trim	<-	trawl.dat[is.na(trawl.dat$BottomTemp)==F & 							is.na(trawl.dat$BottomDepth)==F &							trawl.dat$BottomTemp != -9999							,1:14]#
+project.dat	<- project.dat[project.dat$NGDC24_M< -25,]project.dat$log.BottomDepth	<-	log(-project.dat$NGDC24_M)#
+#### Fit a spatial GAM to the observed data for each yearYEAR	<- unique(trawl.trim$Year)all.dat	<- NULLfor(i in 1:length(YEAR)){	dat.all.obs	<-	trawl.dat2[trawl.dat2$Year == YEAR[i],]	dat.all.obs$log.BottomDepth	<- log(dat.all.obs$BottomDepth)	dat	<-	trawl.trim[trawl.trim$Year == YEAR[i],]	dat$log.BottomDepth	<- log(dat$BottomDepth)#
+ 	out		<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(BottomDepth),data=dat) 	out.2	<-	gam(BottomTemp ~ te(LonUTMAlbers,LatUTMAlbers,k=7)+s(log.BottomDepth),data=dat)# 	summary(out)# 	summary(out.2)# 	# 	plot(out,pages=1,residuals=TRUE)  ## show partial residuals# 	plot(out.2,pages=1,seWithMean=TRUE) ## `with intercept' CIs# 	## run some basic model checks, including checking# 	## smoothing basis dimensions...# 	gam.check(out.2)# # 	plot(out.2,pages=1) # 	plot(out.2,pages=1,scheme=2) ## alternative visualization	THESE	<-	c("LonUTMAlbers","LatUTMAlbers","log.BottomDepth")	new.dat	<-	dat.all.obs[,THESE]	new.points <- predict.gam(out.2,new.dat)#
+	dat.all.obs$Pred.bot.temp			<-	unlist(new.points)	dat.all.obs$BottomTemp[dat.all.obs$BottomTemp == -9999]	<- NA	dat.all.obs$Resid.bot.temp			<- dat.all.obs$BottomTemp - dat.all.obs$Pred.bot.temp	all.dat	<- rbind(all.dat,dat.all.obs)#
+	### predict for all points in the projection set	new.dat	<- project.dat[,c('LonUTMAlbers','LatUTMAlbers','log.BottomDepth')]	project.dat[,paste("Bot.Temp.",YEAR[i],sep="")]		<- predict.gam(out.2,new.dat)}all.dat2<-all.dat[,c(1:14,72:74,15:71)]write.csv(all.dat2,file="goa_trawl_final_albers+temp.csv")write.csv(project.dat,file="goa_projection_points+temp.csv")######################################################################################################################################################################################################################################################################################################################################################################## PLOT SPATIAL DISTRIBUTION# Import the datafile of Alaska shorelinesetwd(paste(plot.dir,"_Alaska Shapefile",sep=""))shp.alaska	 <-	readOGR(dsn=".",layer="Alaska-Albers")dat.alaska   <- fortify(shp.alaska,"data.frame")# Some Arguments for making prettier plotsbGrid <-theme(panel.grid =element_blank())bBack <-theme(panel.background =element_blank())bAxis <-theme(axis.title.y =element_blank())bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+### ADD trawl locations## Get rid of deep areasproject.plot	<-	project.dat[project.dat$NGDC24_M > -600 & project.dat$NGDC24_M < -25,]z.lim	<-	c(2,12)P	<-	list()for(j in 1:length(YEAR)){	NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1}
+identical(P[[1]],P[[2]]
+)
+project.plot[1:10,]
+P[[1]][1:10,1:10]
+P[[1]][1:10,]
+project.plot[1:10,]
+NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title=paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1
+p1
+eval(as.name(NAME))
+project.plot$Bot.Temp.2011[1:20,]
+project.plot$Bot.Temp.2011[1:20]
+project.plot$Bot.Temp.2009[1:20]
+quartz()
+P[[1]]
+NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME)) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1
+p1
+NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1
+p1
+P	<-	list()
+j=1
+NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack
+p1
+## Get rid of deep areasproject.plot	<-	project.dat[project.dat$NGDC24_M > -600 & project.dat$NGDC24_M < -25,]z.lim	<-	c(2,12)P	<-	list()for(j in 1:length(YEAR)){	NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[j]	<-	p1}
+warnings()
+project.plot	<-	project.dat[project.dat$NGDC24_M > -600 & project.dat$NGDC24_M < -25,]z.lim	<-	c(2,12)P	<-	list()for(j in 1:length(YEAR)){	NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1}
+p1
+P[[1]]
+setwd(paste(plot.dir,"_Alaska Shapefile",sep=""))shp.alaska	 <-	readOGR(dsn=".",layer="Alaska-Albers")dat.alaska   <- fortify(shp.alaska,"data.frame")# Some Arguments for making prettier plotsbGrid <-theme(panel.grid =element_blank())bBack <-theme(panel.background =element_blank())bAxis <-theme(axis.title.y =element_blank())bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+### ADD trawl locations## Get rid of deep areasproject.plot	<-	project.dat[project.dat$NGDC24_M > -600 & project.dat$NGDC24_M < -25,]z.lim	<-	c(2,12)P	<-	list()for(j in 1:length(YEAR)){	NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack 	P[[j]]	<-	p1}
+j=1
+NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack
+p1
+P[[j]]	<-	p1
+P[[1]]
+j=2
+NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack
+P[[j]]	<-	p1
+quartz()
+p1
+P[[1]]
+P[[2]]
+## Get rid of deep areasproject.plot	<-	project.dat[project.dat$NGDC24_M > -600 & project.dat$NGDC24_M < -25,]z.lim	<-	c(2,12)P	<-	list()for(j in 1:length(YEAR)){	NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack #
+	P[[j]]	<-	list(p1)}
+P[[1]]
+## Get rid of deep areasproject.plot	<-	project.dat[project.dat$NGDC24_M > -600 & project.dat$NGDC24_M < -25,]z.lim	<-	c(2,12)P	<-	list()for(j in 1:length(YEAR)){	NAME <- paste("Bot.Temp.",YEAR[j],sep="")	p1	<-	ggplot() +		scale_size(range = c(1,1))+  		scale_colour_gradientn(limits=z.lim,colours= c(muted("blue"),"green","yellow","orange","red"))+    	geom_point(data=project.plot,alpha=0.3,    			mapping=aes(LonUTMAlbers,LatUTMAlbers,colour=	eval(as.name(NAME)))) + 		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +		labs(x = "Eastings",y="Northings",title= NAME) + #paste(YEAR[j],"Bottom Temperature (C)"))+   		coord_cartesian(xlim = c(min(project.dat$LonUTMAlbers),max(project.dat$LonUTMAlbers)), ylim = c(min(project.dat$LatUTMAlbers),6300000))+ 		bGrid  + bBack #
+	P[j]	<-	list(p1)}
+P[1]

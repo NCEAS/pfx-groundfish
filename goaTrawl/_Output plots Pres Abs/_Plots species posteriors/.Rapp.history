@@ -1,0 +1,675 @@
+beta.month[log.X$month[i] == colnames(beta.month)]
+beta.month
+sites[1:10,]
+log.x
+log.X[1:!0,]
+log.X[1:10,]
+sites	<-	expand.grid(c("r1","r2"),1:N.site)
+sites
+sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(s=sites,val=rnorm(length(sites),0,sqrt(tau2)))
+sites
+# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(length(sites),0,sqrt(tau2)))
+sites
+sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]
+i
+log.X[1:5,]
+i=12
+sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]
+log.X[12,]
+sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)
+sites
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,2)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	0.6mu.year.post.r1	<-	1.2mu.year.pre.r2	<-	0.5mu.year.post.r2	<-	0.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.8# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	merge(log.X,year.region)
+log.X[12,]
+sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]
+sites
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,2)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	0.6mu.year.post.r1	<-	1.2mu.year.pre.r2	<-	0.5mu.year.post.r2	<-	0.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.8# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	merge(log.X,year.region)for(i in 1:nrow(log.X){	log.X$val	<- log.X$
+mu[i] + 						beta.month[log.X$month[i] == colnames(beta.month)]						sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]}
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,2)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	0.6mu.year.post.r1	<-	1.2mu.year.pre.r2	<-	0.5mu.year.post.r2	<-	0.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.8# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	merge(log.X,year.region)for(i in 1:nrow(log.X)){	log.X$val	<- log.X
+$mu[i] + 						beta.month[log.X$month[i] == colnames(beta.month)]						sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]}
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,2)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	0.6mu.year.post.r1	<-	1.2mu.year.pre.r2	<-	0.5mu.year.post.r2	<-	0.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.8# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	merge(log.X,year.region)for(i in 1:nrow(log.X)){	log.X$val[i]	<- lo
+g.X$mu[i] + 						beta.month[log.X$month[i] == colnames(beta.month)]						sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]}
+log.X[1:10,]
+## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]
+dim(Z)
+Z[1:10,]
+?dnbinom
+?dbinom
+?dnbinom
+## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]	#define observation sd		obs.sd	<-	2	# get the parameters in the neg binom parameterization that R likes	Size	<-  (obs.sd^2 - exp(log.X$val)) / exp(log.X$val)^2	log.X$val	<-	2	W			<-	exp(log.X$val)	Z$obs	<-	rnbinom(nrow(Z),mu=exp(log.X$val),size=Size)
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,2)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	0.6mu.year.post.r1	<-	1.2mu.year.pre.r2	<-	0.5mu.year.post.r2	<-	0.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.8# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	merge(log.X,year.region)for(i in 1:nrow(log.X)){	log.X$val[i]	<- lo
+g.X$mu[i] + 						beta.month[log.X$month[i] == colnames(beta.month)]						sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]}## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]	#define observation sd		obs.sd	<-	2	# get the parameters in the neg binom parameterization that R likes	Size	<-  (obs.sd^2 - exp(log.X$val)) / exp(log.X$val)^2	log.X$val	<-	2	W			<-	exp(log.X$val)	Z$obs	<-	rnbinom(nrow(Z),mu=exp(log.X$val),size=Size)
+log.X$val
+log.X	<-	data.frame(expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8))log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	merge(log.X,year.region)for(i in 1:nrow(log.X)){	log.X$val[i]	<- log.X$mu[i] + 						beta.month[log.X$month[i] == colnames(beta.month)]						sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]}
+class(log.X$val)
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,2)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	0.6mu.year.post.r1	<-	1.2mu.year.pre.r2	<-	0.5mu.year.post.r2	<-	0.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.8# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	data.frame(merge(log.X,year.region))for(i in 1:nrow(log.X)){	log.X$
+val[i]	<- log.X$mu[i] + 						beta.month[log.X$month[i] == colnames(beta.month)]						sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]}
+class(log.X$val)
+log.X$val
+class(log.X)
+# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	data.frame(merge(log.X,year.region))log.X$val	<-	0for(i in 1:nrow(log.X)){	log.X$val[i]	<- log.X$mu[i] + 						beta.month[log.X$month[i] == colnames(beta.month)]						sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site]}
+class(log.X)
+class(log.X$val)
+as.numeric(beta.month[log.X$month[i] == colnames(beta.month)])
+as.numeric(sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site])
+log.X$val	<-	0for(i in 1:nrow(log.X)){	log.X$val[i]	<- log.X$mu[i] + 						as.numeric(beta.month[log.X$month[i] == colnames(beta.month)])						as.numeric(sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site])}
+class(log.X$val)
+log.X$val	<-	0for(i in 1:nrow(log.X)){	log.X$val[i]	<- log.X$mu[i] + 						as.numeric(beta.month[log.X$month[i] == colnames(beta.month)])						as.numeric(sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site])}## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]	#define observation sd		obs.sd	<-	2	# get the parameters in the neg binom parameterization that R likes	Size	<-  (obs.sd^2 - exp(log.X$val)) / exp(log.X$val)^2	log.X$val	<-	2	W			<-	exp(log.X$val)
+W
+W			<-	exp(log.X$val)	temp		<- rnbinom(length(W),mu=exp(W),size=Size)
+# get the parameters in the neg binom parameterization that R likes	Size	<-  (obs.sd^2 - exp(log.X$val)) / exp(log.X$val)^2	log.X$val	<-	2	W			<-	exp(log.X$val)	temp		<- rnbinom(length(W),mu=W,size=Size)
+Size	<-  (obs.sd^2 + exp(log.X$val)) / exp(log.X$val)^2	log.X$val	<-	2	W			<-	exp(log.X$val)	temp		<- rnbinom(length(W),mu=W,size=Size)
+?rnbinom
+## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]	#define observation sd		obs.sd	<-	10	# get the parameters in the neg binom parameterization that R likes	Size	<-  (obs.sd^2 + exp(log.X$val)) / exp(log.X$val)^2	log.X$val	<-	2	W			<-	exp(log.X$val)	temp		<- rnbinom(length(W),mu=W,size=Size)
+tmp
+temp
+mean(temp)
+var(temp)
+W			<-	rep(2,length=1e5)	Size		<-	(obs.sd^2 + exp(W)) / exp(W)^2	temp		<- rnbinom(length(W),mu=W,size=Size)
+temp
+mean(W)
+var(W)
+W			<-	rep(2,length=1e5)	Size		<-	(obs.sd^2 + W) / W^2	temp		<- rnbinom(length(W),mu=W,size=Size)
+var(W)
+mean(W)
+sd(W)
+is.na(W)
+obs.sd	<-	100
+W			<-	rep(2,length=1e5)	Size		<-	(obs.sd^2 + W) / W^2	temp		<- rnbinom(length(W),mu=W,size=Size)
+obs.sd	<-	10	# get the parameters in the neg binom parameterization that R likes	Size	<-  (obs.sd^2 + exp(log.X$val)) / exp(log.X$val)^2	W			<-	rep(2,length=1e5)	Size		<-	(obs.sd^2 - W) / W^2	temp		<- rnbinom(length(W),mu=W,size=Size)
+mean(temp)
+var(temp)
+hist(temp)
+Size		<-	(obs.sd^2) / (W+W^2)	temp		<- rnbinom(length(W),mu=W,size=Size)
+mean(temp)
+var(temp)
+W			<-	rep(2,length=1e5)	Size		<-	(W+W^2) / (obs.sd^2) 	temp		<- rnbinom(length(W),mu=W,size=Size)
+var(temp)
+W			<-	rep(2,length=1e5)	Size		<-	W^2 / (obs.sd^2-W) 	temp		<- rnbinom(length(W),mu=W,size=Size)
+var(temp)
+obs.sd	<-	5	# get the parameters in the neg binom parameterization that R likes	Size	<-  (obs.sd^2 + exp(log.X$val)) / exp(log.X$val)^2	W			<-	rep(2,length=1e5)	Size		<-	W^2 / (obs.sd^2-W) 	temp		<- rnbinom(length(W),mu=W,size=Size)
+sd(temp)
+# get the parameters in the neg binom parameterization that R likes		# Check to make sure the variance is right.# 		W			<-	rep(2,length=1e5)# 		Size		<-	W^2 / (obs.sd^2-W) # 		temp		<- rnbinom(length(W),mu=W,size=Size)#		mean(temp);var(temp)	Size	<-  exp(log.X$val)^2 / (obs.sd^2 - exp(log.X$val))	Z$obs	<-	rnbinom(nrow(Z),mu=exp(log.X$val),size=Size)
+hist(Z$obs)
+## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]	#define observation sd		obs.sd	<-	20	# get the parameters in the neg binom parameterization that R likes		# Check to make sure the variance is right.# 		W			<-	rep(2,length=1e5)# 		Size		<-	W^2 / (obs.sd^2-W) # 		temp		<- rnbinom(length(W),mu=W,size=Size)#		mean(temp);var(temp)	Size	<-  exp(log.X$val)^2 / (obs.sd^2 - exp(log.X$val))	Z$obs	<-	rnbinom(nrow(Z),mu=exp(log.X$val),size=Size)
+hist(Z$obs)
+Z[1:10,]
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,3)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	0.1mu.year.post.r1	<-	1.2mu.year.pre.r2	<-	0.5mu.year.post.r2	<-	0.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.5# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	data.frame(merge(log.X,year.region))log.X$val	<-	0for(i in 1:nrow(l
+og.X)){	log.X$val[i]	<- log.X$mu[i] + 						as.numeric(beta.month[log.X$month[i] == colnames(beta.month)])						as.numeric(sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site])}## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]	#define observation sd		obs.sd	<-	20	# get the parameters in the neg binom parameterization that R likes		# Check to make sure the variance is right.# 		W			<-	rep(2,length=1e5)# 		Size		<-	W^2 / (obs.sd^2-W) # 		temp		<- rnbinom(length(W),mu=W,size=Size)#		mean(temp);var(temp)	Size	<-  exp(log.X$val)^2 / (obs.sd^2 - exp(log.X$val))	Z$obs	<-	rnbinom(nrow(Z),mu=exp(log.X$val),size=Size)
+Z[1:100,]
+year.region
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,3)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	1.1mu.year.post.r1	<-	2.2mu.year.pre.r2	<-	1.5mu.year.post.r2	<-	1.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.5# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	data.frame(merge(log.X,year.region))log.X$val	<-	0for(i in 1:nrow(l
+og.X)){	log.X$val[i]	<- log.X$mu[i] + 						as.numeric(beta.month[log.X$month[i] == colnames(beta.month)])						as.numeric(sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site])}## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]	#define observation sd		obs.sd	<-	20	# get the parameters in the neg binom parameterization that R likes		# Check to make sure the variance is right.# 		W			<-	rep(2,length=1e5)# 		Size		<-	W^2 / (obs.sd^2-W) # 		temp		<- rnbinom(length(W),mu=W,size=Size)#		mean(temp);var(temp)	Size	<-  exp(log.X$val)^2 / (obs.sd^2 - exp(log.X$val))	Z$obs	<-	rnbinom(nrow(Z),mu=exp(log.X$val),size=Size)
+Z[1:100,]
+# JAGS Code for Elwha -# make up some data that looks kinda like Kinsey and Anna's data.N.site <- 8# Make up some regression coefficients# Fixed month and year x treatment effectset.seed(4)beta.month	<-	data.frame(t(runif(6, -1,3)))colnames(beta.month) <- paste("X",4:9,sep="")#colnames(beta.month) <- c("april","may","june","july","august","september")# Make several years in each treatmentyear.region	<-data.frame(year=rep(c(2006:2009,2011:2014),2),				dam=rep(c(rep("pre",4),rep("post",4)),2),				region=c(rep("r1",N.site),rep("r2",N.site)))#
+mu.year.pre.r1	<-	1.1mu.year.post.r1	<-	2.2mu.year.pre.r2	<-	1.5mu.year.post.r2	<-	1.55MU	<-	data.frame(mu.year.pre.r1,mu.year.post.r1,mu.year.pre.r2,mu.year.post.r2)year.region$mu	<-	0year.region$mu[year.region$dam=="pre" & year.region$region=="r1"]	<-	mu.year.pre.r1year.region$mu[year.region$dam=="post" & year.region$region=="r1"]	<-	mu.year.post.r1year.region$mu[year.region$dam=="pre" & year.region$region=="r2"]	<-	mu.year.pre.r2year.region$mu[year.region$dam=="post" & year.region$region=="r2"]	<-	mu.year.post.r2# among site variancetau2	<-	0.5# site effects (random)sites	<-	expand.grid(region=c("r1","r2"),site=1:N.site)sites	<-	data.frame(sites,val=rnorm(nrow(sites),0,sqrt(tau2)))# True States# Observe each site in each year in each monthlog.X	<-	expand.grid(region=c("r1","r2"),year=unique(dat$year),month=colnames(beta.month),site=1:8)log.X	<- log.X[order(log.X$region,log.X$site,log.X$year,log.X$month),]log.X	<-	data.frame(merge(log.X,year.region))log.X$val	<-	0for(i in 1:nrow(l
+og.X)){	log.X$val[i]	<- log.X$mu[i] + 						as.numeric(beta.month[log.X$month[i] == colnames(beta.month)])						as.numeric(sites$val[log.X$region[i] == sites$region & log.X$site[i] == sites$site])}## Make some noisy observations of the true state	Z <-	log.X[,c("region","year","month","site","dam")]	#define observation sd		obs.sd	<-	10	# get the parameters in the neg binom parameterization that R likes		# Check to make sure the variance is right.# 		W			<-	rep(2,length=1e5)# 		Size		<-	W^2 / (obs.sd^2-W) # 		temp		<- rnbinom(length(W),mu=W,size=Size)#		mean(temp);var(temp)	Size	<-  exp(log.X$val)^2 / (obs.sd^2 - exp(log.X$val))	Z$obs	<-	rnbinom(nrow(Z),mu=exp(log.X$val),size=Size)
+Z
+log.X
+3/0.05
+setwd("/Users/ole_shelton/Documents/Science/Active projects/Bayesian Model Selection/Simulations")#
+#
+##### WRITE A 1-D simulation for eelgrass on the shoreline and then estimate it with JAGS code#
+library(R2jags)#
+library(coda)#
+library(MCMCpack)#
+load.module("glm")#
+load.module("bugs")#
+#
+#CHAIN INFO FOR ALL #
+	NCHAIN	<-	3#
+	Nburn	<-	5000#
+	Niter	<-	5000#
+#
+output.all	<-	NULL#
+#
+ set.seed(2) #<- to make plots #
+###########################################################################################
+# for(XXX in 1:1){		################################ Loop over independent simulations#
+###########################################################################################
+#
+LETTER  <-	"E-base"#
+NAME	<-	paste(LETTER,XXX,sep="")#
+#
+### Set up a matrix of observations#
+ID		<-	1:100#
+N		<- length(ID)#
+#
+WAVE	<-	-4 + 0.1 * ID - 0.00035 * ID^2 + 0.0000003 *ID^3#
+BETA	<-	-0.2#
+ALPHA	<-	-2#
+#
+EEL		<-	ALPHA + WAVE * BETA#
+#
+plot(WAVE~ID)#
+plot(EEL~ID)#
+#
+DIST	<- matrix(0,length(ID),length(ID)) ### THIS IS A DISTANCE MAT#
+for(i in 1:N){#
+	DIST[,i] <- abs(ID[i] - ID)#
+}#
+#
+SIGMA	<-	4	#
+RANGE	<- 	15#
+#
+theta 	 <- 0#rnorm(N, sd=0.05)#
+psi.true <- mvrnorm(1, mu=rep(0,N), Sigma=SIGMA * exp(-DIST*(RANGE^(-1))))#
+logit 	 <- EEL + theta + psi.true#
+prob  	 <- exp(logit) / (1 + exp(logit))#
+#
+# trials.true	<-	rnbinom(N,mu=8,size=5)#
+#
+trials.true	<-	rep(1,N) # Make it so there is one observation at each locale#
+trials		<- trials.true#
+y 			<- rbinom(n=N, size=trials, prob=prob)#
+#
+y[trials == 0]		<-	NA#
+trials[trials==0]	<-	1#
+#
+hold.out.trials	<- round(0.1*sum(trials.true))#
+new.trials 		<- rnbinom(N,mu=hold.out.trials/100,size=2)#
+y.hold.out		<- rbinom(n=N, size=new.trials, prob=prob)#
+#
+DAT		<-	data.frame(cbind(ID,y,trials.true,trials))#
+DAT.2	<-	data.frame(cbind(DAT,WAVE))#
+par(mfrow=c(3,1))#
+plot(ID,psi.true)#
+plot(ID,prob)#
+plot(ID,y/trials)	# THIS IS THE DATA FOR EACH location#
+#   write.csv(DAT.2,file="A- Ord Logit Regress dat.csv",row.names=F)#
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+library(R2jags)#
+#
+muZeros = rep(0, N)#
+###########################################################################################
+##### RUN SPATIAL MODEL WITH COVARIATES#
+jagsscript = cat("#
+model {#
+	alpha ~ dnorm(0,0.01); # overall intercept#
+   # priors on regression covariates#
+   for(i in 1:1) {#
+	  	betas[i] ~ dnorm(0,0.01); #
+   }#
+#
+	tau2Inv ~ dgamma(0.01,0.01)#
+	theta	~ dunif(0,1e6)#
+#
+	#MAKE COVARIANCE MATRIX#
+	for(i in 1:N){#
+		for(j in 1:N){#
+		C[i,j]	<-	(tau2Inv^(-1)) * exp(-DIST[i,j]*(theta^(-1)))#
+		}#
+	}#
+	psi		~ dmnorm(muZeros,inverse(C))#
+   for(j in 1:N) {#
+	    logit(p[j]) <- alpha + betas[1]*WAVE[j] + psi[j]#
+    	y[j] ~ dbinom(p[j],trials[j]);#
+   }    #
+}", file="jags_dummy1.txt")#
+#
+  jags.data     = list("N", "y", "trials", "muZeros","DIST","WAVE")#
+  jags.params   =c("betas","alpha","theta","tau2Inv","psi")#
+  model.loc		=c("jags_dummy1.txt")#
+#
+  	jags.model.cov = jags(jags.data, inits = NULL, parameters.to.save= jags.params, model.file=model.loc, #
+  						n.chains = NCHAIN, n.burnin = Nburn, n.thin = 1, n.iter = Nburn+Niter, DIC = TRUE)  #
+ 	attach.jags(jags.model.cov, overwrite=TRUE)
+summary(jags.model)
+jags.model$summary
+names(jags.model)
+names(jags.model.cov)
+summary(jags.model.cov)
+jags.model.cov$summary
+summary(jags.model.cov$BUGSoutput)
+jags.model.cov$BUGSoutput$summary
+library(INLA)
+n=1000#
+i=1:n#
+j = i#
+z = rnorm(n)#
+w = runif(n)#
+y = z  + 2*z*w + rnorm(n)#
+formula = y ~ f(i, model="iid",initial=0, fixed=T) +#
+              f(j, w, copy="i", fixed=FALSE)
+W
+w
+n=1000#
+i=1:n#
+j = i#
+z = rnorm(n)#
+w = runif(n)#
+y = z  + 2*z*w + rnorm(n)#
+formula = y ~ f(i, model="iid",initial=0, fixed=T) +#
+              f(j, w, copy="i", fixed=FALSE)
+formula
+r = inla(formula, data = data.frame(i,j,w,y))
+summary(r)
+?f
+?inla.graph
+16*4
+dat<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_pres_pred_goa_shallow.csv")
+dat<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_pres_pred_goa_shallow.csv")#
+## Write functions for calculating various diversity metrics of interestshannon	<- function(X){	sum.X	<-	sum(X)	prop	<-  X/sum.X	H		<-	sum(prop * log(prop))	return(H)}gini.simp	<-	function(X){	sum.X	<-	sum(X)	prop	<-  X/sum.X	D		<-	1- sum(prop^2)}total.biomass	<-	function(X)	tot			<-	sum(X)	return(tot)
+ls
+ls()
+names(dat)
+H	<-	aggregate(dat$Median, by=list(MASTER_ID=dat$MASTER_ID,Year=dat$Year),shannon)
+dim(dat)
+length(unique(dat$MASTER_ID))
+THIS <-(unique(dat$MASTER_ID)[1])
+THIS <- (unique(dat$MASTER_ID)[1])	#
+A <- dat[dat$MASTER_ID==THIS,]
+dim(A)
+THIS
+A
+H	 <-	aggregate(A$Median, by=list(MASTER_ID=dat$MASTER_ID,Year=dat$Year),shannon)
+H	 <-	aggregate(A$Median, by=list(MASTER_ID=A$MASTER_ID,Year=A$Year),shannon)
+H
+B	<-	A[A$Year==2001,]
+B
+hist(B$median)
+class(B$Median)
+hist(B$Median)
+H	 <-	aggregate(B$Median, by=list(MASTER_ID=B$MASTER_ID,Year=B$Year),shannon)
+H
+C	<- B$Median / sum(B$Median)
+C
+C	<- B$Median / sum(B$Median)D	<-	log(C)
+sum(C*D)
+exp(-2.97749)
+H	 	<-	aggregate(dat$Median, by=list(MASTER_ID=dat$MASTER_ID,Year=dat$Year),shannon)D	 	<-	aggregate(dat$Median, by=list(MASTER_ID=dat$MASTER_ID,Year=dat$Year),gini.simp)BIOMASS	<-	aggregate(dat$Median, by=list(MASTER_ID=dat$MASTER_ID,Year=dat$Year),total.biomass)
+H[1:10,]
+colnames(H)[3]			<-	"shannon"colnames(D)[3]			<-	"gini.simp"colnames(BIOMASS)[3]	<-	"biomass"
+BIOMASS[1:10,]
+hist(BIOMASS$biomass)
+hist(dat$Median)
+1/7
+dat.project	= read.csv("Output Data/goa_projection_points+temp.csv")    dat.project$LonUTMAlbers = dat.project$LonUTMAlbers/1000    dat.project$LatUTMAlbers = dat.project$LatUTMAlbers/1000    #### Exclude points that end up on land    dat.project$NGDC24_M =	-dat.project$NGDC24_M	# depth in m    dat.project$SRTM_M = -dat.project$SRTM_M	# depth in m    dat.project = dat.project[dat.project$NGDC24 > 0,]
+species	<-	sort(unique(dat$Species))
+i=1
+species
+temp	<-	dat[dat$Species == species[i],]
+temp[1:10,]
+dat.project[1:10,]
+hist(dat$Median)
+exp(4)
+exp(5)
+exp(6)
+?gc
+gc()
+#########################################################################################
+###########################################################################################
+dat<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_pres_pred_goa_shallow.csv")#
+dat2<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_pres_pred_goa_mid.csv")#
+dat <- rbind(dat,dat2)#
+	y.lim	<-	c(5500,6300)#
+	# Some Arguments for making prettier plots#
+	bGrid <-theme(panel.grid =element_blank())	#
+	bBack <-theme(panel.background =element_blank())#
+	bAxis <-theme(axis.title.y =element_blank())#
+	bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+#
+	species	<-	sort(unique(dat$Species))#
+	years 	<- 	sort(unique(dat$Year))
+library(rgdal)library(ggplot2)library(RColorBrewer)
+install.packages("MASS")
+library(INLA)
+library(sp)
+library(beanplot)
+library(rgdal)
+library(sp)
+library(splancs)
+library(sp)
+install.packaged("sp",dependencies=TRUE)
+install.packages("sp",dependencies=TRUE)
+install.packages("rgeos")
+library(rgeos)
+library(sp)
+library(INLA)
+install.packages("INLA", repos="http://www.math.ntnu.no/inla/R/stable")
+library(INLA)
+install.packages("sp",dependencies=T)
+install.packages("rgeos",dependencies=T)
+library(INLA)
+library(rgeos)
+library(rgdal)
+library(rgdal)library(ggplot2)library(RColorBrewer)lbrary(ggplot2)
+intall.packages("ggplot2",dependencies=T)
+install.packages("ggplot2",dependencies=T)
+library(ggplot2)
+install.packages("ggplot2",dependencies=T)
+library(ggplot2)
+library(rgdal)
+library(sp)
+library(INLA)
+library(ggplot2)
+library(proto)
+library(ggplot2)
+?remove
+?install.packages
+remove.packages("ggplot2")
+library(proto)
+library(ggplot2)
+remove.packages("digest")
+library(ggplot2)
+remove.packages("Rccp")
+library(ggplot2)
+remove.packages("plyr")
+library(ggplot2)
+remove.packages("reshape2")
+library(ggplot2)
+install.packages("reshape",depend=T)
+library(ggplot2)
+remove.packages("reshape")
+install.packages("reshape2",depend=T)
+library(ggplot2)
+remove.packages("colorspace")
+install.packages("colorspace")
+library(ggplot2)
+dat<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_pres_pred_goa_shallow.csv")#
+dat2<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_pres_pred_goa_mid.csv")#
+dat3<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_pres_pred_goa_deep.csv")#
+dat <- rbind(dat,dat2)#
+dat <- rbind(dat,dat3)#
+	y.lim	<-	c(5500,6300)#
+	# Some Arguments for making prettier plots#
+	bGrid <-theme(panel.grid =element_blank())	#
+	bBack <-theme(panel.background =element_blank())#
+	bAxis <-theme(axis.title.y =element_blank())#
+	bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+#
+	species	<-	sort(unique(dat$Species))#
+	years 	<- 	sort(unique(dat$Year))
+library(rgdal)#
+library(ggplot2)#
+library(RColorBrewer)
+y.lim	<-	c(5500,6300)#
+	# Some Arguments for making prettier plots#
+	bGrid <-theme(panel.grid =element_blank())	#
+	bBack <-theme(panel.background =element_blank())#
+	bAxis <-theme(axis.title.y =element_blank())#
+	bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+#
+	species	<-	sort(unique(dat$Species))#
+	years 	<- 	sort(unique(dat$Year))
+i=1
+temp	<-	dat[dat$Species == species[i],]#
+	temp	<-	merge(dat.project[,c(1,4,5)],temp)#
+# 	MAX.Z	<-	quantile(temp$Median,0.975)#
+# 	MIN.Z	<-	1e-3#
+	z.lim	<-	c(0, 1)#
+	Breaks	<- c(0,0.25,0.5,0.75,1.0)#
+	p	<-	list()
+# Read in Predicted locations#
+	dat.project	= read.csv("/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/Output Data/goa_projection_points+temp.csv")#
+    dat.project$LonUTMAlbers = dat.project$LonUTMAlbers/1000#
+    dat.project$LatUTMAlbers = dat.project$LatUTMAlbers/1000#
+    #### Exclude points that end up on land#
+    dat.project$NGDC24_M =	-dat.project$NGDC24_M	# depth in m#
+    dat.project$SRTM_M = -dat.project$SRTM_M	# depth in m#
+    dat.project = dat.project[dat.project$NGDC24 > 0,]#
+#
+#### PLOT SPATIAL DISTRIBUTION#
+# Import the datafile of Alaska shoreline#
+setwd("/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Output plots Pos/_Alaska Shapefile")#
+shp.alaska	 <-	readOGR(dsn=".",layer="Alaska-Albers")#
+dat.alaska   <- fortify(shp.alaska,"data.frame")#
+dat.alaska$lat	<-	dat.alaska$lat/1000#
+dat.alaska$long	<-	dat.alaska$long/1000#
+#
+## Write functions for calculating various diversity metrics of interest#
+richness	<-	function(VAL,cutoff){#
+					VAL[VAL >= cutoff]	<- 1#
+					VAL[VAL < cutoff]	<- 0					#
+					rich	<- sum(VAL)#
+					return(rich)#
+				}#
+shannon		<- function(X){#
+					sum.X	<-	sum(X)#
+					prop	<-  X/sum.X#
+					H		<-	- sum(prop * log(prop))#
+					return(H)#
+				}#
+gini.simp	<-	function(X){#
+					sum.X	<-	sum(X)#
+					prop	<-  X/sum.X#
+					D		<-	1- sum(prop^2)#
+				}#
+total.biomass	<-	function(X){#
+					tot			<-	sum(X)#
+					return(tot)#
+				}
+y.lim	<-	c(5500,6300)#
+	# Some Arguments for making prettier plots#
+	bGrid <-theme(panel.grid =element_blank())	#
+	bBack <-theme(panel.background =element_blank())#
+	bAxis <-theme(axis.title.y =element_blank())#
+	bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+#
+	species	<-	sort(unique(dat$Species))#
+	years 	<- 	sort(unique(dat$Year))
+i=1
+temp	<-	dat[dat$Species == species[i],]#
+	temp	<-	merge(dat.project[,c(1,4,5)],temp)#
+# 	MAX.Z	<-	quantile(temp$Median,0.975)#
+# 	MIN.Z	<-	1e-3#
+	z.lim	<-	c(0, 1)#
+	Breaks	<- c(0,0.25,0.5,0.75,1.0)#
+	p	<-	list()#
+	# Loop over years#
+	for(j in 1:length(years)){#
+		temp.plot	<-	temp[temp$Year == years[j],]#
+	p[[j]]	<-	ggplot() +#
+ 		scale_colour_gradientn(name="CPUE", colours=brewer.pal(9,"OrRd"),trans = "log",limits=z.lim,breaks=Breaks)+#
+    	geom_point(data=temp.plot,alpha=0.4,#
+    			aes(LonUTMAlbers,LatUTMAlbers,colour=Median))+#
+#     	geom_point(data=plot.zeros[plot.zeros$Year==YEARS[j],],alpha=0.4,shape="+",colour="black",#
+#     			aes(LonUTMAlbers*1000,LatUTMAlbers*1000))+#
+		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +#
+		labs(x = "Eastings",y="Northings",title=paste(species[i],years[j],"Positive")) +#
+   		coord_cartesian(xlim = c(min(temp.plot$LonUTMAlbers),max(temp.plot$LonUTMAlbers)), #
+   				ylim = y.lim)+#
+   		bGrid  #+ bBack#
+	}
+p[[1]]
+temp	<-	dat[dat$Species == species[i],]#
+	temp	<-	merge(dat.project[,c(1,4,5)],temp)#
+# 	MAX.Z	<-	quantile(temp$Median,0.975)#
+# 	MIN.Z	<-	1e-3#
+	z.lim	<-	c(0, 1)#
+	Breaks	<- c(0,0.25,0.5,0.75,1.0)#
+	p	<-	list()#
+	# Loop over years#
+	for(j in 1:length(years)){#
+		temp.plot	<-	temp[temp$Year == years[j],]#
+	p[[j]]	<-	ggplot() +#
+ 		scale_colour_gradientn(name="CPUE", colours=brewer.pal(9,"OrRd"),limits=z.lim,breaks=Breaks)+#
+    	geom_point(data=temp.plot,alpha=0.4,#
+    			aes(LonUTMAlbers,LatUTMAlbers,colour=Median))+#
+#     	geom_point(data=plot.zeros[plot.zeros$Year==YEARS[j],],alpha=0.4,shape="+",colour="black",#
+#     			aes(LonUTMAlbers*1000,LatUTMAlbers*1000))+#
+		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +#
+		labs(x = "Eastings",y="Northings",title=paste(species[i],years[j],"Positive")) +#
+   		coord_cartesian(xlim = c(min(temp.plot$LonUTMAlbers),max(temp.plot$LonUTMAlbers)), #
+   				ylim = y.lim)+#
+   		bGrid  #+ bBack#
+	}
+p[[1]]
+i=2
+temp	<-	dat[dat$Species == species[i],]#
+	temp	<-	merge(dat.project[,c(1,4,5)],temp)#
+# 	MAX.Z	<-	quantile(temp$Median,0.975)#
+# 	MIN.Z	<-	1e-3#
+	z.lim	<-	c(0, 1)#
+	Breaks	<- c(0,0.25,0.5,0.75,1.0)#
+	p	<-	list()#
+	# Loop over years#
+	for(j in 1:length(years)){#
+		temp.plot	<-	temp[temp$Year == years[j],]#
+	p[[j]]	<-	ggplot() +#
+ 		scale_colour_gradientn(name="Occurrence", colours=brewer.pal(9,"OrRd"),limits=z.lim,breaks=Breaks)+#
+    	geom_point(data=temp.plot,alpha=0.4,#
+    			aes(LonUTMAlbers,LatUTMAlbers,colour=Median))+#
+#     	geom_point(data=plot.zeros[plot.zeros$Year==YEARS[j],],alpha=0.4,shape="+",colour="black",#
+#     			aes(LonUTMAlbers*1000,LatUTMAlbers*1000))+#
+		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +#
+		labs(x = "Eastings",y="Northings",title=paste(species[i],years[j],"Positive")) +#
+   		coord_cartesian(xlim = c(min(temp.plot$LonUTMAlbers),max(temp.plot$LonUTMAlbers)), #
+   				ylim = y.lim)+#
+   		bGrid  #+ bBack#
+	}
+p[[1]]
+p[[3]]
+y.lim	<-	c(5500,6300)#
+	# Some Arguments for making prettier plots#
+	bGrid <-theme(panel.grid =element_blank())	#
+	bBack <-theme(panel.background =element_blank())#
+	bAxis <-theme(axis.title.y =element_blank())#
+	bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+#
+	species	<-	sort(unique(dat$Species))#
+	years 	<- 	sort(unique(dat$Year))#
+#
+# Loop over species#
+for(i in 1:length(species)){#
+	temp	<-	dat[dat$Species == species[i],]#
+	temp	<-	merge(dat.project[,c(1,4,5)],temp)#
+# 	MAX.Z	<-	quantile(temp$Median,0.975)#
+# 	MIN.Z	<-	1e-3#
+	z.lim	<-	c(0, 1)#
+	Breaks	<- c(0,0.25,0.5,0.75,1.0)#
+	p	<-	list()#
+	# Loop over years#
+	for(j in 1:length(years)){#
+		temp.plot	<-	temp[temp$Year == years[j],]#
+	p[[j]]	<-	ggplot() +#
+ 		scale_colour_gradientn(name="Occurrence", colours=brewer.pal(9,"OrRd"),limits=z.lim,breaks=Breaks)+#
+    	geom_point(data=temp.plot,alpha=0.4,#
+    			aes(LonUTMAlbers,LatUTMAlbers,colour=Median))+#
+#     	geom_point(data=plot.zeros[plot.zeros$Year==YEARS[j],],alpha=0.4,shape="+",colour="black",#
+#     			aes(LonUTMAlbers*1000,LatUTMAlbers*1000))+#
+		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +#
+		labs(x = "Eastings",y="Northings",title=paste(species[i],years[j],"Occurrence")) +#
+   		coord_cartesian(xlim = c(min(temp.plot$LonUTMAlbers),max(temp.plot$LonUTMAlbers)), #
+   				ylim = y.lim)+#
+   		bGrid  #+ bBack#
+	}#
+#
+NAME	<-	paste(species[i],"Pres-Abs all years.pdf")#
+setwd("/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Output plots Pres Abs/_Plots species posteriors")#
+pdf(NAME,onefile=TRUE,width=15,height=5)#
+	## write plots to file#
+	for(j in 1:length(years)){#
+		print(p[j])#
+	}#
+dev.off()#
+#
+}
+y.lim	<-	c(5500,6300)#
+	# Some Arguments for making prettier plots#
+	bGrid <-theme(panel.grid =element_blank())	#
+	bBack <-theme(panel.background =element_blank())#
+	bAxis <-theme(axis.title.y =element_blank())#
+	bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+#
+	species	<-	sort(unique(dat$Species))#
+	years 	<- 	sort(unique(dat$Year))#
+#
+# Loop over species#
+for(i in 1:length(species)){#
+	temp	<-	dat[dat$Species == species[i],]#
+	temp	<-	merge(dat.project[,c(1,4,5)],temp)#
+# 	MAX.Z	<-	quantile(temp$Median,0.975)#
+# 	MIN.Z	<-	1e-3#
+	z.lim	<-	c(0, 1)#
+	Breaks	<- c(0,0.25,0.5,0.75,1.0)#
+	p	<-	list()#
+	# Loop over years#
+	for(j in 1:length(years)){#
+		temp.plot	<-	temp[temp$Year == years[j],]#
+	p[[j]]	<-	ggplot() +#
+ 		scale_colour_gradientn(name="Occurrence", colours=brewer.pal(9,"OrRd"),limits=z.lim,breaks=Breaks)+#
+    	geom_point(data=temp.plot,alpha=0.4,#
+    			aes(LonUTMAlbers,LatUTMAlbers,colour=Median))+#
+#     	geom_point(data=plot.zeros[plot.zeros$Year==YEARS[j],],alpha=0.4,shape="+",colour="black",#
+#     			aes(LonUTMAlbers*1000,LatUTMAlbers*1000))+#
+		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +#
+		labs(x = "Eastings",y="Northings",title=paste(species[i],years[j],"Occurrence")) +#
+   		coord_cartesian(xlim = c(min(temp.plot$LonUTMAlbers),max(temp.plot$LonUTMAlbers)), #
+   				ylim = y.lim)+#
+   		bGrid  #+ bBack#
+	}#
+#
+NAME	<-	paste(species[i],"Pres-Abs all years.pdf")#
+setwd("/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Output plots Pres Abs/_Plots species posteriors")#
+pdf(NAME,onefile=TRUE,width=15,height=5)#
+	## write plots to file#
+	for(j in 1:length(years)){#
+		print(p[j])#
+	}#
+dev.off()#
+#
+}
+y.lim	<-	c(5500,6300)#
+	# Some Arguments for making prettier plots#
+	bGrid <-theme(panel.grid =element_blank())	#
+	bBack <-theme(panel.background =element_blank())#
+	bAxis <-theme(axis.title.y =element_blank())#
+	bTics <-theme(axis.text =element_blank(), axis.text.y =element_blank(), axis.ticks =element_blank())#
+#
+	species	<-	sort(unique(dat$Species))#
+	years 	<- 	sort(unique(dat$Year))#
+#
+# Loop over species#
+for(i in 1:length(species)){#
+	temp	<-	dat[dat$Species == species[i],]#
+	temp	<-	merge(dat.project[,c(1,4,5)],temp)#
+# 	MAX.Z	<-	quantile(temp$Median,0.975)#
+# 	MIN.Z	<-	1e-3#
+	z.lim	<-	c(0, 1)#
+	Breaks	<- c(0,0.25,0.5,0.75,1.0)#
+	p	<-	list()#
+	# Loop over years#
+	for(j in 1:length(years)){#
+		temp.plot	<-	temp[temp$Year == years[j],]#
+	p[[j]]	<-	ggplot() +#
+ 		scale_colour_gradientn(name="Occurrence", colours=brewer.pal(9,"OrRd"),limits=z.lim,breaks=Breaks)+#
+    	geom_point(data=temp.plot,alpha=0.4,#
+    			aes(LonUTMAlbers,LatUTMAlbers,colour=Median))+#
+#     	geom_point(data=plot.zeros[plot.zeros$Year==YEARS[j],],alpha=0.4,shape="+",colour="black",#
+#     			aes(LonUTMAlbers*1000,LatUTMAlbers*1000))+#
+		geom_polygon(data=dat.alaska, fill=grey(0.4),color=NA,aes(long,lat,group=group)) +#
+		labs(x = "Eastings",y="Northings",title=paste(species[i],years[j],"Occurrence")) +#
+   		coord_cartesian(xlim = c(min(temp.plot$LonUTMAlbers),max(temp.plot$LonUTMAlbers)), #
+   				ylim = y.lim)+#
+   		bGrid  #+ bBack#
+	}#
+#
+NAME	<-	paste(species[i],"Pres-Abs all years.pdf")#
+setwd("/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Output plots Pres Abs/_Plots species posteriors")#
+pdf(NAME,onefile=TRUE,width=15,height=5)#
+	## write plots to file#
+	for(j in 1:length(years)){#
+		print(p[j])#
+	}#
+dev.off()#
+#
+}
