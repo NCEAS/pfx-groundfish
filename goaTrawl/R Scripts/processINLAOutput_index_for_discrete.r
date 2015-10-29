@@ -11,7 +11,9 @@ library(sp)
 
 runFromDB  = FALSE
 keep.MCMC  = FALSE
-projection = "discrete_areas" # options: "goa_shallow","goa_mid","goa_deep","discrete_areas" "goa_to_500"
+projection = "discrete_areas" # options: 
+                              #"goa_shallow","goa_mid","goa_deep","discrete_areas" "goa_to_500"
+                              #goa_trawl_data 
 size.data  = FALSE
 
 proj.dir <-"/Users/ole.shelton/Documents/GitHub/exxonValdez_nceas/goaTrawl/" #getwd()
@@ -32,7 +34,7 @@ if(size.data == TRUE){
  all.sp.pos	<-	NULL
  all.sp.pres	<-	NULL
 
-for(i in 1:length(sppList)) {
+for(i in 1:28) {
 
 spp = sppList[i] # focal species
 this.long = nchar(spp)
@@ -120,26 +122,37 @@ this.long = nchar(spp)
 	  if(projection=="goa_to_500")   myAreas = read.csv("Output Data/goa_central_gulf(50_to_500m).csv")
 	  if(projection=="discrete_areas") myAreas = read.csv("Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 
-	      dat.project = dat.project[which(is.na(match(dat.project$MASTER_ID, myAreas$MASTER_ID))==F), ]
-  		  gridLocs = dat.project[,c("LonUTMAlbers","LatUTMAlbers")]
+	  if(projection!="goa_trawl_data"){ 
+	    dat.project = dat.project[which(is.na(match(dat.project$MASTER_ID, myAreas$MASTER_ID))==F), ]
+	  }
+	  if(projection=="goa_trawl_data"){
+	    dat.project = Output$Data
+	    #remember to use log.BottomDepth and to center based on the data used in estimation
+	    Output$Data$log.BD	<-  log(Output$Data$BottomDepth)
+	    dat.project$cent.log.depth  <- dat.project$log.BottomDepth - mean(Output$Data$log.BD,na.rm=T)
+	    dat.project$cent.log.depth2 <- dat.project$cent.log.depth^2
+	    dat.project$MASTER_ID <- paste("X",1:nrow(dat.project),sep=".")
+	  } 
+	  
+	  gridLocs = dat.project[,c("LonUTMAlbers","LatUTMAlbers")]
     # Projections will be stored as an array
     projectedLatentGrid = array(0, dim = c(dim(gridLocs)[1], nMCMC, 12))
 
     #######Make projections:
+    projMatrix <- inla.spde.make.A(Output$Mesh, loc=as.matrix(gridLocs))
+    
     if(Output$single.intercept==FALSE){
       # Loop over first year, and do MCMC projections for that year
       for(yr in 1:1) {
         #Grab random effects from this year
         indx = which(Output$iset$i2D.group==yr)
-        
-        projMatrix <- inla.spde.make.A(Output$Mesh, loc=as.matrix(gridLocs))
-        
+      
         # Multiply this projection matrix x 
         for(n in 1:nMCMC) {
           # combine random effects, fixed effects
           projectedLatentGrid[,n,yr] = as.numeric(projMatrix%*%inla.mcmc[[n]]$latent[re.indx][indx]) + 
             dat.project[,"cent.log.depth"]*inla.mcmc[[n]]$latent[depth.indx1] + (dat.project[,"cent.log.depth2"])*inla.mcmc[[n]]$latent[depth.indx2] + 
-            inla.mcmc[[n]]$latent[fe.indx - 1 + 1]
+            inla.mcmc[[n]]$latent[fe.indx]
         } # end mcmc loop
       } # end year loop
       
@@ -148,14 +161,12 @@ this.long = nchar(spp)
         #Grab random effects from this year
         indx = which(Output$iset$i2D.group==yr)
         
-        projMatrix <- inla.spde.make.A(Output$Mesh, loc=as.matrix(gridLocs))
-        
         # Multiply this projection matrix x 
         for(n in 1:nMCMC) {
           # combine random effects, fixed effects
           projectedLatentGrid[,n,yr] = as.numeric(projMatrix%*%inla.mcmc[[n]]$latent[re.indx][indx]) + 
             dat.project[,"cent.log.depth"]*inla.mcmc[[n]]$latent[depth.indx1] + (dat.project[,"cent.log.depth2"])*inla.mcmc[[n]]$latent[depth.indx2] + 
-            inla.mcmc[[n]]$latent[fe.indx - 1 + 1] +   inla.mcmc[[n]]$latent[fe.indx - 1 + yr] 
+            inla.mcmc[[n]]$latent[fe.indx] +   inla.mcmc[[n]]$latent[fe.indx - 1 + yr] 
         } # end mcmc loop
       } # end year loop
     } # end if loop
@@ -165,22 +176,20 @@ this.long = nchar(spp)
         #Grab random effects from this year
         indx = which(Output$iset$i2D.group==yr)
         
-        projMatrix <- inla.spde.make.A(Output$Mesh, loc=as.matrix(gridLocs))
-        
         # Multiply this projection matrix x 
         for(n in 1:nMCMC) {
           # combine random effects, fixed effects
           projectedLatentGrid[,n,yr] = as.numeric(projMatrix%*%inla.mcmc[[n]]$latent[re.indx][indx]) + 
             dat.project[,"cent.log.depth"]*inla.mcmc[[n]]$latent[depth.indx1] + (dat.project[,"cent.log.depth2"])*inla.mcmc[[n]]$latent[depth.indx2] + 
-            inla.mcmc[[n]]$latent[fe.indx - 1 + 1 ]
+            inla.mcmc[[n]]$latent[fe.indx]
         } # end mcmc loop
       } # end year loop
     }
     
     # Save files to workspaces for future use -- only if folks need raw MCMC draws by cell
 	if(keep.MCMC==FALSE){
-    	logit.projGrid = projectedLatentGrid
-    	log.projGrid = projectedLatentGrid
+    	if(mod=="binomial"){logit.projGrid = projectedLatentGrid}
+    	if(mod=="pos"){log.projGrid = projectedLatentGrid}
   	}
     if(keep.MCMC ==TRUE){
     	if(mod == "binomial") {
@@ -236,7 +245,6 @@ this.long = nchar(spp)
     summaryStatsByArea.pa[[a]] = cbind(apply(totalDensity.pa,2,mean), apply(totalDensity.pa,2,median), apply(totalDensity.pa,2,sd), apply(totalDensity.pa,2,quantile,0.025), apply(totalDensity.pa,2,quantile,0.975))
     colnames(summaryStatsByArea.pa[[a]]) = c("Mean.avgPresence","Median.avgPresence","SD.avgPresence","lower95","upper95")
   }
-  
 
   # Create an output data frame of total density (goA) and densities by depth areas
   outputDF = summaryStats
@@ -266,7 +274,6 @@ this.long = nchar(spp)
  	all.sp.pos	<-	rbind(all.sp.pos,outputDF)
  	all.sp.pres	<-	rbind(all.sp.pres,outputDF.pa)	
 
- 
   # Write outputDF to file
 	#   write.table(outputDF, file = paste(spp,"_summedCPUEByArea.csv",sep=""), row.names = F, col.names=T, sep=",")
 	#   write.table(outputDF.pa, file = paste(spp,"_occurrenceByArea.csv",sep=""), row.names = F, col.names=T, sep=",")  
@@ -292,11 +299,11 @@ this.long = nchar(spp)
   # Write outputDF to file
 	setwd(proj.dir)
 if(size.data==FALSE){
-	   write.csv(all.sp.pos, file = paste("All_sp_index_meanCPUEByArea.csv"), row.names = F, col.names=T, sep=",")
-	   write.csv(all.sp.pres, file = paste("All_sp_index_occurrenceByArea.csv"), row.names = F, col.names=T, sep=",")  
+  	 write.csv(all.sp.pos, file = paste("All_sp_index_meanCPUEByArea.csv"), row.names = F)
+	   write.csv(all.sp.pres, file = paste("All_sp_index_occurrenceByArea.csv"), row.names = F)  
 }
 if(size.data==FALSE){
-	   write.csv(all.sp.pos, file = paste("All_size_sp_index_meanCPUEByArea.csv"), row.names = F, col.names=T, sep=",")
-	   write.csv(all.sp.pres, file = paste("All_size_sp_index_occurrenceByArea.csv"), row.names = F, col.names=T, sep=",")  
+	   write.csv(all.sp.pos, file = paste("All_size_sp_index_meanCPUEByArea.csv"), row.names = F)
+	   write.csv(all.sp.pres, file = paste("All_size_sp_index_occurrenceByArea.csv"), row.names = F)  
 }
 
