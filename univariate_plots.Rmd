@@ -8,6 +8,8 @@ This is the initial examination using Ole's model output file from 2015-10-29.
 
 The *vplot* function will generate a figure for each year and area. Input a dataframe containing the species of interest, subsets of the "All_sp_index_meanCPUEByArea.csv"" file. The location of this may change when the model is updated.
 
+A seperate file can be used to house a data.frame of species names and trophic guilds etc. This file can be used to inform vplot of the groups to plot (example code below). Further this will allow for relatively painless exmainations of guild variance vs the whole, etc.
+
 ```{r load, message=FALSE, echo=FALSE}
 library(extrafont)
 #font_import() only do this one time - it takes a while
