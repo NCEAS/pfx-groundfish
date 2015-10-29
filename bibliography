@@ -1,3 +1,11 @@
+@article{Armstrong1995,
+  title={{Status of selected bottomfish and crustacean species in Prince William Sound following the Exxon Valdez oil spill}},
+  author={Armstrong, David A and Dinnel, Paul A and Orensanz, Jose M and Armstrong, Janet L and McDonald, Trent L and Cusimano, Robert F and Nemeth, Richard S and Landolt, Marsha L and Skalski, John R and Lee, Richard F and others},
+  journal={{ASTM Special Technical Publication}},
+  number={1219},
+  pages={485--547},
+  year={1995}
+}
 @article{Baker_2014,
 	doi = {10.1016/j.dsr2.2014.03.001},
 	url = {http://dx.doi.org/10.1016/j.dsr2.2014.03.001},
@@ -198,6 +206,84 @@
 	title = {{Performance of salmon fishery portfolios across western North America}},
 	journal = {Journal of Applied Ecology}
 }
+@article{Gundlach1983,
+  title={{The fate of Amoco Cadiz oil}},
+  author={Gundlach, Erich R and Boehm, Paul D and Marchand, Michel and Atlas, Ronald M and Ward, David M and Wolfe, Douglas A},
+  journal={{Science}},
+  volume={221},
+  number={4606},
+  pages={122--129},
+  year={1983},
+  publisher={American Association for the Advancement of Science}
+}
+@article{Harwell2006,
+  title={{Ecological significance of residual exposures and effects from the Exxon Valdez oil spill}},
+  author={Harwell, Mark A and Gentile, John H},
+  journal={{Integrated Environmental Assessment and Management}},
+  volume={2},
+  number={3},
+  pages={204--246},
+  year={2006},
+  publisher={Wiley Online Library}
+}
+@article{Hicken2011,
+  title={{Sublethal exposure to crude oil during embryonic development alters cardiac morphology and reduces aerobic capacity in adult fish}},
+  author={Hicken, Corinne E and Linbo, Tiffany L and Baldwin, David H and Willis, Maryjean L and Myers, Mark S and Holland, Larry and Larsen, Marie and Stekoll, Michael S and Rice, Stanley D and Collier, Tracy K and others},
+  journal={{Proceedings of the National Academy of Sciences}},
+  volume={108},
+  number={17},
+  pages={7086--7090},
+  year={2011},
+  publisher={National Acad Sciences}
+}
+@article{Incardona2015,
+  title={{Very low embryonic crude oil exposures cause lasting cardiac defects in salmon and herring}},
+  author={Incardona, John P and Carls, Mark G and Holland, Larry and Linbo, Tiffany L and Baldwin, David H and Myers, Mark S and Peck, Karen A and Tagal, Mark and Rice, Stanley D and Scholz, Nathaniel L},
+  journal={{Scientific Reports}},
+  volume={5},
+  year={2015},
+  publisher={Nature Publishing Group}
+}
+@article{Incardona2012,
+  title={{Unexpectedly high mortality in Pacific herring embryos exposed to the 2007 Cosco Busan oil spill in San Francisco Bay}},
+  author={Incardona, John P and Vines, Carol A and Anulacion, Bernadita F and Baldwin, David H and Day, Heather L and French, Barbara L and Labenia, Jana S and Linbo, Tiffany L and Myers, Mark S and Olson, O Paul and others},
+  journal={{Proceedings of the National Academy of Sciences}},
+  volume={109},
+  number={2},
+  pages={E51--E58},
+  year={2012},
+  publisher={National Acad Sciences}
+}
+@article{Jewett2002,
+  title={{Exposure to hydrocarbons 10 years after the Exxon Valdez oil spill: evidence from cytochrome P4501A expression and biliary FACs in nearshore demersal fishes}},
+  author={Jewett, Stephen C and Dean, Thomas A and Woodin, Bruce R and Hoberg, Max K and Stegeman, John J},
+  journal={{Marine Environmental Research}},
+  volume={54},
+  number={1},
+  pages={21--48},
+  year={2002},
+  publisher={Elsevier}
+}
+@article{Krahn1992,
+  title={{Mass spectrometric analysis for aromatic compounds in bile of fish sampled after the Exxon Valdez oil spill}},
+  author={Krahn, Margaret M and Burrows, Douglas G and Ylitalo, Gina M and Brown, Donald W and Wigren, Catherine A and Collier, Tracy K and Chan, Sin Lam and Varanasi, Usha},
+  journal={{Environmental Science \& Technology}},
+  volume={26},
+  number={1},
+  pages={116--126},
+  year={1992},
+  publisher={ACS Publications}
+}
+@article{Marty2003,
+  title={{Retrospective analysis: bile hydrocarbons and histopathology of demersal rockfish in Prince William Sound, Alaska, after the Exxon Valdez oil spill}},
+  author={Marty, Gary D and Hoffmann, Andy and Okihiro, Mark S and Hepler, Kelly and Hanes, David},
+  journal={{Marine Environmental Research}},
+  volume={56},
+  number={5},
+  pages={569--584},
+  year={2003},
+  publisher={Elsevier}
+}
 @article{Monson_2000,
 	doi = {10.1073/pnas.120163397},
 	url = {http://dx.doi.org/10.1073/pnas.120163397},
@@ -223,6 +309,43 @@
 	URL = {http://dx.doi.org/10.1577/1548-8659(1999)128<0909:ROPSSA>2.0.CO;2},
 	eprint = {http://dx.doi.org/10.1577/1548-8659(1999)128<0909:ROPSSA>2.0.CO;2}
 }
+@article{Page1996,
+  title={{The natural petroleum hydrocarbon background in subtidal sediments of Prince William Sound, Alaska, USA}},
+  author={Page, David S and Boehm, Paul D and Douglas, Gregory S and Bence, A Edward and Burns, William A and Mankiewicz, Paul J},
+  journal={{Environmental Toxicology and Chemistry}},
+  volume={15},
+  number={8},
+  pages={1266--1281},
+  year={1996},
+  publisher={Wiley Online Library}
+}
+@article{Page1999,
+  title={{Pyrogenic polycyclic aromatic hydrocarbons in sediments record past human activity: a case study in Prince William Sound, Alaska}},
+  author={Page, DS and Boehm, PD and Douglas, GS and Bence, AE and Burns, WA and Mankiewicz, PJ},
+  journal={{Marine Pollution Bulletin}},
+  volume={38},
+  number={4},
+  pages={247--260},
+  year={1999},
+  publisher={Elsevier}
+}
+@article{Paine1996,
+  title={{Trouble on oiled waters: lessons from the \textit{Exxon Valdez} oil spill}},
+  author={Paine, Robert T and Ruesink, Jennifer L and Sun, Adrian and Soulanille, Elaine L and Wonham, Marjorie J and Harley, Christopher DG and Brumbaugh, Daniel R and Secord, David L},
+  journal={{Annual Review of Ecology and Systematics}},
+  pages={197--235},
+  year={1996},
+  publisher={JSTOR}
+}
+@article{Peterson2001,
+  title={{The “Exxon Valdez” oil spill in Alaska: acute, indirect and chronic effects on the ecosystem}},
+  author={Peterson, Charles H},
+  journal={{Advances in Marine Biology}},
+  volume={39},
+  pages={1--103},
+  year={2001},
+  publisher={Elsevier}
+}
 @article{Peterson_2003,
 	doi = {10.1126/science.1084282},
 	url = {http://dx.doi.org/10.1126/science.1084282},
@@ -235,6 +358,45 @@
 	author = {C. H. Peterson},
 	title = {{Long-term ecosystem response to the \textit{Exxon Valdez} oil spill}},
 	journal = {Science}
+}
+@article{Short1997,
+  title={{Identification of Exxon Valdez oil in sediments and tissues from Prince William Sound and the Northwestern Gulf of Alaska based on a PAH weathering model},
+  author={Short, Jeffrey W and Heintz, Ron A},
+  journal={{Environmental Science \& Technology}},
+  volume={31},
+  number={8},
+  pages={2375--2384},
+  year={1997},
+  publisher={ACS Publications}
+}
+@article{Short2007,
+  title={{Slightly weathered Exxon Valdez oil persists in Gulf of Alaska beach sediments after 16 years}},
+  author={Short, Jeffrey W and Irvine, Gail V and Mann, Daniel H and Maselko, Jacek M and Pella, Jerome J and Lindeberg, Mandy R and Payne, James R and Driskell, William B and Rice, Stanley D},
+  journal={{Environmental Science \& Technology}},
+  volume={41},
+  number={4},
+  pages={1245--1250},
+  year={2007},
+  publisher={ACS Publications}
+}
+@article{Sol2000,
+  title={{Relationship between oil exposure and reproductive parameters in fish collected following the Exxon Valdez oil spill}},
+  author={Sol, Sean Y and Johnson, Lyndal L and Horness, Beth H and Collier, Tracy K},
+  journal={{Marine Pollution Bulletin}},
+  volume={40},
+  number={12},
+  pages={1139--1147},
+  year={2000},
+  publisher={Elsevier}
+}
+@article{Squire1992,
+  title={{Effects of the Santa Barbara, Calif., oil spill on the apparent abundance of pelagic fishery resources}},
+  author={Squire Jr, James L},
+  journal={{Marine Fisheries Review}},
+  volume={54},
+  number={1},
+  pages={7--14},
+  year={1992}
 }
 @article{Stachura_2014,
 	doi = {10.1139/cjfas-2013-0367},
@@ -274,4 +436,14 @@
 	author = {Sergio M. Vallina and Corinne Le Qu{\'{e}}r{\'{e}}},
 	title = {{Stability of complex food webs: Resilience, resistance and the average interaction strength}},
 	journal = {Journal of Theoretical Biology}
+}
+@article{Wolfe1994,
+  title={{The fate of the oil spilled from the Exxon Valdez}},
+  author={Wolfe, Douglas A and Hameedi, MJ and Galt, JA and Watabayashi, G and Short, J and O'CLAIRE, C and Rice, S and Michel, J and Payne, JR and Braddock, J and others},
+  journal={{Environmental Science \& Rechnology}},
+  volume={28},
+  number={13},
+  pages={560A--568A},
+  year={1994},
+  publisher={ACS Publications}
 }
