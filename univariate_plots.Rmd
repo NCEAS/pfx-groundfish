@@ -23,14 +23,14 @@ library(mapproj)
 ```
 
 ```{r, cache=FALSE, echo=FALSE}
-meanCPUE <- read.csv("C:/Users/bcwilliams/Documents/NCEAS/Species_data/All_sp_index_meanCPUEByArea.csv")
-meanCPUE <- subset(meanCPUE,area!='Total')
-meanCPUE <- droplevels(meanCPUE)
-meanCPUE$area <- as.numeric(levels(meanCPUE$area))[meanCPUE$area]
+meanCPUE <- read.csv("All_sp_index_meanCPUEByArea.csv") # load data
+meanCPUE <- subset(meanCPUE,area!='Total') #remove total column
+meanCPUE <- droplevels(meanCPUE) 
+meanCPUE$area <- as.numeric(levels(meanCPUE$area))[meanCPUE$area]#use numeric/factor conventions
 meanCPUE$Area <- factor(meanCPUE$area)
-meanCPUE$vari <- meanCPUE$SD.totalDensity^2
+meanCPUE$vari <- meanCPUE$SD.totalDensity^2 #calculate variance
 
-discrete_areas <- read.csv("C:/Users/bcwilliams/Documents/NCEAS/pfx-groundfish/goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
+discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 #head(discrete_areas)
 ```
 
@@ -51,30 +51,37 @@ discrete_areas$Area <- factor(discrete_areas$area)
 akmap+geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,color=Area))
 ```
 
-All Species combined
 
+Examine variance 
+
+```{r variance,echo=FALSE}
 a <- aggregate(vari~area+year,data=meanCPUE,FUN=sum)
 b <- aggregate(Mean.totalDensity~area+year,data=meanCPUE,FUN=sum)
 c <- merge(a, b, by=c("area", "year"))
 c$se <- sqrt(c$vari)
+c$uci <- c$se*2 + c$Mean.totalDensity
+c$lci <- c$Mean.totalDensity - c$se*2
+c$Area <- factor(c$area)
 
 
-ggplot(c, aes(year, Mean.totalDensity))+geom_point()
-
-group=factor(year)))+stat_summary(fun.y=mean, geom='line')
-
-```{r, echo=FALSE}
-ggplot(meanCPUE, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+ggplot(c, aes(year, Mean.totalDensity, group=Area, color=Area))+geom_line()+
+  geom_ribbon(aes(ymin=lci, ymax=uci, fill=Area), alpha=.2)
 ```
 
-Area 8 jumps out as much higher than the other areas
+All species combined
+
+```{r, echo=FALSE}
+ggplot(c, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+```
+
+Area 8 jumps out as higher than the other areas
 
 
 Examine all species minus Walleye Pollock, Arrowtooth Flounder and Pacific Halibut
 
 ```{r, echo=FALSE}
 #subset by area
-smean <- subset(meanCPUE, Species!="Theragrachalcogramma" & Species!="Atheresthesstomias"&Species!="Hippoglossoideselassodon")
+smean <- subset(meanCPUE, Species!="Theragrachalcogramma" & Species!="Atheresthesstomias"& Species!="Hippoglossoideselassodon")
 smean <- droplevels(smean)
 
 ggplot(smean, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
