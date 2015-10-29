@@ -1,0 +1,51 @@
+---
+title: "Mapping deeper Gfish areas"
+author: "Rachael Blake"
+date: "October 28, 2015"
+output: html_document
+---
+
+This is mapping trawl bottom depths between 151-300m from the RACE Trawl database.  
+There is some info that species diversity changes with water depth.  
+We're looking for some areas deeper than 150m to use for analysis.  
+
+```{r , include=FALSE, echo=FALSE, results='hide'}
+library(dplyr)
+library(png)
+library(grid)
+library(rgdal)   
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(mapproj)
+```
+
+Read in the map: 
+```{r bare_map}
+ak <- map_data('worldHires','USA:Alaska')
+
+akmap <- ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black")+
+         theme(panel.background=element_rect(fill='aliceblue'))+
+         xlab(expression(paste(Longitude^o,~'W')))+
+         ylab(expression(paste(Latitude^o,~'N')))+
+         coord_map(xlim = c(-165, -142),ylim = c(52, 61))
+
+```
+
+Read in the points data:
+```{r trawl_points}
+ALLD <- read.csv("./goaTrawl/Raw Trawl Data/goa_trawl_final_size_albers+temp.csv")
+
+D_d <- ALLD %>%
+       select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+       filter(BottomDepth %in% c(151:300))
+
+```
+
+Make the plot: 
+```{r plot, fig.height=8, fig.width=12}
+AKgf_150_300 <- akmap +
+                geom_point(data=D_d, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=5, shape=18, colour="blue")
+AKgf_150_300
+
+```
