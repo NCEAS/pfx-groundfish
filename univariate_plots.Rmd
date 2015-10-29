@@ -6,6 +6,8 @@ output: html_document
 ---
 This is the initial examination using Ole's model output file from 2015-10-29.
 
+The *vplot* function will generate a figure for each year and area. Input a dataframe containing the species of interest, subsets of the "All_sp_index_meanCPUEByArea.csv"" file. 
+
 ```{r load, message=FALSE, echo=FALSE}
 library(extrafont)
 #font_import() only do this one time - it takes a while
@@ -52,26 +54,26 @@ akmap+geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,color=Area))
 ```
 
 
-Examine variance 
-
-```{r variance,echo=FALSE}
-a <- aggregate(vari~area+year,data=meanCPUE,FUN=sum)
-b <- aggregate(Mean.totalDensity~area+year,data=meanCPUE,FUN=sum)
+Function for generating figures
+```{r vplot,echo=TRUE}
+vplot <- function(x){
+a <- aggregate(vari~area+year,data=x,FUN=sum)
+b <- aggregate(Mean.totalDensity~area+year,data=x,FUN=sum)
 c <- merge(a, b, by=c("area", "year"))
 c$se <- sqrt(c$vari)
 c$uci <- c$se*2 + c$Mean.totalDensity
 c$lci <- c$Mean.totalDensity - c$se*2
 c$Area <- factor(c$area)
 
-
 ggplot(c, aes(year, Mean.totalDensity, group=Area, color=Area))+geom_line()+
-  geom_ribbon(aes(ymin=lci, ymax=uci, fill=Area), alpha=.2)
+  geom_ribbon(aes(ymin=lci, ymax=uci, fill=Area), alpha=.2, linetype=0)+
+  ylim(min(c$lci), max(c$uci))+ scale_x_continuous(limits=c(1984, 2012), breaks=seq(1984,2012,2))
+}
 ```
 
-All species combined
-
-```{r, echo=FALSE}
-ggplot(c, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+Plot of the sum and variance of mean total density by year and area
+```{r}
+vplot(meanCPUE)
 ```
 
 Area 8 jumps out as higher than the other areas
@@ -79,49 +81,39 @@ Area 8 jumps out as higher than the other areas
 
 Examine all species minus Walleye Pollock, Arrowtooth Flounder and Pacific Halibut
 
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 #subset by area
 smean <- subset(meanCPUE, Species!="Theragrachalcogramma" & Species!="Atheresthesstomias"& Species!="Hippoglossoideselassodon")
 smean <- droplevels(smean)
 
-ggplot(smean, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+vplot(smean)
 ```
+
 
 Walleye Pollock, Arrowtooth Flounder and Pacific Halibut
 
 ```{r, echo=FALSE}
-#pull out species "groups"
 polarrhal <- subset(meanCPUE, Species=="Theragrachalcogramma" | Species== "Atheresthesstomias" | Species!="Hippoglossoideselassodon" )
 polarrhal <- droplevels(polarrhal)
-#ggplot(polarrhal, aes(year, Mean.totalDensity,color=Species, group=Species))+geom_point()+geom_line()+facet_wrap(~area, ncol=1, scales="free")
 
-ggplot(polarrhal, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+vplot(polarrhal)
 ```
-
 
 Cod and Spiny Dogfish
 
 ```{r, echo=FALSE}
-#pull out species "groups"
 codsha <- subset(meanCPUE, Species=="Gadusmacrocephalus"| Species=="Squalusacanthias")
 
-#ggplot(codsha, aes(year, Mean.totalDensity,color=Species, group=Species))+geom_point()+geom_line()+facet_wrap(~area, ncol=1, scales="free")
-
-ggplot(codsha, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+vplot(codsha)
 ```
-
 
 Capelin, Herring, and Eulachon
 
 ```{r, echo=FALSE}
-#pull out species "groups"
 capherreu <- subset(meanCPUE,Species== "Mallotusvillosus"|Species== "Clupeapallasi" | Species=="Thaleichthyspacificus")
 
-#ggplot(capherreu, aes(year, Mean.totalDensity,color=Species, group=Species))+geom_point()+geom_line()+facet_wrap(~area, ncol=1, scales="free")
-
-ggplot(capherreu, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+vplot(capherreu)
 ```
-
 
 Rock Sole, Yellowfin Sole, Bigmouth Sculpin, Ling Cod
 
@@ -129,18 +121,13 @@ Rock Sole, Yellowfin Sole, Bigmouth Sculpin, Ling Cod
 #pull out species "groups"
 rocyelbig <- subset(meanCPUE, Species=="Lepidopsettasp"|Species== "Limandaaspera"|Species== "Hemitripterusbolini" | Species == "Ophiodonelongatus" |Species =="Dasycottussetiger" | Species=="Hemilepidotus Jordani")
 
-#ggplot(rocyelbig, aes(year, Mean.totalDensity,color=Species, group=Species))+geom_point()+geom_line()+facet_wrap(~area, ncol=1, scales="free")
-
-ggplot(rocyelbig, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+vplot(rocyelbig)
 ```
 
 Bairdi Crab
 
 ```{r, echo=FALSE}
-#pull out species "groups"
 bai <- subset(meanCPUE, Species=="Chionoecetesbairdi")
 
-#ggplot(bai, aes(year, Mean.totalDensity,color=Species, group=Species))+geom_point()+geom_line()+facet_wrap(~area, ncol=1, scales="free")
-
-ggplot(bai, aes(year, Mean.totalDensity,color=Area))+stat_summary(fun.y=sum, geom="line")
+vplot(bai)
 ```
