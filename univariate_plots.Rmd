@@ -6,7 +6,7 @@ output: html_document
 ---
 This is the initial examination using Ole's model output file from 2015-10-29.
 
-The *vplot* function will generate a figure for each year and area. Input a dataframe containing the species of interest, subsets of the "All_sp_index_meanCPUEByArea.csv"" file. 
+The *vplot* function will generate a figure for each year and area. Input a dataframe containing the species of interest, subsets of the "All_sp_index_meanCPUEByArea.csv"" file. The location of this may change when the model is updated.
 
 ```{r load, message=FALSE, echo=FALSE}
 library(extrafont)
@@ -26,7 +26,7 @@ library(mapproj)
 
 ```{r, cache=FALSE, echo=FALSE}
 meanCPUE <- read.csv("All_sp_index_meanCPUEByArea.csv") # load data
-meanCPUE <- subset(meanCPUE,area!='Total') #remove total column
+meanCPUE <- subset(meanCPUE,area!='Total') #remove total field
 meanCPUE <- droplevels(meanCPUE) 
 meanCPUE$area <- as.numeric(levels(meanCPUE$area))[meanCPUE$area]#use numeric/factor conventions
 meanCPUE$Area <- factor(meanCPUE$area)
@@ -55,10 +55,10 @@ discrete_areas$Area <- factor(discrete_areas$area)
 akmap+geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,color=Area))
 ```
 
-
 Function for generating figures
+
 ```{r vplot,echo=TRUE}
-vplot <- function(x){
+vplot <- function(x, title=""){
 a <- aggregate(vari~area+year,data=x,FUN=sum)
 b <- aggregate(Mean.totalDensity~area+year,data=x,FUN=sum)
 c <- merge(a, b, by=c("area", "year"))
@@ -69,13 +69,43 @@ c$Area <- factor(c$area)
 
 ggplot(c, aes(year, Mean.totalDensity, group=Area, color=Area))+geom_line()+
   geom_ribbon(aes(ymin=lci, ymax=uci, fill=Area), alpha=.2, linetype=0)+
-  ylim(min(c$lci), max(c$uci))+ scale_x_continuous(limits=c(1984, 2012), breaks=seq(1984,2012,2))
+  ylim(min(c$lci), max(c$uci))+ scale_x_continuous(limits=c(1984, 2012), breaks=seq(1984,2012,2))+ggtitle(title)
 }
 ```
 
+Subset groups based upon "trawl_species_control_file.csv"
+```{r}
+sp <- subset(trawl_species, pelagic.benthic!='pelagic')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+```
+
+Define the group to plot based upon the species names pulled from the database
+```{r}
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+```
+
+Plot the group
+
+```{r}
+vplot(group,title="Demersal sp.")
+```
+
+Examine by guild
+```{r guild}
+sp <- subset(trawl_species, guild!='B')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Guild B")
+```
+
+
 Plot of the sum and variance of mean total density by year and area
 ```{r}
-vplot(meanCPUE)
+vplot(meanCPUE, title="All species")
 ```
 
 Area 8 jumps out as higher than the other areas
