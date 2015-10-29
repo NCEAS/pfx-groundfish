@@ -1,0 +1,101 @@
+---
+title: "Diversity_Exploration"
+author: "Rachael Blake"
+date: "October 29, 2015"
+output: html_document
+---
+
+This is an initial exploration of diversity patterns in the shallow Groundfish areas in the central GOA.  This uses Ole's model output.
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+library(httr)
+library(plyr)
+library(dplyr)
+library(XML)
+library(curl)
+library(rvest)
+library(tidyr)
+library(stringr)
+library(vegan)
+library(reshape2)
+library(ggplot2)
+```
+
+This reads in the files from the Google drive folder:
+
+Species by Area:
+```{r}
+URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYmtIeFRIZzRtdlU"
+SpByArea_Get <- GET(URL_SpByArea)
+SpByArea_1 <- content(SpByArea_Get, as='text')
+SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head=TRUE)
+
+```
+CPUE by Area:
+```{r}
+URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uTkdHajFvbVVHc2c"
+SPCPUEArea_Get <- GET(URL_SPCPUEArea)
+SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
+SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+
+```
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+SpByArea <- SpByArea %>%
+            mutate(year = ifelse((year.numb=="1"),'1984',
+                          ifelse((year.numb=="2"),'1987',
+                          ifelse((year.numb=="3"),'1990',
+                          ifelse((year.numb=="4"),'1993',       
+                          ifelse((year.numb=="5"),'1996',
+                          ifelse((year.numb=="6"),'1999',
+                          ifelse((year.numb=="7"),'2001',
+                          ifelse((year.numb=="8"),'2003',
+                          ifelse((year.numb=="9"),'2005',
+                          ifelse((year.numb=="10"),'2007',
+                          ifelse((year.numb=="11"),'2009',
+                          ifelse((year.numb=="12"),'2011',
+                          ifelse((year.numb=="13"),'2013',
+                          ifelse((year.numb=="14"),'2015',        
+                          ""))))))))))))))
+                   )
+head(SpByArea)
+```
+
+
+-------------------------------------------------------
+We want to look at diversity by area by year.  
+```{r}
+Div_SpCPUEArea <- SPCPUEArea %>%
+                  filter(area!="Total") %>%
+                  group_by(area, year) %>% 
+                  summarise(SW_Div = diversity(Mean.totalDensity, index="shannon"),
+                            Eff_Num_Sp = exp(SW_Div)) %>%
+                  ungroup() %>%
+                  print(width = Inf)
+
+```
+
+Plot of Shannon-Wiener Diversity:
+```{r}
+SW <- ggplot(Div_SpCPUEArea, aes(year, SW_Div, color=area)) + geom_line() + # facet_wrap(~area,ncol=2)
+      scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11"))
+SW
+
+```
+
+Plot of Effective Number of Species "exp(Shannon-Wiener)": 
+```{r}
+Eff_Sp <- ggplot(Div_SpCPUEArea, aes(year, Eff_Num_Sp, color=area)) + geom_line() + 
+          scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11"))
+Eff_Sp
+
+```
+
+```{r, eval=FALSE,include=FALSE}
+mDiv_SpCPUEArea <- melt(Div_SpCPUEArea, id.vars = c("area", "year"))
+ggplot(mDiv_SpCPUEArea, aes(year, value, group=variable))+geom_line()+facet_wrap(~area,ncol=2)
+
+```
+
