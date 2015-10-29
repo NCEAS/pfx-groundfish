@@ -24,6 +24,8 @@ theme_set(theme_bw(base_size=12,base_family='Times New Roman')+
 library(maps)
 library(mapdata)
 library(mapproj)
+library(dplyr)
+library(tidyr)
 ```
 
 ```{r, cache=FALSE, echo=FALSE}
@@ -38,6 +40,9 @@ discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_compar
 #head(discrete_areas)
 
 trawl_species <- read.csv("./goaTrawl/Output Data/trawl_species_control_file.csv")
+s <- trawl_species$diet
+s <- as.data.frame(s) %>% separate(s, into = paste("diet", 1:2, sep = ""))
+trawl_species <- cbind(trawl_species,s)
 ```
 
 ```{r map, cache=FALSE, echo=FALSE}
@@ -104,6 +109,17 @@ group <- meanCPUE[meanCPUE$Species %in% sp.names,]
 vplot(group, title="Guild B")
 ```
 
+Examine by diet
+```{r diet}
+sp <- subset(trawl_species, diet1=='I' | diet2=="I")
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Diet I")
+
+```
 
 Plot of the sum and variance of mean total density by year and area
 ```{r}
