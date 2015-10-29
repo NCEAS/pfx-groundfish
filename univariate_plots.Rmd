@@ -34,6 +34,8 @@ meanCPUE$vari <- meanCPUE$SD.totalDensity^2 #calculate variance
 
 discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 #head(discrete_areas)
+
+trawl_species <- read.csv("./goaTrawl/Output Data/trawl_species_control_file.csv")
 ```
 
 ```{r map, cache=FALSE, echo=FALSE}
