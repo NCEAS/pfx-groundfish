@@ -65,6 +65,7 @@ akmap+geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,color=Area))
 Function for generating figures
 
 ```{r vplot,echo=TRUE}
+
 vplot <- function(x, title=""){
 a <- aggregate(vari~area+year,data=x,FUN=sum)
 b <- aggregate(Mean.totalDensity~area+year,data=x,FUN=sum)
@@ -100,13 +101,41 @@ vplot(group,title="Demersal sp.")
 
 Examine by guild
 ```{r guild}
-sp <- subset(trawl_species, guild!='B')
+sp <- subset(trawl_species, guild=='A')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Guild A")
+
+sp <- subset(trawl_species, guild=='B')
 sp <- droplevels(sp)
 sp.names <- as.list(levels(sp$database.name))
 
 group <- meanCPUE[meanCPUE$Species %in% sp.names,]
 
 vplot(group, title="Guild B")
+
+
+sp <- subset(trawl_species, guild=='P')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Guild P")
+
+
+
+sp <- subset(trawl_species, guild=='E')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Guild E")
+
 ```
 
 Examine by diet
