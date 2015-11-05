@@ -8,8 +8,8 @@ library(sp)
 # Use only species with length-based data, or total biomass
 totalBiomass = TRUE
 #### CHOOSE A MODEL - "binomial" or "positive"
-model = "positive"
-single.intercept =TRUE
+model = "binomial"
+single.intercept =FALSE
 
 max.depth <- 600 # in meters
 
@@ -29,14 +29,14 @@ if(totalBiomass == FALSE) {
 
 df = df[order(df$Year,df$Lat),]
 
-### Remove NA entries in BottomDepth and Bottom Temp
+### Remove NA entries in BottomDepth
 df = df[df$BottomDepth != -9999,]
-df = df[df$BottomTemp != -9999,]
+#df = df[df$BottomTemp != -9999,]
 
 df = df[df$BottomDepth <= max.depth,] 
 
 df$Station = as.character(df$Station)
-df$Year = as.numeric(df$Year)
+df$Year = as.numeric(as.character(df$Year))
 df$LonUTMAlbers = df$LonUTMAlbers/1000
 df$LatUTMAlbers = df$LatUTMAlbers/1000
 
@@ -56,27 +56,25 @@ dat.trim = dat.project[THESE,]
 
 dat.trim = dat.project[THESE,]
 dat.new.trim = dat.trim
-x.lim = c(-200,200)
-x.lim = c(min(dat.project$LonUTMAlbers),max(dat.project$LonUTMAlbers))
-x.lim = c(-800,550)
-y.lim = c(5700,6200)
-y.lim = c(min(dat.project$LatUTMAlbers),max(dat.project$LatUTMAlbers))
-	#plot(LatUTMAlbers~LonUTMAlbers,data=dat.project[ #&
-	#		 dat.project$LonUTMAlbers < 200 & dat.project$LonUTMAlbers > -200
-	#		 ,],pch=".",xlim=x.lim,ylim=y.lim)
-	#par(new=T)
-plot(LatUTMAlbers~LonUTMAlbers,data=dat.trim[dat.trim$NGDC24_M<=500 &
-	 dat.trim$LonUTMAlbers < 550 & dat.trim$LonUTMAlbers > -800 &
-	 dat.trim$NGDC24_M > 25
-	 ,],pch=".",xlim=x.lim,ylim=y.lim,col=2)
-
-par(new=T)
-plot(LatUTMAlbers~LonUTMAlbers,data=dat.new.trim#[
-#		 dat.new$LonUTMAlbers < 200 & dat.new$LonUTMAlbers > -200
-		 #,]
- ,pch=".",xlim=x.lim,ylim=y.lim,col=4)
-dim(dat.new.trim)
-dat.proj.trim	= dat.new.trim
+# x.lim = c(-200,200)
+# x.lim = c(min(dat.project$LonUTMAlbers),max(dat.project$LonUTMAlbers))
+# x.lim = c(-800,550)
+# y.lim = c(5700,6200)
+# y.lim = c(min(dat.project$LatUTMAlbers),max(dat.project$LatUTMAlbers))
+# plot(LatUTMAlbers~LonUTMAlbers,data=dat.project[ #&
+# 		 dat.project$LonUTMAlbers < 200 & dat.project$LonUTMAlbers > -200
+# 		 ,],pch=".",xlim=x.lim,ylim=y.lim)
+# par(new=T)
+# plot(LatUTMAlbers~LonUTMAlbers,data=dat.trim[dat.trim$NGDC24_M<=500 &
+# 	 dat.trim$LonUTMAlbers < 550 & dat.trim$LonUTMAlbers > -800 &
+# 	 dat.trim$NGDC24_M > 25
+# 	 ,],pch=".",xlim=x.lim,ylim=y.lim,col=2)
+# 
+# par(new=T)
+# plot(LatUTMAlbers~LonUTMAlbers,data=dat.new.trim[dat.new$LonUTMAlbers < 200 & dat.new$LonUTMAlbers > -200,]
+#  ,pch=".",xlim=x.lim,ylim=y.lim,col=4)
+# dim(dat.new.trim)
+# dat.proj.trim	= dat.new.trim
 
 # This is a switch for whether we're using full data, or length-stratified data
 maxCol = dim(df)[2]
@@ -94,10 +92,10 @@ if(totalBiomass==FALSE) {
 }
 
 #################################### START INLA LOOP
-for(i in 54:55) {
+for(i in 12:15) {
   SPECIES <- species[i]
   # Fit the model for species XX
-   subdat = df[,c(1:nCovCol,which(names(df)==species[i]))]
+  subdat = df[,c(1:nCovCol,which(names(df)==species[i]))]   
     if(totalBiomass == FALSE){
       subdat[subdat[,SPECIES] == -9999,SPECIES ] <- NA
     }
@@ -141,10 +139,10 @@ for(i in 54:55) {
   subcoords = cbind(subdat$LonUTMAlbers,subdat$LatUTMAlbers)
 
   bnd = inla.nonconvex.hull(subcoords, convex=80)
-#  bnd = inla.nonconvex.hull(subcoords, convex=150)
+  #bnd = inla.nonconvex.hull(subcoords, convex=150)
     # increase cutoff to ~ 150 to create much coarser mesh
   #mesh1 = inla.mesh.2d(boundary=bnd,max.edge=c(60,1500),cutoff=150,offset=c(120,180))
-  mesh1 = inla.mesh.2d(boundary=bnd,max.edge=c(60,1500),cutoff=61,offset=c(120,180))
+  mesh1 = inla.mesh.2d(boundary=bnd,max.edge=c(60,1500),cutoff=59,offset=c(110,180))
   plot(mesh1)
   summary(mesh1)
 
@@ -169,25 +167,25 @@ for(i in 54:55) {
   		ycoo=subdat$LatUTMAlbers, 
  		 cent.log.depth=Covar$cent.log.depth,cent.log.depth2=Covar$cent.log.depth.2)
 
-	dat.proj = data.frame(y=rep(NA,nrow(dat.proj.trim)*k),
-		time=rep(1:k, each=nrow(dat.proj.trim)), 
-		xcoo=rep(dat.proj.trim$LonUTMAlbers,k),
-		ycoo=rep(dat.proj.trim$LatUTMAlbers,k),
-  		cent.log.depth=as.vector(log(dat.proj.trim$NGDC24_M)-mean(Covar$log.depth,na.rm=T)),
-  		cent.log.depth2=as.vector(log(dat.proj.trim$NGDC24_M)-mean(Covar$log.depth,na.rm=T))^2)
+# 	dat.proj = data.frame(y=rep(NA,nrow(dat.proj.trim)*k),
+# 		time=rep(1:k, each=nrow(dat.proj.trim)), 
+# 		xcoo=rep(dat.proj.trim$LonUTMAlbers,k),
+# 		ycoo=rep(dat.proj.trim$LatUTMAlbers,k),
+#   		cent.log.depth=as.vector(log(dat.proj.trim$NGDC24_M)-mean(Covar$log.depth,na.rm=T)),
+#   		cent.log.depth2=as.vector(log(dat.proj.trim$NGDC24_M)-mean(Covar$log.depth,na.rm=T))^2)
   if(single.intercept==FALSE){
   # tack on year effects
   YEARS.lab = paste("Y",names(table(subdat$Year)),sep="")
   dat[YEARS.lab] = 0
-  dat.proj[YEARS.lab] = 0
+ # dat.proj[YEARS.lab] = 0
 
 	# Make a design matrix where the first year is the intercept
   dat[,YEARS.lab[1]] = 1
-  dat.proj[,YEARS.lab[1]] = 1
+#   dat.proj[,YEARS.lab[1]] = 1
 
     for(j in 1:length(YEARS.lab)){
 	  	dat[dat$time == j,YEARS.lab[j]]	<-	1 
- 	  	dat.proj[dat.proj$time == j,YEARS.lab[j]]	<-	1
+ 	  	# dat.proj[dat.proj$time == j,YEARS.lab[j]]	<-	1
     }
   }
 	
@@ -199,7 +197,7 @@ for(i in 54:55) {
 	  
 	  # Make a design matrix where the first year is the intercept
 	  dat[,YEARS.lab[1]] = 1
-	  dat.proj[,YEARS.lab[1]] = 1
+	  # dat.proj[,YEARS.lab[1]] = 1
 	}
 	
   iset = inla.spde.make.index("i2D", n.spde=mesh1$n, n.group = k) 
@@ -214,7 +212,7 @@ for(i in 54:55) {
   for (Z in 1:ncol(X.1)) effect.list[[Z+1]] <- XX.list[[Z]]
   names(effect.list) <- c("1", Covar.names)
 
-  ### Make projection points stack.
+  ### Make data stack.
   A <- inla.spde.make.A(mesh=mesh1, loc=cbind(dat$xcoo, dat$ycoo), group = dat$time)
   A.list = list()
   A.list[[1]] = A
@@ -225,7 +223,8 @@ for(i in 54:55) {
 
   sdat 		<- inla.stack(tag='stdata', data=list(y=dat$y,link=1,Ntrials=Ntrials), A=A.list, effects=effect.list)
 
-  formula = as.formula(paste0("y ~ -1 +",  paste(Covar.names, collapse="+"), "+ f(i2D, model=spde, group = i2D.group, control.group = list(model='ar1'))"))		# field evolves with AR1 by year
+  formula = as.formula(paste0("y ~ -1 +",  paste(Covar.names, collapse="+"), 
+                "+ f(i2D, model=spde, group = i2D.group, control.group = list(model='ar1'))"))		# field evolves with AR1 by year
 
     if(model=="binomial") {
        # config = TRUE included so that inla.posterior.sample() can be applied

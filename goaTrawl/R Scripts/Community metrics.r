@@ -1,8 +1,10 @@
+
+library(knitr)
 library(rgdal)
 library(ggplot2)
 library(RColorBrewer)
 
-proj.dir	<-	getwd()
+proj.dir	<-	"/Users/ole.shelton/Documents/GitHub/pfx-groundfish/goaTrawl"#getwd()# 
 data.type 	<-	"abundance" # options are occurrence or abundance
 ##########################################################################################
 ## Write functions for calculating various diversity metrics of interest
@@ -40,11 +42,11 @@ temp	<-	df[df$BottomDepth<150,]
 # Read in Projections that are appropriate
 	if(data.type == "abundance"){	
 		# Choose predictions file
-		dat 		<-	read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_uncond_pred_goa_shallow.csv")
-			# dat<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_uncond_pred_goa_mid.csv")
-			# dat<-read.csv("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Projections/All_species_uncond_pred_goa_deep.csv")
+		dat 	<-	read.csv("/Users/ole.shelton/Dropbox/INLA output/Projections/All_species_uncond_pred_goa_shallow.csv")
+		dat2	<-  	read.csv("/Users/ole.shelton/Dropbox/INLA output/Projections/All_species_uncond_pred_goa_mid.csv")
+		dat3	<-  	read.csv("/Users/ole.shelton/Dropbox/INLA output/Projections/All_species_uncond_pred_goa_deep.csv")
 		# Choose points to standardize across
-		dat.areas	<- read.csv(paste(proj.dir,"/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv",sep=""))
+		#dat.areas	<- read.csv(paste(proj.dir,"/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv",sep=""))
 	}	
 	if(data.type == "occurrence"){	
 		# Choose predictions file
@@ -55,6 +57,8 @@ temp	<-	df[df$BottomDepth<150,]
 	#Summarize the number of locations in each area
 		area.summary	<-	aggregate(dat.areas$Area,by=list(Area=dat.areas$Area),length)
 
+	dat	<-	rbind(dat,dat2)
+	dat	<-	rbind(dat,dat3)
 
 # Read in Pilot files which determine which species to include or how to group species
 	dat.control	= read.csv(paste(proj.dir,"/Output Data/trawl_species_control_file.csv",sep=""))
@@ -67,10 +71,11 @@ temp	<-	df[df$BottomDepth<150,]
     dat.project$NGDC24_M =	-dat.project$NGDC24_M	# depth in m
     dat.project$SRTM_M = -dat.project$SRTM_M	# depth in m
     dat.project = dat.project[dat.project$NGDC24 > 0,]
-
+    dat.project = dat.project[dat.project$NGDC24 < 300,]
+    
 #### PLOT SPATIAL DISTRIBUTION
 	# Import the datafile of Alaska shoreline for projection purposes
-	setwd("/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/_Output plots Pos/_Alaska Shapefile")
+	setwd(paste(proj.dir,"/_Output plots Pos/_Alaska Shapefile",sep=""))
 	shp.alaska	 <-	readOGR(dsn=".",layer="Alaska-Albers")
 	dat.alaska   <- fortify(shp.alaska,"data.frame")
 	dat.alaska$lat	<-	dat.alaska$lat/1000
@@ -83,13 +88,14 @@ temp	<-	df[df$BottomDepth<150,]
 	
 	# Declare the metric of interest:
 		FUNCTION	<-	"total.biomass"
-		BY			<-	c("class","fish.invert","pelagic.benthic","All")
+		BY			<-	c("All")
+#		BY			<-	c("class","fish.invert","pelagic.benthic","All")
 		these		<- c("database.name",BY)
 		dat.control.trim	<-	dat.control[,these]
 
 	# Merge up the dataframes
-	dat.fin	<-	merge(dat,dat.areas[,c("MASTER_ID","LonUTMAlbers","LatUTMAlbers","NGDC24_M","Area")])
-	dat.fin <-  merge(dat.fin,dat.control.trim,by.x="Species",by.y="database.name")
+#	dat.fin	<-	merge(dat,dat.areas[,c("MASTER_ID","LonUTMAlbers","LatUTMAlbers","NGDC24_M","Area")])
+#	dat.fin <-  merge(dat.fin,dat.control.trim,by.x="Species",by.y="database.name")
 	dat.fin$All	<-	"All"
 	dat.fin$Var	<-	dat.fin$SE^2
  	
@@ -103,39 +109,44 @@ temp	<-	df[df$BottomDepth<150,]
 	}
 	names(OUT)	<-	BY
 
-	######### 
-	#### Here is where we generate index standardizations for each Area.
-	#########
-	INDEX	<- list()
-		
-	for(Z in 1:length(BY)){
-		temp	<-	out.list[[BY[Z]]]
-		index1	<-	data.frame(aggregate(temp[,c("Mean","Median")],by=list(temp[,BY[Z]],Area=temp$Area,Year=temp$Year),mean))
-		index2	<-	data.frame(as.matrix(aggregate(temp[,c("Mean","Median")],by=list(temp[,BY[Z]],Area=temp$Area,Year=temp$Year),quantile,probs=c(0.05,0.25,0.50,0.75,0.95))))
-		index2$Area	<- as.numeric(index2$Area)
-		
-		index3	<-	data.frame(as.matrix(aggregate(temp[,c("Mean","Median")],by=list(temp[,BY[Z]],Area=temp$Area,Year=temp$Year),sd)))
-		index3$Area	<- as.numeric(index3$Area)
-		colnames(index3)[4:5]	<-	c("SD.Mean","SD.Median")
-		
-		index	<-	data.frame(merge(index1,index2))
-		index	<-	data.frame(merge(index,index3))
-		colnames(index)[1]	<-	BY[Z]
-	
-		INDEX[[Z]]	<-	index
-	}
-	names(INDEX)	<-	BY
+##########################################################################################
+##########################################################################################
+##########################################################################################
+##########################################################################################
+# Make some plots of the spatial patterns
+##########################################################################################
+##########################################################################################
+##########################################################################################
+##########################################################################################
 
-##########################################################################################
-##########################################################################################
-##########################################################################################
-##########################################################################################
-# Make some plots of the different areas
-##########################################################################################
-##########################################################################################
-##########################################################################################
-##########################################################################################
-AREAS	<-	unique(dat.areas$Area)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 for(i in 1:length(BY)){ # loop through the list
 	# Start with time series for each Area
