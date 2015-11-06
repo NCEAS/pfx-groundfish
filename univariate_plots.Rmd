@@ -10,16 +10,14 @@ The *vplot* function will generate a figure for each year and area. Input a data
 
 A seperate file can be used to house a data.frame of species names and trophic guilds etc. This file can be used to inform vplot of the groups to plot (example code below). Further this will allow for relatively painless exmainations of guild variance vs the whole, etc.
 
-```{r load, message=FALSE, echo=FALSE}
+```{r load, message=FALSE, echo=FALSE, warning=FALSE}
 library(extrafont)
 #font_import() only do this one time - it takes a while
 loadfonts(device="win")
 windowsFonts(Times=windowsFont("TT Times New Roman"))
 
 library(ggplot2)
-theme_set(theme_bw(base_size=12,base_family='Times New Roman')+ 
-  theme(panel.grid.major = element_blank(),
-  panel.grid.minor = element_blank()))
+
 
 library(maps)
 library(mapdata)
@@ -28,7 +26,7 @@ library(dplyr)
 library(tidyr)
 ```
 
-```{r, cache=FALSE, echo=FALSE}
+```{r, cache=FALSE, echo=FALSE, warning=FALSE}
 meanCPUE <- read.csv("All_sp_index_meanCPUEByArea.csv") # load data
 meanCPUE <- subset(meanCPUE,area!='Total') #remove total field
 meanCPUE <- droplevels(meanCPUE) 
@@ -45,7 +43,7 @@ s <- as.data.frame(s) %>% separate(s, into = paste("diet", 1:2, sep = ""))
 trawl_species <- cbind(trawl_species,s)
 ```
 
-```{r map, cache=FALSE, echo=FALSE}
+```{r map, cache=FALSE, echo=FALSE, warning=FALSE}
 ak<-map_data('worldHires','USA:Alaska')
 akmap<-ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black")+
     theme(panel.background=element_rect(fill='aliceblue'))+
@@ -67,6 +65,10 @@ Function for generating figures
 ```{r vplot,echo=TRUE}
 
 vplot <- function(x, title=""){
+  require(ggplot2)
+  theme_set(theme_bw(base_size=12,base_family='Times New Roman')+ 
+  theme(panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank()))
 a <- aggregate(vari~area+year,data=x,FUN=sum)
 b <- aggregate(Mean.totalDensity~area+year,data=x,FUN=sum)
 c <- merge(a, b, by=c("area", "year"))
@@ -77,7 +79,7 @@ c$Area <- factor(c$area)
 
 ggplot(c, aes(year, Mean.totalDensity, group=Area, color=Area))+geom_line()+
   geom_ribbon(aes(ymin=lci, ymax=uci, fill=Area), alpha=.2, linetype=0)+
-  ylim(min(c$lci), max(c$uci))+ scale_x_continuous(limits=c(1984, 2012), breaks=seq(1984,2012,2))+ggtitle(title)
+  ylim(min(c$lci), max(c$uci))+ scale_x_continuous(limits=c(1984, 2012), breaks=seq(1984,2012,2))+ggtitle(title)+xlab("Year")+ylab("Mean total density")
 }
 ```
 
