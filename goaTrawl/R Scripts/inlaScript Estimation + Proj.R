@@ -31,7 +31,7 @@ df = df[order(df$Year,df$Lat),]
 
 ### Remove NA entries in BottomDepth and Bottom Temp
 df = df[df$BottomDepth != -9999,]
-df = df[df$BottomTemp != -9999,]
+#df = df[df$BottomTemp != -9999,]
 
 df = df[df$BottomDepth <= max.depth,] 
 
