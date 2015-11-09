@@ -10,10 +10,10 @@ library(sp)
 
 runFromDB  = FALSE
 keep.MCMC  = FALSE
-projection = "discrete_areas" # options: "goa_shallow","goa_mid","goa_deep","discrete_areas" "goa_to_500"
+projection = "goa_deep" # options: "goa_shallow","goa_mid","goa_deep","discrete_areas" "goa_to_500"
 size.data  = FALSE
 
-proj.dir <-getwd()#"/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"
+proj.dir <-"/Users/ole.shelton/Documents/GitHub/pfx-groundfish/goaTrawl/" #getwd()
 setwd(proj.dir)
 sppList = as.character(read.csv("speciesNames.csv",header=F)[,1])
 
@@ -32,10 +32,10 @@ All.uncond<-NULL
 All.pres<-NULL
 All.pos <- NULL
 
-for(i in 29:length(species)) {
+for(i in 1:length(sppList)) {
 spp = sppList[i] # focal species
 this.long = nchar(spp)
-#if(spp != "Limandaaspera" & spp!="Mallotusvillosus"){# Exclude a couple of species that have missing model components.
+if(spp != "Merluccius.productus" & spp!="Hydrolagus.colliei"){# Exclude a couple of species that have missing model components.
   for(mod in c("pos","binomial")) {
     # load in respective fitted model workspace
     if(runFromDB == FALSE) {
@@ -46,13 +46,13 @@ this.long = nchar(spp)
     if(size.data ==FALSE){
           if(mod=="binomial"){
           #setwd("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Binomial Output/_RData/_Best")
-          setwd("/Users/ole.shelton/Dropbox/INLA output/pres")
+          setwd("/Users/ole.shelton/Dropbox/INLA output/pres/Best")
           DIR <- dir()
           load(DIR[which(substr(DIR,1,this.long)==spp)])
         } 
         if(mod!="binomial"){        
           #setwd("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Positive Output/_RData/_Best")
-          setwd("/Users/ole.shelton/Dropbox/INLA output/pos")
+          setwd("/Users/ole.shelton/Dropbox/INLA output/pos/Best")
           DIR <- dir()
           load(DIR[which(substr(DIR,1,this.long)==spp)])
         } 
@@ -88,6 +88,9 @@ this.long = nchar(spp)
     }
     # Summarize the model
     summary(Output$INLA.mod)
+    YEARS	<-	sort(unique(Output$Data$Year))
+    nYears <- length(YEARS)
+    
     # re-make spde (for projections)
     spde=inla.spde2.matern(Output$Mesh, alpha=3/2)  
 
@@ -122,8 +125,7 @@ this.long = nchar(spp)
     dat.project = dat.project[dat.project$NGDC24 > 0,]
 
 	  #remember to use log.BottomDepth and to center based on the data used in estimation
-  	  Output$Data$log.BD	<-  log(Output$Data$BottomDepth)
-	  dat.project$cent.log.depth <- dat.project$log.BottomDepth - mean(Output$Data$log.BD,na.rm=T)
+	  dat.project$cent.log.depth <- dat.project$log.BottomDepth - mean(Output$Covar$log.BottomDepth,na.rm=T)
 	  dat.project$cent.log.depth2 <- dat.project$cent.log.depth^2
 
     # Subset these points to only include the points we're interested 
@@ -150,7 +152,7 @@ this.long = nchar(spp)
 	
     gridLocs = dat.project[,c("LonUTMAlbers","LatUTMAlbers")]
     # Projections will be stored as an array
-    projectedLatentGrid = array(0, dim = c(dim(gridLocs)[1], nMCMC, 12))
+    projectedLatentGrid = array(0, dim = c(dim(gridLocs)[1], nMCMC, nYears))
 
     #######Make projections:
     projMatrix <- inla.spde.make.A(Output$Mesh, loc=as.matrix(gridLocs))
@@ -171,7 +173,7 @@ this.long = nchar(spp)
     } # end year loop
 
     # Loop over all subsequent years, and do MCMC projections for that year
-    for(yr in 2:12) {
+    for(yr in 2:nYears) {
       #Grab random effects from this year
       indx = which(Output$iset$i2D.group==yr)
   
@@ -186,7 +188,7 @@ this.long = nchar(spp)
     } # end if loop
     
     if(Output$single.intercept==TRUE){
-      for(yr in 1:12) {
+      for(yr in 1:nYears) {
         #Grab random effects from this year
         indx = which(Output$iset$i2D.group==yr)
         
@@ -223,7 +225,7 @@ this.long = nchar(spp)
   ##############################################################################
   # Now we can do the exciting processing stuff, we we generate indices by area, etc.
   ##############################################################################
-  nYears = dim(logit.projGrid)[3]
+  #nYears = dim(logit.projGrid)[3]
   presOutput = plogis(logit.projGrid)# convert to normal space
   posOutput = exp(log.projGrid) # convert to normal space
   # Calculate average density by grid cell and MCMC draw. This is not drawing separate MCMC draws by binomial / pos
@@ -269,7 +271,7 @@ this.long = nchar(spp)
     write.csv(SpeciesPred.pres,file=paste(spp,"_species_pres_pred_",projection,".csv",sep=""),row.names=F)
     write.csv(SpeciesPred.pos,file=paste(spp,"_species_pos_pred_",projection,".csv",sep=""),row.names=F)
     
-#} #End Species if statement
+} #End Species if statement
 print(spp)
 } # End loop over species 
 

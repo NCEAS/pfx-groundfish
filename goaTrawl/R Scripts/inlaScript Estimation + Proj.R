@@ -8,7 +8,7 @@ library(sp)
 # Use only species with length-based data, or total biomass
 totalBiomass = TRUE
 #### CHOOSE A MODEL - "binomial" or "positive"
-model = "positive"
+model = "binomial"
 single.intercept =TRUE
 
 #Switch for doing cross-validation (TRUE) or not (FALSE)
@@ -98,7 +98,7 @@ if(totalBiomass==FALSE) {
 ######################################################################################################################
 #################################### START INLA LOOP ACROSS SPECIES
 ######################################################################################################################
-for(i in 21:25) {
+for(i in 40:40) {
   SPECIES <- species[i]
   # Fit the model for species XX
   subdat = df[,c(1:nCovCol,which(names(df)==species[i]))]
@@ -155,6 +155,7 @@ for(i in 21:25) {
   #bnd = inla.nonconvex.hull(subcoords, convex=150)
     # increase cutoff to ~ 150 to create much coarser mesh
   #mesh1 = inla.mesh.2d(boundary=bnd,max.edge=c(60,1500),cutoff=150,offset=c(120,180))
+  #mesh1 = inla.mesh.2d(boundary=bnd,max.edge=c(60,1500),cutoff=65,offset=c(120,180))
   mesh1 = inla.mesh.2d(boundary=bnd,max.edge=c(60,1500),cutoff=59,offset=c(110,180))
   plot(mesh1)
   summary(mesh1)
@@ -304,7 +305,7 @@ for(i in 21:25) {
     				control.inla = list(lincomb.derived.correlation.matrix=TRUE))
 	     if(LEAVE.OUT == FALSE){Output	<-	 list( Data=subdat,INLA.mod=inlaModel,Covar=Covar,Mesh=mesh1,iset=iset,single.intercept=single.intercept)}
 	     if(LEAVE.OUT == TRUE){Output	<-	 list( Data=subdat,Pred=subdat.pred,INLA.mod=inlaModel,Covar=Covar,Mesh=mesh1,iset=iset,single.intercept=single.intercept)}
-	     save(Output,file=paste(species[i],"_binomial_;leave.out=",LEAVE.OUT,"sing_int=",single.intercept,".Rdata",sep=""))# Save this fitted thing to a workspace	     
+	     save(Output,file=paste(species[i],"_binomial_;leave.out=",LEAVE.OUT,"; sing_int=",single.intercept,".Rdata",sep=""))# Save this fitted thing to a workspace	     
 	     source(paste(proj.dir,"/R Scripts/Plot model diagnostics pres.R",sep=""))
 	      }
 
@@ -319,7 +320,7 @@ for(i in 21:25) {
             control.inla = list(lincomb.derived.correlation.matrix=TRUE))
        if(LEAVE.OUT == FALSE){Output	<-	 list( Data=subdat,All.Data=subdat.all,INLA.mod=inlaModel,Covar=Covar,Mesh=mesh1,iset=iset,single.intercept=single.intercept)}
        if(LEAVE.OUT == TRUE){Output	<-	 list( Data=subdat,All.Data=subdat.all,Pred=subdat.pred,INLA.mod=inlaModel,Covar=Covar,Mesh=mesh1,iset=iset,single.intercept=single.intercept)}
-       save(Output,file=paste(species[i],"_pos_;leave.out=",LEAVE.OUT,"sing_int=",single.intercept,".Rdata",sep=""))# Save this fitted thing to a workspace
+       save(Output,file=paste(species[i],"_pos_;leave.out=",LEAVE.OUT,"; sing_int=",single.intercept,".Rdata",sep=""))# Save this fitted thing to a workspace
        source(paste(proj.dir,"/R Scripts/Plot model diagnostics pos.R",sep=""))
      }    
   setwd(proj.dir)
