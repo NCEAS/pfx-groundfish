@@ -33,6 +33,7 @@ meanCPUE <- droplevels(meanCPUE)
 meanCPUE$area <- as.numeric(levels(meanCPUE$area))[meanCPUE$area]#use numeric/factor conventions
 meanCPUE$Area <- factor(meanCPUE$area)
 meanCPUE$vari <- meanCPUE$SD.totalDensity^2 #calculate variance
+meanCPUE$Species <- gsub("[.]","",meanCPUE$Species) #quit changing how names are spelled damnit!
 
 discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 #head(discrete_areas)
@@ -87,7 +88,7 @@ Subset groups based upon "trawl_species_control_file.csv"
 ```{r}
 sp <- subset(trawl_species, pelagic.benthic!='pelagic')
 sp <- droplevels(sp)
-sp.names <- as.list(levels(sp$Species))
+sp.names <- as.list(levels(sp$database.name))
 ```
 
 Define the group to plot based upon the species names pulled from the database
