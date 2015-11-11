@@ -87,7 +87,7 @@ Subset groups based upon "trawl_species_control_file.csv"
 ```{r}
 sp <- subset(trawl_species, pelagic.benthic!='pelagic')
 sp <- droplevels(sp)
-sp.names <- as.list(levels(sp$database.name))
+sp.names <- as.list(levels(sp$Species))
 ```
 
 Define the group to plot based upon the species names pulled from the database
