@@ -4,7 +4,7 @@ author: "Ben Williams"
 date: "October 26, 2015"
 output: html_document
 ---
-This is the initial examination using Ole's model output file from 2015-10-29.
+This is the initial examination using Ole's model output file 2015-11-12.
 
 The *vplot* function will generate a figure for each year and area. Input a dataframe containing the species of interest, subsets of the "All_sp_index_meanCPUEByArea.csv"" file. The location of this may change when the model is updated.
 
@@ -12,13 +12,11 @@ A seperate file can be used to house a data.frame of species names and trophic g
 
 ```{r load, message=FALSE, echo=FALSE, warning=FALSE}
 library(extrafont)
-#font_import() only do this one time - it takes a while
-loadfonts(device="win")
-windowsFonts(Times=windowsFont("TT Times New Roman"))
+#font_import() #only do this one time - it takes a while
+loadfonts(quiet = T)
+#windowsFonts(Times=windowsFont("TT Times New Roman"))
 
 library(ggplot2)
-
-
 library(maps)
 library(mapdata)
 library(mapproj)
@@ -33,7 +31,7 @@ meanCPUE <- droplevels(meanCPUE)
 meanCPUE$area <- as.numeric(levels(meanCPUE$area))[meanCPUE$area]#use numeric/factor conventions
 meanCPUE$Area <- factor(meanCPUE$area)
 meanCPUE$vari <- meanCPUE$SD.totalDensity^2 #calculate variance
-meanCPUE$Species <- gsub("[.]","",meanCPUE$Species) #quit changing how names are spelled damnit!
+#meanCPUE$Species <- gsub("[.]","",meanCPUE$Species) #quit changing how names are spelled damnit!
 
 discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 #head(discrete_areas)
@@ -78,9 +76,11 @@ c$uci <- c$se*2 + c$Mean.totalDensity
 c$lci <- c$Mean.totalDensity - c$se*2
 c$Area <- factor(c$area)
 
+year.range <- c(1984,1987,1990,1993,1996,seq(1999,2015,by=2))
 ggplot(c, aes(year, Mean.totalDensity, group=Area, color=Area))+geom_line()+
   geom_ribbon(aes(ymin=lci, ymax=uci, fill=Area), alpha=.2, linetype=0)+
-  ylim(min(c$lci), max(c$uci))+ scale_x_continuous(limits=c(1984, 2012), breaks=seq(1984,2012,2))+ggtitle(title)+xlab("Year")+ylab("Mean total density")
+  ylim(min(c$lci), max(c$uci))+ scale_x_continuous(limits=c(1984, 2015), breaks=year.range)+ggtitle(title)+xlab("Year")+ylab("Mean total density") +
+  theme(text=element_text(family="Helvetica"),axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5))
 }
 ```
 
@@ -165,7 +165,7 @@ Examine all species minus Walleye Pollock, Arrowtooth Flounder and Pacific Halib
 
 ```{r, echo=TRUE}
 #subset by area
-smean <- subset(meanCPUE, Species!="Theragrachalcogramma" & Species!="Atheresthesstomias"& Species!="Hippoglossoideselassodon")
+smean <- subset(meanCPUE, Species!="Gadus.chalcogrammus" & Species!="Atheresthes.stomias"& Species!="Hippoglossoides.stenolepis")
 smean <- droplevels(smean)
 
 vplot(smean)
@@ -175,7 +175,7 @@ vplot(smean)
 Walleye Pollock, Arrowtooth Flounder and Pacific Halibut
 
 ```{r, echo=FALSE}
-polarrhal <- subset(meanCPUE, Species=="Theragrachalcogramma" | Species== "Atheresthesstomias" | Species!="Hippoglossoideselassodon" )
+polarrhal <- subset(meanCPUE, Species=="Gadus.chalcogrammus" | Species== "Atheresthes.stomias" | Species!="Hippoglossoides.stenolepis" )
 polarrhal <- droplevels(polarrhal)
 
 vplot(polarrhal)
@@ -184,7 +184,7 @@ vplot(polarrhal)
 Cod and Spiny Dogfish
 
 ```{r, echo=FALSE}
-codsha <- subset(meanCPUE, Species=="Gadusmacrocephalus"| Species=="Squalusacanthias")
+codsha <- subset(meanCPUE, Species=="Gadus.macrocephalus"| Species=="Squalus.acanthias")
 
 vplot(codsha)
 ```
@@ -192,7 +192,7 @@ vplot(codsha)
 Capelin, Herring, and Eulachon
 
 ```{r, echo=FALSE}
-capherreu <- subset(meanCPUE,Species== "Mallotusvillosus"|Species== "Clupeapallasi" | Species=="Thaleichthyspacificus")
+capherreu <- subset(meanCPUE,Species== "Mallotus.villosus"|Species== "Clupea.pallasi" | Species=="Thaleichthys.pacificus")
 
 vplot(capherreu)
 ```
@@ -201,7 +201,7 @@ Rock Sole, Yellowfin Sole, Bigmouth Sculpin, Ling Cod
 
 ```{r, echo=FALSE}
 #pull out species "groups"
-rocyelbig <- subset(meanCPUE, Species=="Lepidopsettasp"|Species== "Limandaaspera"|Species== "Hemitripterusbolini" | Species == "Ophiodonelongatus" |Species =="Dasycottussetiger" | Species=="Hemilepidotus Jordani")
+rocyelbig <- subset(meanCPUE, Species=="Lepidopsetta.sp"|Species== "Limanda.aspera"|Species== "Hemitripterus.bolini" | Species == "Ophiodon.elongatus" |Species =="Dasycottus.setiger" | Species=="Hemilepidotus.jordani")
 
 vplot(rocyelbig)
 ```
@@ -209,7 +209,7 @@ vplot(rocyelbig)
 Bairdi Crab
 
 ```{r, echo=FALSE}
-bai <- subset(meanCPUE, Species=="Chionoecetesbairdi")
+bai <- subset(meanCPUE, Species=="Chionoecetes.bairdi")
 
 vplot(bai)
 ```
