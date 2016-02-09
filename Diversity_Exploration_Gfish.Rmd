@@ -2,7 +2,7 @@
 title: "Diversity_Exploration"
 author: "Rachael Blake"
 date: "October 29, 2015"
-output: html_document
+output: pdf_document
 ---
 
 This is an initial exploration of diversity patterns in the shallow Groundfish areas in the central GOA.  This uses Ole's model output.
@@ -84,9 +84,15 @@ Div_SpCPUEArea <- SPCPUEArea %>%
                   ungroup() 
 
 ```
+  
+    
+      
+        
+          
+          
+Plot of Shannon-Wiener Diversity:  
 
-Plot of Shannon-Wiener Diversity:
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height=4, fig.width=7}
 SW <- ggplot(Div_SpCPUEArea, aes(Year, SW_Div, color=area)) + geom_line(size=1) + 
       scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
       scale_x_continuous(breaks=pretty_breaks(n=15)) + 
@@ -95,8 +101,10 @@ SW
 
 ```
 
-Plot of Alpha Diversity "exp(Shannon-Wiener)" ie: effective # of species : 
-```{r, echo=FALSE}
+\pagebreak
+Plot of Alpha Diversity "exp(Shannon-Wiener)" ie: effective # of species :   
+
+```{r, echo=FALSE, fig.height=4, fig.width=7}
 Eff_Sp <- ggplot(Div_SpCPUEArea, aes(Year, Exp_A_Div, color=area)) +
           geom_line(size=1) + 
           scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
@@ -106,8 +114,9 @@ Eff_Sp
 
 ```
 
-Plot beta diversity "(Exp_G_Div/Exp_A_Div)": 
-```{r, echo=FALSE}
+Plot beta diversity "(Exp_G_Div/Exp_A_Div)":   
+
+```{r, echo=FALSE, fig.height=4, fig.width=7}
 Bdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_B_Div, color=area)) + geom_line(size=1) + 
         scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
         scale_x_continuous(breaks=pretty_breaks(n=15)) + 
@@ -116,8 +125,10 @@ Bdiv
 
 ```
 
-Plot gamma diversity:
-```{r, echo=FALSE}
+\pagebreak
+Plot gamma diversity:  
+
+```{r, echo=FALSE, fig.height=4, fig.width=7}
 Gdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_G_Div)) + geom_line(size=1, color="blue") + 
         scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
         scale_x_continuous(breaks=pretty_breaks(n=15)) + 
