@@ -20,31 +20,33 @@ library(stringr)
 library(vegan)
 library(reshape2)
 library(ggplot2)
+library(scales)
 ```
 
-This reads in the files from the Google drive folder:
 
-Species by Area:
-```{r}
+```{r,  include=FALSE, echo=FALSE, results='hide'}
 URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYmtIeFRIZzRtdlU"
 SpByArea_Get <- GET(URL_SpByArea)
 SpByArea_1 <- content(SpByArea_Get, as='text')
 SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head=TRUE)
 
 ```
-CPUE by Area:
-```{r}
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
 URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uTkdHajFvbVVHc2c"
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
 SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+
+SPCPUEArea <- rename(SPCPUEArea, Year=year)
 
 ```
 
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 SpByArea <- SpByArea %>%
-            mutate(year = ifelse((year.numb=="1"),'1984',
+            mutate(Year = ifelse((year.numb=="1"),'1984',
                           ifelse((year.numb=="2"),'1987',
                           ifelse((year.numb=="3"),'1990',
                           ifelse((year.numb=="4"),'1993',       
@@ -65,37 +67,69 @@ head(SpByArea)
 
 
 -------------------------------------------------------
-We want to look at diversity by area by year.  
-```{r}
+We want to look at diversity by area by year (using CPUE per area).
+Here we calculate Shannon diversity, effective # of species, and beta diversity.
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
 Div_SpCPUEArea <- SPCPUEArea %>%
                   filter(area!="Total") %>%
-                  group_by(area, year) %>% 
-                  summarise(SW_Div = diversity(Mean.totalDensity, index="shannon"),
-                            Eff_Num_Sp = exp(SW_Div)) %>%
+                  group_by(area, Year) %>% 
+                  mutate(SW_Div = diversity(Mean.totalDensity, index="shannon"),
+                         Exp_A_Div = exp(SW_Div)) %>%  # this is alpha diversity
                   ungroup() %>%
-                  print(width = Inf)
+                  group_by(Year) %>%
+                  mutate(G_Div = diversity(Mean.totalDensity, index="shannon"),
+                         Exp_G_Div = exp(G_Div),
+                         Exp_B_Div = (Exp_G_Div/Exp_A_Div)) %>%   # calculate beta diversity (gamma = alpha * beta)
+                  ungroup() 
 
 ```
 
 Plot of Shannon-Wiener Diversity:
-```{r}
-SW <- ggplot(Div_SpCPUEArea, aes(year, SW_Div, color=area)) + geom_line() + # facet_wrap(~area,ncol=2)
-      scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11"))
+```{r, echo=FALSE}
+SW <- ggplot(Div_SpCPUEArea, aes(Year, SW_Div, color=area)) + geom_line(size=1) + 
+      scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+      scale_x_continuous(breaks=pretty_breaks(n=15)) + 
+      theme(panel.grid.minor=element_blank())
 SW
 
 ```
 
-Plot of Effective Number of Species "exp(Shannon-Wiener)": 
-```{r}
-Eff_Sp <- ggplot(Div_SpCPUEArea, aes(year, Eff_Num_Sp, color=area)) + geom_line() + 
-          scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11"))
+Plot of Alpha Diversity "exp(Shannon-Wiener)" ie: effective # of species : 
+```{r, echo=FALSE}
+Eff_Sp <- ggplot(Div_SpCPUEArea, aes(Year, Exp_A_Div, color=area)) +
+          geom_line(size=1) + 
+          scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+          scale_x_continuous(breaks=pretty_breaks(n=15)) + 
+          theme(panel.grid.minor=element_blank())
 Eff_Sp
 
 ```
 
+Plot beta diversity "(Exp_G_Div/Exp_A_Div)": 
+```{r, echo=FALSE}
+Bdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_B_Div, color=area)) + geom_line(size=1) + 
+        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+        scale_x_continuous(breaks=pretty_breaks(n=15)) + 
+        theme(panel.grid.minor=element_blank())
+Bdiv
+
+```
+
+Plot gamma diversity:
+```{r, echo=FALSE}
+Gdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_G_Div)) + geom_line(size=1, color="blue") + 
+        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+        scale_x_continuous(breaks=pretty_breaks(n=15)) + 
+        theme(panel.grid.minor=element_blank())
+Gdiv
+
+```
+
+
 ```{r, eval=FALSE,include=FALSE}
-mDiv_SpCPUEArea <- melt(Div_SpCPUEArea, id.vars = c("area", "year"))
-ggplot(mDiv_SpCPUEArea, aes(year, value, group=variable))+geom_line()+facet_wrap(~area,ncol=2)
+mDiv_SpCPUEArea <- melt(Div_SpCPUEArea, id.vars = c("area", "Year"))
+ggplot(mDiv_SpCPUEArea, aes(Year, value, group=variable))+geom_line()+facet_wrap(~area,ncol=2)
 
 ```
 
