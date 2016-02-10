@@ -2,10 +2,12 @@
 title: "Diversity_Exploration"
 author: "Rachael Blake"
 date: "October 29, 2015"
-output: pdf_document
+output:
+  html_document: default
+
 ---
 
-This is an initial exploration of diversity patterns in the shallow Groundfish areas in the central GOA.  This uses Ole's model output.
+This is an initial exploration of diversity patterns in the shallow Groundfish areas in the central GOA.  This uses Ole's model output Species CPUE per area as input data.  
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
@@ -66,9 +68,8 @@ head(SpByArea)
 ```
 
 
--------------------------------------------------------
 We want to look at diversity by area by year (using CPUE per area).
-Here we calculate Shannon diversity, effective # of species, and beta diversity.
+Here we calculate Shannon diversity, effective # of species, beta diversity, and gamma diversity.
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 Div_SpCPUEArea <- SPCPUEArea %>%
@@ -84,12 +85,10 @@ Div_SpCPUEArea <- SPCPUEArea %>%
                   ungroup() 
 
 ```
-  
-    
-      
-        
-          
-          
+\n
+\n
+\n
+\n
 Plot of Shannon-Wiener Diversity:  
 
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
