@@ -3,8 +3,9 @@ title: "Diversity_Exploration"
 author: "Rachael Blake"
 date: "October 29, 2015"
 output:
+  word_document: default
+  pdf_document: default
   html_document: default
-
 ---
 
 This is an initial exploration of diversity patterns in the shallow Groundfish areas in the central GOA.  This uses Ole's model output Species CPUE per area as input data.  
