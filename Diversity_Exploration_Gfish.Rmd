@@ -24,11 +24,17 @@ library(vegan)
 library(reshape2)
 library(ggplot2)
 library(scales)
+
+
+# Diversity partitioning means that, in a given area, the gamma diversity (Dgamma)
+# of all individuals found may be split into within (alpha diversity, Dalpha) and between (beta 
+# diversity, Dbeta) local assemblages. Alpha diversity reflects the diversity of individuals in 
+# local assemblages whereas beta diversity reflects the diversity of the local assemblages.
 ```
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
-URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYmtIeFRIZzRtdlU"
+URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udlVNME9rQXEwZ1k"
 SpByArea_Get <- GET(URL_SpByArea)
 SpByArea_1 <- content(SpByArea_Get, as='text')
 SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head=TRUE)
@@ -37,7 +43,7 @@ SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
-URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uTkdHajFvbVVHc2c"
+URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
 SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
@@ -141,6 +147,14 @@ Gdiv
 ```{r, eval=FALSE,include=FALSE}
 mDiv_SpCPUEArea <- melt(Div_SpCPUEArea, id.vars = c("area", "Year"))
 ggplot(mDiv_SpCPUEArea, aes(Year, value, group=variable))+geom_line()+facet_wrap(~area,ncol=2)
+
+```
+
+
+Plot Rao's Q for taxonomic data: 
+
+```{r, echo=FALSE, fig.height=4, fig.width=7}
+
 
 ```
 
