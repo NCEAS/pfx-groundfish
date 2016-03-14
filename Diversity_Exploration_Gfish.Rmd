@@ -146,10 +146,8 @@ Gdiv
 
 
 ```{r, eval=FALSE,include=FALSE}
-mDiv_SpCPUEArea <- melt(Div_SpCPUEArea, id.vars = c("area", "Year"))
-a <- ggplot(mDiv_SpCPUEArea, aes(Year, value, group=variable)) +
-     geom_line() + facet_wrap(~area,ncol=2)
-a
+
+
 ```
 
 
