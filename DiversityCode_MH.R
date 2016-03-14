@@ -47,11 +47,13 @@ allSummary <- data.frame()
 
 allSummary$area<-as.factor(allSummary$area)
 SR <- ggplot(allSummary, aes(year, spRich, color=area)) + geom_line() + #facet_wrap(~area,ncol=2)
- scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11"))
+      scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11"))
 SR
 
 
-## Eric's code for calculating diversity metrics using occurrence data # Calculate average occurrence, by year in one core area. Use MCMC samples to represent uncertainty
+## Eric's code for calculating diversity metrics using occurrence data 
+# Calculate average occurrence, by year in one core area. 
+# Use MCMC samples to represent uncertainty
 meanOccurrence = apply(projectedLatentGrid,c(2,3),mean)
 occurrenceStats = (apply(meanOccurrence,2,quantile,c(0.025,0.5,0.975)))
 occAll[,ii] = occurrenceStats[2,]
