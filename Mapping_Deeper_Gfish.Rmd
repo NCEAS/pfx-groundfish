@@ -64,7 +64,7 @@ AKgf_301_600
 ```
 
 ```{r}
-D_dd <- ALLD %>%
+D_dd1 <- ALLD %>%
         select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
         filter(BottomDepth %in% c(151:250))
 
@@ -72,9 +72,50 @@ D_dd <- ALLD %>%
 
 ```{r, fig.height=8, fig.width=12}
 AKgf_151_250 <- akmap +
-                geom_point(data=D_dd, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="orange")
+                geom_point(data=D_dd1, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="orange")
 AKgf_151_250
 ```
+
+
+```{r}
+D_dd2 <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        filter(BottomDepth %in% c(251:350))
+
+```
+
+```{r, fig.height=8, fig.width=12}
+AKgf_251_350 <- akmap +
+                geom_point(data=D_dd2, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="red")
+AKgf_251_350
+```
+
+```{r}
+D_dd3 <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        filter(BottomDepth %in% c(351:450))
+
+```
+
+```{r, fig.height=8, fig.width=12}
+AKgf_351_450 <- akmap +
+                geom_point(data=D_dd3, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="purple")
+AKgf_351_450
+```
+
+```{r}
+D_dd4 <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        filter(BottomDepth %in% c(451:550))
+
+```
+
+```{r, fig.height=8, fig.width=12}
+AKgf_451_550 <- akmap +
+                geom_point(data=D_dd4, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="yellow")
+AKgf_451_550
+```
+
 
 
 ```{r}
