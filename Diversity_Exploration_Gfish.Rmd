@@ -24,6 +24,7 @@ library(vegan)
 library(reshape2)
 library(ggplot2)
 library(scales)
+library(ade4)
 
 
 # Diversity partitioning means that, in a given area, the gamma diversity (Dgamma)
@@ -145,8 +146,18 @@ Gdiv
 
 
 ```{r, eval=FALSE,include=FALSE}
-mDiv_SpCPUEArea <- melt(Div_SpCPUEArea, id.vars = c("area", "Year"))
-ggplot(mDiv_SpCPUEArea, aes(Year, value, group=variable))+geom_line()+facet_wrap(~area,ncol=2)
+
+
+```
+
+
+
+Here we calculate Rao's quadratic entropy for taxonomic diversity.
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+source(script_that_calculates_Rao_q_with_Jost_correction)
+
+
 
 ```
 

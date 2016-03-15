@@ -19,8 +19,10 @@ library(ggplot2)
 library(scales)
 
 
-# load data
-GF_T <- read.csv("Groundfish-Functional-Diversity-Traits.csv", header=TRUE)
+# source Gf FD trait cleaning script
+source()
+
+#GF_T <- read.csv("Groundfish-Functional-Diversity-Traits.csv", header=TRUE)
 
 ```
 

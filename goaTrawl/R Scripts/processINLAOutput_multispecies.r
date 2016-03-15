@@ -10,7 +10,7 @@ library(sp)
 
 runFromDB  = FALSE
 keep.MCMC  = FALSE
-projection = "goa_deep" # options: "goa_shallow","goa_mid","goa_deep","discrete_areas" "goa_to_500"
+projection = "goa_mid" # options: "goa_shallow","goa_mid","goa_deep","discrete_areas" "goa_to_500"
 size.data  = FALSE
 
 proj.dir <-"/Users/ole.shelton/Documents/GitHub/pfx-groundfish/goaTrawl/" #getwd()

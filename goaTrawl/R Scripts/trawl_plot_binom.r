@@ -1,6 +1,6 @@
 ### Basic plotting files
 
-NAME	<-	paste(plot.dir,"/",species[i], "Pres-Abs Preliminary plots.pdf",sep="")
+NAME	<-	paste(plot.dir,"/",species[i], " Pres-Abs Preliminary plots.pdf",sep="")
 pdf(NAME,onefile=TRUE,width=15,5)
 
 ## Plot against the covariates 
