@@ -1,0 +1,389 @@
+---
+title: "portfolio_plots.rmd"
+author: "Ole Shelton"
+date: "March 8, 2016"
+output: pdf_document
+---
+
+This is a file for trying out alternative plots of portfolio metrics for groundfish.
+
+Here are a bunch of plots for looking at trend and variability in different groups for the period 1990 to present
+
+```{r load, message=FALSE, echo=FALSE, warning=FALSE}
+library(extrafont)
+#font_import() #only do this one time - it takes a while
+loadfonts(quiet = T)
+#windowsFonts(Times=windowsFont("TT Times New Roman"))
+
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(mapproj)
+library(dplyr)
+library(tidyr)
+
+# Go get the needed data:
+
+meanCPUE <- read.csv("All_sp_index_meanCPUEByArea.csv") # load data
+meanCPUE <- subset(meanCPUE,area!='Total') #remove total field
+meanCPUE <- droplevels(meanCPUE) 
+meanCPUE$area <- as.numeric(levels(meanCPUE$area))[meanCPUE$area]#use numeric/factor conventions
+meanCPUE$Area <- factor(meanCPUE$area)
+meanCPUE$vari <- meanCPUE$SD.totalDensity^2 #calculate variance
+#meanCPUE$Species <- gsub("[.]","",meanCPUE$Species) #quit changing how names are spelled damnit!
+
+discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
+#head(discrete_areas)
+
+trawl_species <- read.csv("./goaTrawl/Output Data/trawl_species_control_file.csv")
+s <- trawl_species$diet
+s <- as.data.frame(s) %>% separate(s, into = paste("diet", 1:2, sep = ""))
+trawl_species <- cbind(trawl_species,s)
+
+### Merge in the guild identifiers, fish habit, and other functional categories into the meanCPUE data.frame
+temp <- trawl_species[,c("database.name","fish.invert","pelagic.benthic","total.biomass.fish","guild","diet1","diet2")]
+colnames(temp)[1] <- "Species"
+
+meanCPUE <- merge(meanCPUE,temp)
+```
+
+```{r, echo=FALSE}
+weight.var <- function(w){
+  return(sum(w)^(-1))
+}
+space_plot <- function(dat,NAME){
+    par(mfrow=c(3,2),mar=c(3,4,1,0.5))
+    AT <- dat$Area  
+    plot(1:5,1:5,type="n",axes=F,xlab="",ylab="")
+    text(1.5,4,NAME,cex=3,pos=4)
+    y.lim <- c(min(dat$Trend - dat$SE.trend),max(dat$Trend + dat$SE.trend))
+    plot(Trend~Area,data=dat,ylim=y.lim,axes=F,pch=21,bg=1)
+    abline(h=0,lty=2)
+    arrows(x0=dat$Area,x1=dat$Area,
+          y0=dat$Trend + dat$SE,y1= dat$Trend - dat$SE,
+          length=0,lwd=1.5)
+      axis(1,at=AT); box(bty="o")
+      axis(2,las=2)
+      title(xlab="Area",line=2)
+    plot(Grand.w.mean~Area,data=dat,type="b",axes=F,xlab="",pch=21,bg=1)
+      axis(1,at=AT); box(bty="o")
+      axis(2,las=2)
+      title(xlab="Area",line=2)
+    plot(SD~Area,data=dat,type="b",axes=F,ylim= c(0,max(dat$SD)),xlab="",pch=21,bg=1)
+      axis(1,at=AT); box(bty="o")
+      axis(2,las=2)
+      title(xlab="Area",line=2)
+    plot(CV~Area,data=dat,type="b",axes=F,xlab="",pch=21,bg=1)
+      axis(1,at=AT); box(bty="o")
+      axis(2,las=2)
+      title(xlab="Area",line=2)
+    plot(Var~Grand.w.mean,data=dat,axes=F,xlab="",pch=21,bg=1)
+      axis(1); box(bty="o")
+      axis(2,las=2)
+      title(xlab="W.mean",line=2)
+}
+```
+
+
+```{r map, cache=FALSE, echo=FALSE, warning=FALSE}
+ak<-map_data('worldHires','USA:Alaska')
+akmap<-ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black")+
+    theme(panel.background=element_rect(fill='aliceblue'))+
+    xlab(expression(paste(Longitude^o,~'W')))+
+    ylab(expression(paste(Latitude^o,~'N')))+
+    coord_map(xlim = c(-160, -143),ylim = c(54, 61))
+```
+
+Map of area locations
+
+```{r, echo=FALSE, cache=FALSE}
+discrete_areas$area <- discrete_areas$Area
+discrete_areas$Area <- factor(discrete_areas$area)
+akmap+geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,color=Area))
+```
+
+
+Plot time series of a few community metrics
+
+```{r, echo=FALSE}
+
+time_plot <- function(dat,NAME){
+  AREA <- as.numeric(as.character(unique(dat$Area)))
+  YEAR <- sort(unique(dat$Year))
+  y.lim <- c(min(dat$Mean.totalDensity),max(dat$Mean.totalDensity))
+  for(i in 1:length(AREA)){
+    if(AREA[i] !=1){par(new=T)}
+    if(AREA[i] >= 3 & AREA[i] <= 5 ){
+      plot(Mean.totalDensity~Year,data=dat[dat$Area ==AREA[i],],
+            type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+    }
+    if(AREA[i] < 3 | AREA[i] > 5){
+      plot(Mean.totalDensity~Year,data=dat[dat$Area ==AREA[i],],
+            type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+    }
+  }
+    axis(1,at=YEAR,las=2)
+    axis(2,las=2)
+    box(bty="o",lwd=2)
+    title(ylab=expression("Biomass (kg ha"^"-1"*")"),line=2.5)
+    mtext(NAME,adj=0)
+    abline(v=1989,lty=2,lwd=2)
+}
+
+```
+
+
+Total Biomass:
+(RED denotes areas 3-5)
+
+```{r, echo=FALSE}
+# TOTAL BIOMASS
+  dat   <- aggregate(meanCPUE[meanCPUE$fish.invert=="fish",c("Mean.totalDensity","vari")],
+            by=list(Area=meanCPUE$Area[meanCPUE$fish.invert=="fish"],Year=meanCPUE$year[meanCPUE$fish.invert=="fish"]),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+
+  par(mfrow=c(1,1),mar=c(3,5,2,2))
+  time_plot(dat,NAME="Total Biomass")
+```
+
+
+```{r, echo=FALSE}
+# GUILDS
+  par(mfrow=c(2,2),mar=c(3,4,2,0.5))
+
+  GUILD <- unique(meanCPUE$guild)
+  for(i in 1:length(GUILD)){
+    temp <- meanCPUE[meanCPUE$guild == GUILD[i],]
+    dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+    dat$inv.var <- dat$vari^(-1)
+    dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+    time_plot(dat,NAME=paste("Guild",GUILD[i]))
+  }
+
+```
+
+
+```{r, echo=FALSE}
+# Lifestyle
+  par(mfrow=c(2,2),mar=c(3,4,2,0.5))
+
+  LIFESTYLE <- unique(meanCPUE$pelagic.benthic)
+  for(i in 1:length(LIFESTYLE)){
+    temp <- meanCPUE[meanCPUE$pelagic.benthic == LIFESTYLE[i],]
+    dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+    dat$inv.var <- dat$vari^(-1)
+    dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+    time_plot(dat,NAME=paste(LIFESTYLE[i]))
+  }
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Total Biomass (fish only)
+
+```{r, echo=FALSE}
+
+# TOTAL BIOMASS
+  dat   <- aggregate(meanCPUE[meanCPUE$fish.invert=="fish",c("Mean.totalDensity","vari")],
+            by=list(Area=meanCPUE$Area[meanCPUE$fish.invert=="fish"],Year=meanCPUE$year[meanCPUE$fish.invert=="fish"]),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+    ### Calculate least squares trend in each area and portfolio metrics.
+ AREA <- unique(dat$Area)
+  vals <- NULL
+  for(j in 1:length(AREA)){
+    A <- lm(Mean.totalDensity~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    B <- lm(Mean.totalDensity~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    vals <- rbind(vals,c(AREA[j],
+                            coef(summary(A))["Year",c("Estimate","Std. Error")],
+                            coef(summary(B))[1,c("Estimate","Std. Error")],
+                            var(A$residuals),
+                            sd(A$residuals)))
+                         
+  }
+  vals <- data.frame(vals)
+  colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+  vals$CV  <- vals$SD / vals$Grand.w.mean 
+  
+  dat.2 <- vals
+  
+  space_plot(dat=dat.2,NAME=paste("Total Biomass"))
+
+```  
+  
+ **By Feeding Guild**
+ 
+  * A = Apex predators (Piscivores)
+  * B = Benthic Foragers
+  * P = Pelagic Foragers
+  * E = Invertebrates (benthic foragers)
+
+```{r, echo=FALSE}  
+# Aggregate into groups by guild and make plots
+GUILD <- unique(meanCPUE$guild)
+for(i in 1:length(GUILD)){
+  temp <- meanCPUE[meanCPUE$guild == GUILD[i],]
+  dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+    ### Calculate least squares trend in each area and portfolio metrics.
+ AREA <- unique(dat$Area)
+  vals <- NULL
+  for(j in 1:length(AREA)){
+    A <- lm(Mean.totalDensity~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    B <- lm(Mean.totalDensity~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    vals <- rbind(vals,c(AREA[j],
+                            coef(summary(A))["Year",c("Estimate","Std. Error")],
+                            coef(summary(B))[1,c("Estimate","Std. Error")],
+                            var(A$residuals),
+                            sd(A$residuals)))
+                         
+  }
+  vals <- data.frame(vals)
+  colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+  vals$CV  <- vals$SD / vals$Grand.w.mean 
+  
+  dat.2 <- vals
+  
+  space_plot(dat=dat.2,NAME=paste("Guild ",GUILD[i]))
+}
+```
+
+
+ **By Benthic vs. Pelagic**
+ 
+```{r, echo=FALSE}  
+# Aggregate into groups by guild and make plots
+LIFESTYLE <- unique(meanCPUE$pelagic.benthic)
+for(i in 1:length(LIFESTYLE)){
+  temp <- meanCPUE[meanCPUE$pelagic.benthic == LIFESTYLE[i],]
+  dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+     ### Calculate least squares trend in each area and portfolio metrics.
+ AREA <- unique(dat$Area)
+  vals <- NULL
+  for(j in 1:length(AREA)){
+    A <- lm(Mean.totalDensity~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    B <- lm(Mean.totalDensity~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    vals <- rbind(vals,c(AREA[j],
+                            coef(summary(A))["Year",c("Estimate","Std. Error")],
+                            coef(summary(B))[1,c("Estimate","Std. Error")],
+                            var(A$residuals),
+                            sd(A$residuals)))
+                         
+  }
+  vals <- data.frame(vals)
+  colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+  vals$CV  <- vals$SD / vals$Grand.w.mean 
+  
+  dat.2 <- vals
+  
+  space_plot(dat=dat.2,NAME=paste(LIFESTYLE[i]))
+}
+```
+
+ **By DIET**
+ 
+* I = invertebrate prey
+* F = fish prey
+* G = generalist (Generalist if consumes both Invert & Fish prey (threshold = 20% diet by weight))
+
+* B = demersal prey
+* C = pelagic prey
+  
+```{r, echo=FALSE}  
+# Aggregate into groups by guild and make plots
+DIET <- unique(meanCPUE$diet1)
+for(i in 1:length(DIET)){
+  temp <- meanCPUE[meanCPUE$diet1 == DIET[i],]
+  dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+     ### Calculate least squares trend in each area and portfolio metrics.
+ AREA <- unique(dat$Area)
+  vals <- NULL
+  for(j in 1:length(AREA)){
+    A <- lm(Mean.totalDensity~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    B <- lm(Mean.totalDensity~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    vals <- rbind(vals,c(AREA[j],
+                            coef(summary(A))["Year",c("Estimate","Std. Error")],
+                            coef(summary(B))[1,c("Estimate","Std. Error")],
+                            var(A$residuals),
+                            sd(A$residuals)))
+                         
+  }
+  vals <- data.frame(vals)
+  colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+  vals$CV  <- vals$SD / vals$Grand.w.mean 
+  
+  dat.2 <- vals
+  
+  space_plot(dat=dat.2,NAME=paste("Diet type" ,DIET[i]))
+}
+```
+
+
+```{r, echo=FALSE}  
+# Aggregate into groups by guild and make plots
+DIET <- unique(meanCPUE$diet2)
+  DIET <- DIET[is.na(DIET)==F]
+for(i in 1:length(DIET)){
+  temp <- meanCPUE[meanCPUE$diet2 == DIET[i],]
+  dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+     ### Calculate least squares trend in each area and portfolio metrics.
+ AREA <- unique(dat$Area)
+  vals <- NULL
+  for(j in 1:length(AREA)){
+    A <- lm(Mean.totalDensity~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    B <- lm(Mean.totalDensity~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+    vals <- rbind(vals,c(AREA[j],
+                            coef(summary(A))["Year",c("Estimate","Std. Error")],
+                            coef(summary(B))[1,c("Estimate","Std. Error")],
+                            var(A$residuals),
+                            sd(A$residuals)))
+                         
+  }
+  vals <- data.frame(vals)
+  colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+  vals$CV  <- vals$SD / vals$Grand.w.mean 
+  
+  dat.2 <- vals
+  
+  space_plot(dat=dat.2,NAME=paste("Diet type" ,DIET[i]))
+}
+```
+
+
