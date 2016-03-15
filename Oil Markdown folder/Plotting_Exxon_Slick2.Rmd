@@ -1,0 +1,56 @@
+---
+title: "Plotting Oil Spill"
+author: "Rachael Blake"
+date: "March 14, 2016"
+output: html_document
+---
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+library(dplyr); library(tidyr) ; library(stringr) ;library(rgdal) ; library(sp) ; library(maptools)
+library(raster) ; library(rgeos)
+```
+
+
+```{r BlankMap , include=FALSE, echo=FALSE}
+ak <- map_data('worldHires','USA:Alaska')
+
+akmap <- ggplot() + geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black") +
+         theme(panel.background=element_rect(fill='aliceblue')) +
+         xlab(expression(paste(Longitude^o,~'W'))) +
+         ylab(expression(paste(Latitude^o,~'N'))) +
+         coord_map(xlim = c(-165, -142),ylim = c(52, 61))
+
+```
+
+```{r CorrectProjections, include=FALSE, echo=FALSE}
+data_source <- "./Oil Markdown folder"
+slick2 <- "ExxonSlick2"
+
+slk2_shp <- readOGR(dsn=data_source, layer=slick2, stringsAsFactors=FALSE)
+
+slk2_shp@proj4string 
+
+aea_proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"
+
+slk2_shp <- spTransform(slk2_shp, aea_proj)
+
+slk2_shp_df <- fortify(slk2_shp)
+
+# How do I correct the projection of the ak map???
+ak_sp	<- SpatialPoints(ak[,1:2], CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
+
+ak_sp_shp <- spTransform(ak_sp, aea_proj)
+
+#ak_sp_shp_df <- fortify(ak_sp_shp)
+```
+
+
+```{r, echo=FALSE}
+akslk2 <- akmap() + 
+          geom_polygon(data=slk2_shp_df, aes(x = long, y = lat),
+                                  color='gray40', fill='blue', size=0.25)
+akslk2
+
+```
+
+
