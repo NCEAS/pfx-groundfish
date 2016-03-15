@@ -1,0 +1,17 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf340
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 _Read me for depth chef.\
+\
+There the extracted species-specific coefficents for each spatial model.  \
+\
+Each species has two models: a presence-absence model (Model= \'93binomial\'94) and a positive model (Model =\'93pos\'94).  Coef.name has the intercepts (anything that starts with a Y) or the linear term for log.depth (\'93cent.log.depth\'94) or the quadratic term for log.depth (\'93cent.log.depth2\'94).  The two models types are independent.\
+\
+Some species will have a different number of intercepts.  Some will have just \'93Y1984\'94 which means that there is one intercept for the entire time period.  Some will have one for each year. (\'93Y1984\'94,\'93Y1987\'94,\'93Y1990\'94, etc.).  It is important to remember that for models with multiple years the intercepts for years are expressed as deviations from 1984.  So the intercept for 1987 would be Y1984 + Y1987.\
+\
+Also remember that the log.depth coefficients are centered (provided in the \'93log.center\'94 column) and the units are log(meters) so to get back to actual depths you\'92ll need to do the appropriate back transform.  Also remember that the binomial coefficients are on the logit scale.  coefficients in the positive mode are on the log scale.\
+\
+All logs are natural logs.}
