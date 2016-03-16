@@ -180,30 +180,6 @@ Total Biomass:
   }
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Total Biomass (fish only)
 
 ```{r, echo=FALSE}
@@ -386,4 +362,86 @@ for(i in 1:length(DIET)){
 }
 ```
 
+
+OK.  Combine Trends in to one file to make a 4x4 array of plots for potential publication.
+
+
+```{r, echo=FALSE}  
+time_plot <- function(dat,NAME){
+  AREA <- as.numeric(as.character(unique(dat$Area)))
+  YEAR <- sort(unique(dat$Year))
+  y.lim <- c(min(dat$Mean.totalDensity),max(dat$Mean.totalDensity))
+  for(i in 1:length(AREA)){
+    if(AREA[i] !=1){par(new=T)}
+    if(AREA[i] >= 3 & AREA[i] <= 5 ){
+      plot(Mean.totalDensity~Year,data=dat[dat$Area ==AREA[i],],
+            type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+    }
+    if(AREA[i] < 3 | AREA[i] > 5){
+      plot(Mean.totalDensity~Year,data=dat[dat$Area ==AREA[i],],
+            type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+    }
+  }
+    axis(1,at=YEAR,las=2)
+    axis(2,las=2)
+    box(bty="o",lwd=2)
+    title(ylab=expression("Biomass (kg ha"^"-1"*")"),line=2.5)
+    mtext(NAME,adj=0)
+    abline(v=1989,lty=2,lwd=2)
+}
+
+##############################################################################################
+# TOTAL BIOMASS
+  def.par <- par(no.readonly = TRUE)
+  
+  A <- layout(matrix(c(1,2,3,4,1,5,6,7,1,8,9,10,1,11,12,13),4,4,byrow=T),
+              widths=c(0.1,1,1,1))
+  
+  
+  
+  dat   <- aggregate(meanCPUE[meanCPUE$fish.invert=="fish",c("Mean.totalDensity","vari")],
+            by=list(Area=meanCPUE$Area[meanCPUE$fish.invert=="fish"],Year=meanCPUE$year[meanCPUE$fish.invert=="fish"]),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+
+  par(mfrow=c(1,1),mar=c(3,5,2,2))
+  time_plot(dat,NAME="Total Biomass")
+
+### DIVERSITY METRIC 
+
+
+# GUILDS
+  par(mfrow=c(2,2),mar=c(3,4,2,0.5))
+
+  GUILD <- unique(meanCPUE$guild)
+  for(i in 1:length(GUILD)){
+    temp <- meanCPUE[meanCPUE$guild == GUILD[i],]
+    dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+    dat$inv.var <- dat$vari^(-1)
+    dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+    time_plot(dat,NAME=paste("Guild",GUILD[i]))
+  }
+
+```
+
+
+```{r, echo=FALSE}
+# Lifestyle
+  par(mfrow=c(2,2),mar=c(3,4,2,0.5))
+
+  LIFESTYLE <- unique(meanCPUE$pelagic.benthic)
+  for(i in 1:length(LIFESTYLE)){
+    temp <- meanCPUE[meanCPUE$pelagic.benthic == LIFESTYLE[i],]
+    dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+    dat$inv.var <- dat$vari^(-1)
+    dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  
+    time_plot(dat,NAME=paste(LIFESTYLE[i]))
+  }
+```
+
+  
+  
+```
 
