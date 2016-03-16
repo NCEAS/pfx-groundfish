@@ -6,51 +6,136 @@ output: html_document
 ---
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
-library(dplyr); library(tidyr) ; library(stringr) ;library(rgdal) ; library(sp) ; library(maptools)
-library(raster) ; library(rgeos)
+library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ;library(rgdal) ; 
+library(sp) ; library(maptools) ; library(raster) ; library(rgeos) ; library(ggplot2) ; 
+library(maps) ; library(mapdata) ; library(mapproj)
+
 ```
 
 
 ```{r BlankMap , include=FALSE, echo=FALSE}
 ak <- map_data('worldHires','USA:Alaska')
 
-akmap <- ggplot() + geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black") +
+# reproject AK map
+aea_proj <-  "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +units=km +datum=WGS84"
+
+ak_ll	<- ak[,1:2]
+ak_sp	<- SpatialPoints(ak_ll, CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
+ak_sp_albers	<- spTransform(ak_sp, CRS(aea_proj))
+ak_sp_alb_df	<- as(ak_sp_albers,"data.frame")
+colnames(ak_sp_alb_df) <- c("LonUTMAlbers","LatUTMAlbers")
+ak_alb <- cbind(ak,ak_sp_alb_df)
+
+akmap <- ggplot() + geom_polygon(data=ak_alb,aes(LonUTMAlbers,LatUTMAlbers,group=group),
+                                 fill=8,color="black") +
          theme(panel.background=element_rect(fill='aliceblue')) +
          xlab(expression(paste(Longitude^o,~'W'))) +
-         ylab(expression(paste(Latitude^o,~'N'))) +
-         coord_map(xlim = c(-165, -142),ylim = c(52, 61))
+         ylab(expression(paste(Latitude^o,~'N'))) #+
+       #  xlim = c(-1000, 500) + ylim = c(5500, 6250)
+         # coord_map(xlim = c(-165, -142),ylim = c(52, 61))
+      #   coord_map(xlim = c(-1000, 500),ylim = c(5500, 6250))
+akmap
+```
+
+
+```{r DiscreteAreas, include=FALSE, echo=FALSE}
+discrete_areas <- read.csv("../goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
+
+# turn into spatial polygons object
+# tell it what projection to use
+
+discrete_areas$area <- discrete_areas$Area
+discrete_areas$Area <- factor(discrete_areas$area)
+
+sh_areas <- akmap + geom_point(data=discrete_areas,aes(LonUTMAlbers,LatUTMAlbers,color=Area))
+sh_areas
 
 ```
 
-```{r CorrectProjections, include=FALSE, echo=FALSE}
-data_source <- "./Oil Markdown folder"
-slick2 <- "ExxonSlick2"
 
-slk2_shp <- readOGR(dsn=data_source, layer=slick2, stringsAsFactors=FALSE)
+```{r CorrectProjections, include=FALSE, echo=FALSE}
+slk2_shp <- readOGR(dsn="../Oil Markdown folder", layer="ExxonSlick2", stringsAsFactors=FALSE)
+crs(slk2_shp)
+plot(slk2_shp, col='light blue', border='blue')
+
+slk2_shp@data$id = rownames(slk2_shp@data)
 
 slk2_shp@proj4string 
 
-aea_proj <- "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +datum=WGS84"
+aea_proj <-  "+proj=aea +lat_1=51 +lat_2=62 +lon_0=-150 +x_0=0 +y_0=0 +units=km +datum=WGS84"
 
 slk2_shp <- spTransform(slk2_shp, aea_proj)
 
-slk2_shp_df <- fortify(slk2_shp)
+slk2_shp_pt <- fortify(slk2_shp, region="id")
 
-# How do I correct the projection of the ak map???
-ak_sp	<- SpatialPoints(ak[,1:2], CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
+slk2_shp_df <- join(slk2_shp_pt, slk2_shp@data, by="id")
 
-ak_sp_shp <- spTransform(ak_sp, aea_proj)
 
-#ak_sp_shp_df <- fortify(ak_sp_shp)
+####
+
 ```
 
 
 ```{r, echo=FALSE}
-akslk2 <- akmap() + 
-          geom_polygon(data=slk2_shp_df, aes(x = long, y = lat),
-                                  color='gray40', fill='blue', size=0.25)
+akslk2 <- sh_areas + 
+          geom_polygon(data=slk2_shp_df, aes(x=long, y=lat, group=id),
+                       color='gray40', fill='blue', size=0.25)
 akslk2
 
+
+
 ```
+
+```{r, include=FALSE, echo=FALSE}
+ak <- map_data('worldHires','USA:Alaska')
+
+akmap <- ggplot() + geom_polygon(data=ak, aes(long,lat,group=group), fill=8, color="black") +
+         theme(panel.background=element_rect(fill='aliceblue')) +
+         xlab(expression(paste(Longitude^o,~'W'))) +
+         ylab(expression(paste(Latitude^o,~'N'))) +
+         coord_map(xlim=c(-165, -142), ylim=c(54, 62))
+akmap
+```
+
+```{r, include=FALSE, echo=FALSE}
+discrete_areas$area <- discrete_areas$Area
+discrete_areas$Area <- factor(discrete_areas$area)
+
+ak_areas <- akmap + geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,color=Area))
+ak_areas
+```
+
+```{r, include=FALSE, echo=FALSE}
+slk3_shp <- readOGR(dsn="../Oil Markdown folder", layer="ExxonSlick2", stringsAsFactors=FALSE)
+crs(slk3_shp)
+plot(slk3_shp, col='light blue', border='blue')
+
+slk3_shp@data$id = rownames(slk3_shp@data)
+
+slk3_shp@proj4string 
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+slk3_shp <- spTransform(slk3_shp, LL_proj)
+
+slk3_shp_pt <- fortify(slk3_shp, region="id")
+
+slk3_shp_df <- join(slk3_shp_pt, slk3_shp@data, by="id")
+
+```
+
+```{r, echo=FALSE}
+akslk3 <- ak_areas + 
+          geom_polygon(data=slk3_shp_df, aes(x=long, y=lat, group=id),
+                       color='gray40', fill='blue', size=0.25)
+akslk3
+
+```
+
+
+
+
+
+
 
 
