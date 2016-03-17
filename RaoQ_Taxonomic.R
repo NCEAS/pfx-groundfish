@@ -17,7 +17,7 @@ library(reshape2)
 library(ggplot2)
 library(scales)
 library(ade4)
-library(abind) 
+
 
 # This sources the Rao's Q calculation with Jost correction from the paper
 # Journal of Vegetation Science 21: 992–1000, 2010
@@ -33,14 +33,18 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 SPCPUEArea <- dplyr::rename(SPCPUEArea, Year=year)
 as.data.frame(SPCPUEArea)
 
-# must make a 3D species by site array...x=species, y=area, z=year
-b_arr <- array(NA, dim=c(11,57,30))  # makes an array of the correct size that's filled with NAs
+# must make a list of matrices: species by site ...x=species, y=area, each matrix = 1 year
 
-c_arr <- acast(SPCPUEArea, Species~Year, value.var="Mean.totalDensity")
+# What do you think about making a list of matrices, where each element in the list is 
+# indexed by a year and stores a matrix of site x species 
+# then we can use lapply on that list, calling Rao() for each element in the list?
+
+
+
 
 
 # The function requires that a species x site matrix is identified with "sample="
-RaoJost<-Rao(sample=spxsite, dfunc=NULL, dphyl=NULL, weight=F, Jost=T, structure=NULL)
+RaoJost<-Rao(sample=b_arr, dfunc=NULL, dphyl=NULL, weight=F, Jost=T, structure=NULL)
 
 # The Rao function returns a list of lists of objects. 
 names(RaoJost)
