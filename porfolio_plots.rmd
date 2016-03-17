@@ -363,8 +363,7 @@ for(i in 1:length(DIET)){
 ```
 
 **Diversity Metics**
-
-#Calcuate metrics
+Calcuate metrics
 
 libary(vegan)
 libary(dplyr)
@@ -385,8 +384,8 @@ dat<-DivMetrics
 AREA <- as.numeric(as.character(unique(dat$Area)))
 YEAR <- sort(unique(dat$Year))
 
-########### Species Richness
-#Plot time series by area
+Species Richness
+Plot time series by area
 y.lim <- c(min(dat$Eff_Num_Sp),max(dat$Eff_Num_Sp))
 for(i in 1:length(AREA)){
   if(AREA[i] !=1){par(new=T)}
@@ -406,7 +405,7 @@ title(ylab="Species Richness",line=2.5)
 #mtext(NAME,adj=0)
 abline(v=1989,lty=2,lwd=2)
 
-# Calculate least squares trend in each area and portfolio metrics.
+Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
 for(j in 1:length(AREA)){
   A <- lm(Eff_Num_Sp~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
@@ -428,8 +427,8 @@ space_plot(dat=dat.2,NAME='Species Richness')
 
 ```
 
-########### Shannon Wiener Index
-#Plot time series by area
+Shannon Wiener Index
+Plot time series by area
 y.lim <- c(min(dat$SW_Div),max(dat$SW_Div))
 for(i in 1:length(AREA)){
   if(AREA[i] !=1){par(new=T)}
@@ -449,7 +448,7 @@ title(ylab="Shannon Wiener Index",line=2.5)
 #mtext(NAME,adj=0)
 abline(v=1989,lty=2,lwd=2)
 
-# Calculate least squares trend in each area and portfolio metrics.
+Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
 for(j in 1:length(AREA)){
   A <- lm(SW_Div~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
@@ -469,7 +468,7 @@ dat.2 <- vals
 
 space_plot(dat=dat.2,NAME='Shannon Wiener')
 
-########### Simpsons Diversity
+Simpsons Diversity
 #Plot time series by area  
 y.lim <- c(min(dat$simp_Div),max(dat$simp_Div))
 for(i in 1:length(AREA)){
@@ -490,7 +489,7 @@ title(ylab="Shannon Wiener Index",line=2.5)
 #mtext(NAME,adj=0)
 abline(v=1989,lty=2,lwd=2)
 
-#Calculate least squares trend in each area and portfolio metrics.
+Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
 for(j in 1:length(AREA)){
   A <- lm(simp_Div~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
