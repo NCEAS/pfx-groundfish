@@ -12,6 +12,7 @@ library(maps) ; library(mapdata) ; library(mapproj)
 
 ```
 
+Map plotted in Albers projection (had to convert basemap and use other columns from discrete areas csv):
 
 ```{r BlankMap , include=FALSE, echo=FALSE}
 ak <- map_data('worldHires','USA:Alaska')
@@ -54,7 +55,8 @@ sh_areas
 
 
 ```{r CorrectProjections, include=FALSE, echo=FALSE}
-slk2_shp <- readOGR(dsn="../Oil Markdown folder", layer="ExxonSlick2", stringsAsFactors=FALSE)
+### Eventually make this download from online source!!
+slk2_shp <- readOGR(dsn="../Oil_Markdown_folder", layer="ExxonSlick2", stringsAsFactors=FALSE)
 crs(slk2_shp)
 plot(slk2_shp, col='light blue', border='blue')
 
@@ -86,6 +88,9 @@ akslk2
 
 ```
 
+
+Map plotted in Lat Long (converted slick shapefile):
+
 ```{r, include=FALSE, echo=FALSE}
 ak <- map_data('worldHires','USA:Alaska')
 
@@ -106,7 +111,8 @@ ak_areas
 ```
 
 ```{r, include=FALSE, echo=FALSE}
-slk3_shp <- readOGR(dsn="../Oil Markdown folder", layer="ExxonSlick2", stringsAsFactors=FALSE)
+### Eventually make this download from online source!!
+slk3_shp <- readOGR(dsn="../Oil_Markdown_folder", layer="ExxonSlick2", stringsAsFactors=FALSE)
 crs(slk3_shp)
 plot(slk3_shp, col='light blue', border='blue')
 
@@ -132,6 +138,29 @@ akslk3
 
 ```
 
+
+
+
+Plotting Shoreline Sub Surface Oil: 
+
+```{r}
+### Eventually make this download from online source!!
+slk_sss <- readOGR(dsn=path.expand("../Oil Markdown folder"),
+                   layer="EVOSShorelineSubSurfaceOilingLine",
+                   stringsAsFactors=FALSE)
+crs(slk_sss)
+plot(slk_sss, col='light blue', border='blue')
+
+
+```
+
+```{r}
+ak_ssso <- ak_areas + 
+           
+
+
+
+```
 
 
 
