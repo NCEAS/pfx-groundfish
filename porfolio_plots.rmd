@@ -362,9 +362,9 @@ for(i in 1:length(DIET)){
 }
 ```
 
-**Diversity Metics**
+**Diversity Metrics**
 ```{r, echo=FALSE}
-#Calcuate metrics
+#Calcuate metrics: Species richness, Shannon Wiener and Simpsons (more to be added. e.g. trait and taxonomic divesity)
 
 libary(vegan)
 libary(dplyr)
@@ -386,7 +386,7 @@ YEAR <- sort(unique(dat$Year))
 ```
 Species Richness
 ```{r, echo=FALSE}
-Plot time series by area
+#Plot time series by area
 y.lim <- c(min(dat$Eff_Num_Sp),max(dat$Eff_Num_Sp))
 for(i in 1:length(AREA)){
   if(AREA[i] !=1){par(new=T)}
@@ -492,7 +492,7 @@ title(ylab="Shannon Wiener Index",line=2.5)
 #mtext(NAME,adj=0)
 abline(v=1989,lty=2,lwd=2)
 
-Calculate least squares trend in each area and portfolio metrics.
+#Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
 for(j in 1:length(AREA)){
   A <- lm(simp_Div~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
