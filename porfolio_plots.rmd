@@ -365,6 +365,7 @@ for(i in 1:length(DIET)){
 **Diversity Metics**
 
 #Calcuate metrics
+
 libary(vegan)
 libary(dplyr)
 
