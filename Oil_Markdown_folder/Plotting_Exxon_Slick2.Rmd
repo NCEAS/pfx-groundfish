@@ -103,6 +103,8 @@ akmap
 ```
 
 ```{r, include=FALSE, echo=FALSE}
+discrete_areas <- read.csv("../goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
+
 discrete_areas$area <- discrete_areas$Area
 discrete_areas$Area <- factor(discrete_areas$area)
 
