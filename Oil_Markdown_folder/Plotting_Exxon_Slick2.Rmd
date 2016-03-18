@@ -94,12 +94,12 @@ Map plotted in Lat Long (converted slick shapefile):
 ```{r, include=FALSE, echo=FALSE}
 ak <- map_data('worldHires','USA:Alaska')
 
-akmap <- ggplot() + geom_polygon(data=ak, aes(long,lat,group=group), fill=8, color="black") +
-         theme(panel.background=element_rect(fill='aliceblue')) +
-         xlab(expression(paste(Longitude^o,~'W'))) +
-         ylab(expression(paste(Latitude^o,~'N'))) +
-         coord_map(xlim=c(-165, -142), ylim=c(54, 62))
-akmap
+akmap2 <- ggplot() + geom_polygon(data=ak, aes(long,lat,group=group), fill=8, color="black") +
+          xlab(expression(paste(Longitude^o,~'W'))) +
+          ylab(expression(paste(Latitude^o,~'N'))) +
+          coord_map(xlim=c(-165, -142), ylim=c(54, 62)) +
+          theme(panel.background=element_rect(fill='aliceblue')) 
+akmap2
 ```
 
 ```{r, include=FALSE, echo=FALSE}
@@ -137,7 +137,9 @@ slk3_shp_df <- join(slk3_shp_pt, slk3_shp@data, by="id")
 ```{r, echo=FALSE}
 akslk3 <- ak_areas + 
           geom_polygon(data=slk3_shp_df, aes(x=long, y=lat, group=id),
-                       color='gray40', fill='blue', size=0.25)
+                       color='blue', fill='blue', size=0.25, alpha=0.4) +
+          theme(legend.key=element_blank())#, 
+             #  legend.title=)
 akslk3
 
 ```
@@ -147,29 +149,89 @@ akslk3
 
 Plotting Shoreline Sub Surface Oil: 
 
-```{r}
+```{r, include=FALSE, echo=FALSE}
 ### Eventually make this download from online source!!
-#slk_sss <- readOGR(dsn="./Oil Markdown folder",
-#                   layer="EVOSShorelineSubSurfaceOilingLine",
-#                   stringsAsFactors=FALSE)
-#crs(slk_sss)
-#plot(slk_sss, col='light blue', border='blue')
+slk_sss <- readOGR(dsn="../Oil_Markdown_folder",
+                   layer="EVOSShorelineSubSurfaceOilingLine",
+                   stringsAsFactors=FALSE)
+crs(slk_sss)
+plot(slk_sss, col='blue')
+
+slk_sss@data$id = rownames(slk_sss@data)
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+slk_sss <- spTransform(slk_sss, LL_proj)
+
+slk_sss_pt <- do.call(rbind,lapply(slk_sss$SegmentID, function(x)data.frame(SegmentID=x,coordinates(slk_sss[slk_sss$SegmentID==x,]))))
+
 
 
 
 ```
 
-```{r}
-#ak_ssso <- ak_areas + 
+```{r, include=FALSE, echo=FALSE}
+ak_ssso <- akslk3 + 
+           geom_path(data=slk_sss,aes(x=X1,y=X2, color=SegmentID), size=3) 
            
+ak_ssso           
 
 
 
 ```
 
 
+Plotting Shoreline Surface Oil:
+
+```{r, include=FALSE, echo=FALSE}
+### Eventually make this download from online source!!
+slk_so <- readOGR(dsn="../Oil_Markdown_folder",
+                  layer="EVOSShorelineSurfaceOilingLine",
+                  stringsAsFactors=FALSE)
+crs(slk_so)
+plot(slk_so, col='blue')
+
+slk_so@data$id = rownames(slk_so@data)
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+slk_so <- spTransform(slk_so, LL_proj)
+
+slk_so_pt <- fortify(slk_so, region="id")
+
+slk_so_df <- join(slk_so_pt, slk_so@data, by="id")
+
+```
+
+```{r, include=FALSE, echo=FALSE}
+ak_so <- ak_ssso + 
+         geom_path(data=slk_so_df,aes(x=long,y=lat, group=SegmentID), size=3) 
+           
+ak_so           
+
+```
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+
+USA <- getData("GADM",country="USA",level=1)
+plot(USA)
+AK <- USA[USA$NAME_1=="Alaska",]
+slk3_shp_test <- readOGR(dsn="./Oil_Markdown_folder", 
+                    layer="ExxonSlick2", 
+                    stringsAsFactors=FALSE)
+plot(slk3_shp_test)
+AK <- spTransform(AK,CRS(proj4string(slk3_shp)))
+plot(AK,add=T,col='grey')
+slk_sss_test <- readOGR(dsn="./Oil_Markdown_folder",
+                   layer="EVOSShorelineSubSurfaceOilingLine",
+                   stringsAsFactors=FALSE)
+slk_sss_test <- spTransform(slk_sss,CRS(proj4string(slk3_shp)))
+
+plot(slk_sss,add=T,lwd=3,col='blue')
 
 
+
+```
 
 
 
