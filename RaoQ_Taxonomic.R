@@ -17,7 +17,7 @@ library(reshape2)
 library(ggplot2)
 library(scales)
 library(ade4)
-
+library(abind) 
 
 # This sources the Rao's Q calculation with Jost correction from the paper
 # Journal of Vegetation Science 21: 992–1000, 2010
@@ -30,37 +30,50 @@ SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
 SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
 
-SPCPUEArea <- dplyr::rename(SPCPUEArea, Year=year)
+SPCPUEArea <- SPCPUEArea %>%
+              dplyr::rename(Year=year) %>%
+              filter(area!="Total") 
 as.data.frame(SPCPUEArea)
 
-# must make a list of matrices: species by site ...x=species, y=area, each matrix = 1 year
+# must make a list of matrices: species by site ...x=species, y=area, for each year
+# "Split" the SPCPUEArea data frame by a factor
+df_split <- split(SPCPUEArea[,c("area", "Species", "Mean.totalDensity")],  #  Filter to just the columns we want
+                  SPCPUEArea$Year)                                         #  Split by Year
 
-# What do you think about making a list of matrices, where each element in the list is 
-# indexed by a year and stores a matrix of site x species 
+# Note: Take a look at what df_split is now
+
+# For each thing in the list "df_split", use acast() to make your Species~area matrix
+c_arr <- lapply(df_split, function(x) { acast(x, Species~area, value.var="Mean.totalDensity") } )
+
+
+# What do you think about making a list of matrices, where each element in the list
+# is indexed by a year and stores a matrix of site x species 
 # then we can use lapply on that list, calling Rao() for each element in the list?
 
-
-
-
-
-# The function requires that a species x site matrix is identified with "sample="
-RaoJost<-Rao(sample=b_arr, dfunc=NULL, dphyl=NULL, weight=F, Jost=T, structure=NULL)
+# The Rao function requires that a species x site matrix is identified with "sample="
+RaoJost <- lapply(c_arr, function(x) {Rao(sample=x, dfunc=NULL, dphyl=NULL, weight=F, 
+                                          Jost=T, structure=NULL)})
 
 # The Rao function returns a list of lists of objects. 
 names(RaoJost)
+names(RaoJost$`1984`)
+names(RaoJost$`2015`)
 
 # For taxonomical diversity (identified as ‘TD’) different results are available.
-names(RaoJost$TD)
+names(RaoJost$`1984`$TD)
+names(RaoJost$`2015`$TD)
 
 # To extract the Alpha Simpson diversity for each plot:
-RaoJost$TD$Alpha
+RaoJost$`1984`$TD$Alpha
+RaoJost$`2015`$TD$Alpha
 
 # The ‘Pairwise_sample’ list includes all values of α, β and γ for each pairs of sample.
-names(RaoJost$TD$Pairwise_sample)
+names(RaoJost$`1984`$TD$Pairwise_sample)
+names(RaoJost$`2015`$TD$Pairwise_sample)
 
 # look at pairwise sample beta diversity 
-RaoJost$TD$Pairwise_sample$Beta_prop 
-
+RaoJost$`1984`$TD$Pairwise_sample$Beta_prop 
+RaoJost$`2015`$TD$Pairwise_sample$Beta_prop 
 
 
  
