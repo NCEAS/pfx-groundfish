@@ -114,7 +114,9 @@ ak_areas
 
 ```{r, include=FALSE, echo=FALSE}
 ### Eventually make this download from online source!!
-slk3_shp <- readOGR(dsn="../Oil_Markdown_folder", layer="ExxonSlick2", stringsAsFactors=FALSE)
+slk3_shp <- readOGR(dsn="../Oil_Markdown_folder", 
+                    layer="ExxonSlick2", 
+                    stringsAsFactors=FALSE)
 crs(slk3_shp)
 plot(slk3_shp, col='light blue', border='blue')
 
@@ -147,17 +149,18 @@ Plotting Shoreline Sub Surface Oil:
 
 ```{r}
 ### Eventually make this download from online source!!
-slk_sss <- readOGR(dsn=path.expand("../Oil Markdown folder"),
-                   layer="EVOSShorelineSubSurfaceOilingLine",
-                   stringsAsFactors=FALSE)
-crs(slk_sss)
-plot(slk_sss, col='light blue', border='blue')
+#slk_sss <- readOGR(dsn="./Oil Markdown folder",
+#                   layer="EVOSShorelineSubSurfaceOilingLine",
+#                   stringsAsFactors=FALSE)
+#crs(slk_sss)
+#plot(slk_sss, col='light blue', border='blue')
+
 
 
 ```
 
 ```{r}
-ak_ssso <- ak_areas + 
+#ak_ssso <- ak_areas + 
            
 
 
