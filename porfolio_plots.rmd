@@ -21,6 +21,7 @@ library(mapdata)
 library(mapproj)
 library(dplyr)
 library(tidyr)
+libary(vegan)
 
 # Go get the needed data:
 
@@ -31,6 +32,32 @@ meanCPUE$area <- as.numeric(levels(meanCPUE$area))[meanCPUE$area]#use numeric/fa
 meanCPUE$Area <- factor(meanCPUE$area)
 meanCPUE$vari <- meanCPUE$SD.totalDensity^2 #calculate variance
 #meanCPUE$Species <- gsub("[.]","",meanCPUE$Species) #quit changing how names are spelled damnit!
+
+meanOcc<-read.csv("All_sp_index_occurrenceByArea.csv")
+meanOcc <- subset(meanOcc,area!='Total') #remove total field
+meanOcc <- droplevels(meanOcc) 
+meanOcc$area <- as.numeric(levels(meanOcc$area))[meanOcc$area]#use numeric/factor conventions
+meanOcc$Area <- factor(meanOcc$area)
+
+meanOcc <- meanOcc %>%
+  mutate(year = ifelse((year.numb=="1"),'1984',
+                ifelse((year.numb=="2"),'1987',
+                ifelse((year.numb=="3"),'1990',
+                ifelse((year.numb=="4"),'1993',       
+                ifelse((year.numb=="5"),'1996',
+                ifelse((year.numb=="6"),'1999',
+                ifelse((year.numb=="7"),'2001',
+                ifelse((year.numb=="8"),'2003',
+                ifelse((year.numb=="9"),'2005',
+                ifelse((year.numb=="10"),'2007',
+                ifelse((year.numb=="11"),'2009',
+                ifelse((year.numb=="12"),'2011',
+                ifelse((year.numb=="13"),'2013',
+                ifelse((year.numb=="14"),'2015',        
+                ""))))))))))))))
+  )
+head(meanOcc)
+meanOcc$Year <- as.integer(meanOcc$year) 
 
 discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 #head(discrete_areas)
@@ -362,13 +389,16 @@ for(i in 1:length(DIET)){
 }
 ```
 
-**Diversity Metrics**
+**Diversity Metrics (biomass data)**
+
+Calculate diversity metrics
 ```{r, echo=FALSE}
-#Calcuate metrics: Species richness, Shannon Wiener and Simpsons (more to be added. e.g. trait and taxonomic divesity)
+# First, calculate Shannon and Simpson's using biomass and then calculate Shannon, Simpson and richness using occurrence data (more to be added. e.g. trait and taxonomic divesity)
 
 libary(vegan)
 libary(dplyr)
 
+# Metrics using Biomass data
 meanCPUE$Area <- meanCPUE$area
 meanCPUE$Year<-meanCPUE$year
 
@@ -384,7 +414,7 @@ dat<-DivMetrics
 AREA <- as.numeric(as.character(unique(dat$Area)))
 YEAR <- sort(unique(dat$Year))
 ```
-Species Richness
+Shannon's Index
 ```{r, echo=FALSE}
 #Plot time series by area
 y.lim <- c(min(dat$Eff_Num_Sp),max(dat$Eff_Num_Sp))
@@ -402,7 +432,7 @@ for(i in 1:length(AREA)){
 axis(1,at=YEAR,las=2)
 axis(2,las=2)
 box(bty="o",lwd=2)
-title(ylab="Species Richness",line=2.5)
+title(ylab="Shannon's Diversity",line=2.5)
 #mtext(NAME,adj=0)
 abline(v=1989,lty=2,lwd=2)
 
@@ -424,79 +454,36 @@ vals$CV  <- vals$SD / vals$Grand.w.mean
 
 dat.2 <- vals
 
-space_plot(dat=dat.2,NAME='Species Richness')
+space_plot(dat=dat.2,NAME='Shannon's Diversity')
 ```
 
-Shannon Wiener Index
-```{r, echo=FALSE}
-#Plot time series by area
-y.lim <- c(min(dat$SW_Div),max(dat$SW_Div))
-for(i in 1:length(AREA)){
-  if(AREA[i] !=1){par(new=T)}
-  if(AREA[i] >= 3 & AREA[i] <= 5 ){
-    plot(SW_Div~Year,data=dat[dat$Area==AREA[i],],
-         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
-  }
-  if(AREA[i] < 3 | AREA[i] > 5){
-    plot(SW_Div~Year,data=dat[dat$Area ==AREA[i],],
-         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
-  }
-}
-axis(1,at=YEAR,las=2)
-axis(2,las=2)
-box(bty="o",lwd=2)
-title(ylab="Shannon Wiener Index",line=2.5)
-#mtext(NAME,adj=0)
-abline(v=1989,lty=2,lwd=2)
-
-#Calculate least squares trend in each area and portfolio metrics.
-vals <- NULL
-for(j in 1:length(AREA)){
-  A <- lm(SW_Div~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
-  B <- lm(SW_Div~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
-  vals <- rbind(vals,c(AREA[j],
-                       coef(summary(A))["Year",c("Estimate","Std. Error")],
-                       coef(summary(B))[1,c("Estimate","Std. Error")],
-                       var(A$residuals),
-                       sd(A$residuals)))
-  
-}
-vals <- data.frame(vals)
-colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
-vals$CV  <- vals$SD / vals$Grand.w.mean 
-
-dat.2 <- vals
-
-space_plot(dat=dat.2,NAME='Shannon Wiener')
-```
-
-Simpsons Diversity
+Simpson's Diversity
 ```{r, echo=FALSE}
 #Plot time series by area  
-y.lim <- c(min(dat$simp_Div),max(dat$simp_Div))
+y.lim <- c(min(dat$invsimp),max(dat$invsimp))
 for(i in 1:length(AREA)){
   if(AREA[i] !=1){par(new=T)}
   if(AREA[i] >= 3 & AREA[i] <= 5 ){
-    plot(simp_Div~Year,data=dat[dat$Area==AREA[i],],
+    plot(invsimp~Year,data=dat[dat$Area==AREA[i],],
          type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
   }
   if(AREA[i] < 3 | AREA[i] > 5){
-    plot(simp_Div~Year,data=dat[dat$Area ==AREA[i],],
+    plot(invsimp~Year,data=dat[dat$Area ==AREA[i],],
          type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
   }
 }
 axis(1,at=YEAR,las=2)
 axis(2,las=2)
 box(bty="o",lwd=2)
-title(ylab="Shannon Wiener Index",line=2.5)
+title(ylab="Simpson's Index",line=2.5)
 #mtext(NAME,adj=0)
 abline(v=1989,lty=2,lwd=2)
 
 #Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
 for(j in 1:length(AREA)){
-  A <- lm(simp_Div~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
-  B <- lm(simp_Div~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  A <- lm(invsimp~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  B <- lm(invsimp~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
   vals <- rbind(vals,c(AREA[j],
                        coef(summary(A))["Year",c("Estimate","Std. Error")],
                        coef(summary(B))[1,c("Estimate","Std. Error")],
@@ -510,10 +497,152 @@ vals$CV  <- vals$SD / vals$Grand.w.mean
 
 dat.2 <- vals
 
-space_plot(dat=dat.2,NAME='Simpson')
+space_plot(dat=dat.2,NAME='Simpson's Index')
 ```
 
+**Diversity Metrics (occurrence data)**
 
+Calculate diversity metrics
+```{r, echo=FALSE}  
+DivMetrics.Occ <- meanOcc %>%
+  group_by(Area, Year) %>% 
+  summarise(SW_Div = diversity(Mean.avgPresence, index="shannon"), Eff_Num_Sp = exp(SW_Div),
+            simp_Div = diversity(Mean.avgPresence, index="simpson"), 
+            invsimp = diversity(Mean.avgPresence,index="inv"),SpRich = sum(Mean.avgPresence)) %>%
+  ungroup() %>%
+  print(width = Inf)
+
+dat<-DivMetrics.Occ
+AREA <- as.numeric(as.character(unique(dat$Area)))
+YEAR <- sort(unique(dat$Year))
+```
+Shannon Wiener
+```{r, echo=FALSE}  
+#Plot time series by area
+y.lim <- c(min(dat$Eff_Num_Sp),max(dat$Eff_Num_Sp))
+for(i in 1:length(AREA)){
+  if(AREA[i] !=1){par(new=T)}
+  if(AREA[i] >= 3 & AREA[i] <= 5 ){
+    plot(Eff_Num_Sp~Year,data=dat[dat$Area==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+  }
+  if(AREA[i] < 3 | AREA[i] > 5){
+    plot(Eff_Num_Sp~Year,data=dat[dat$Area ==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+  }
+}
+axis(1,at=YEAR,las=2)
+axis(2,las=2)
+box(bty="o",lwd=2)
+title(ylab="Shannon's Diversity",line=2.5)
+#mtext(NAME,adj=0)
+abline(v=1989,lty=2,lwd=2)
+
+# Calculate least squares trend in each area and portfolio metrics.
+vals <- NULL
+for(j in 1:length(AREA)){
+  A <- lm(Eff_Num_Sp~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  B <- lm(Eff_Num_Sp~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  vals <- rbind(vals,c(AREA[j],
+                       coef(summary(A))["Year",c("Estimate","Std. Error")],
+                       coef(summary(B))[1,c("Estimate","Std. Error")],
+                       var(A$residuals),
+                       sd(A$residuals)))
+  
+}
+vals <- data.frame(vals)
+colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+vals$CV  <- vals$SD / vals$Grand.w.mean 
+
+dat.2 <- vals
+
+space_plot(dat=dat.2,NAME="Shannon's Diversity")
+```
+Simpson's Diversity
+```{r, echo=FALSE}  
+#Plot time series by area
+y.lim <- c(min(dat$invsimp),max(dat$invsimp))
+for(i in 1:length(AREA)){
+  if(AREA[i] !=1){par(new=T)}
+  if(AREA[i] >= 3 & AREA[i] <= 5 ){
+    plot(invsimp~Year,data=dat[dat$Area==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+  }
+  if(AREA[i] < 3 | AREA[i] > 5){
+    plot(invsimp~Year,data=dat[dat$Area ==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+  }
+}
+axis(1,at=YEAR,las=2)
+axis(2,las=2)
+box(bty="o",lwd=2)
+title(ylab="Simpson's Index",line=2.5)
+#mtext(NAME,adj=0)
+abline(v=1989,lty=2,lwd=2)
+
+# Calculate least squares trend in each area and portfolio metrics.
+vals <- NULL
+for(j in 1:length(AREA)){
+  A <- lm(invsimp~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  B <- lm(invsimp~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  vals <- rbind(vals,c(AREA[j],
+                       coef(summary(A))["Year",c("Estimate","Std. Error")],
+                       coef(summary(B))[1,c("Estimate","Std. Error")],
+                       var(A$residuals),
+                       sd(A$residuals)))
+  
+}
+vals <- data.frame(vals)
+colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+vals$CV  <- vals$SD / vals$Grand.w.mean 
+
+dat.2 <- vals
+
+space_plot(dat=dat.2,NAME="Simpson's Index")
+``` 
+Species richness
+```{r, echo=FALSE}  
+#Plot time series by area
+y.lim <- c(min(dat$SpRich),max(dat$SpRich))
+for(i in 1:length(AREA)){
+  if(AREA[i] !=1){par(new=T)}
+  if(AREA[i] >= 3 & AREA[i] <= 5 ){
+    plot(SpRich~Year,data=dat[dat$Area==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+  }
+  if(AREA[i] < 3 | AREA[i] > 5){
+    plot(SpRich~Year,data=dat[dat$Area ==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+  }
+}
+axis(1,at=YEAR,las=2)
+axis(2,las=2)
+box(bty="o",lwd=2)
+title(ylab="Species Richness",line=2.5)
+#mtext(NAME,adj=0)
+abline(v=1989,lty=2,lwd=2)
+
+# Calculate least squares trend in each area and portfolio metrics.
+vals <- NULL
+for(j in 1:length(AREA)){
+  A <- lm(SpRich~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  B <- lm(SpRich~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  vals <- rbind(vals,c(AREA[j],
+                       coef(summary(A))["Year",c("Estimate","Std. Error")],
+                       coef(summary(B))[1,c("Estimate","Std. Error")],
+                       var(A$residuals),
+                       sd(A$residuals)))
+  
+}
+vals <- data.frame(vals)
+colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+vals$CV  <- vals$SD / vals$Grand.w.mean 
+
+dat.2 <- vals
+
+space_plot(dat=dat.2,NAME="Species Richness")
+
+```
 
 OK.  Combine Trends in to one file to make a 4x4 array of plots for potential publication-like Figure.
 
