@@ -15,6 +15,9 @@ traits1 <- content(traitsGet, as='text')
 traits_df <- read.csv(file=textConnection(traits1),stringsAsFactors=FALSE)
 #View(traits_df)
 
+# or load it from local source:
+read.csv(Groundfish-Functional-Diversity-Traits.csv, header=T)
+
 traits_df1 <- traits_df %>%
   select(-reference, -database, -lengthType, -comments) # drop unnecessary columns
 
@@ -43,8 +46,8 @@ for(i in 1:nrow(horPos_df)) {
       else{if(horPos_df$estimate[i] %in% c("shelf", "shelf margin (winter), mid/outer shelf (summer)")) {horPos_df$adultHorizPosition[i] <- "shelf"}
         else{if(horPos_df$estimate[i] %in% c("outer shelf", "outer shelf, upper slope", "shelf, slope", "shelf, upper slope")) {horPos_df$adultHorizPosition[i]<- "outer shelf, upper slope"}
           else{if(horPos_df$estimate[i] %in% c("slope", "slope, shelf gullies, deep fjords")) {horPos_df$adultHorizPosition[i] <- "slope"}
-            #else{horPos_df$estimate[i] <- NA}
-          }}}}}#}
+            else{horPos_df$estimate[i] <- NA}
+          }}}}}}
 # for ease of binding with other dfs, remove original estimate column and rename adultHorizPosition to estimate:
 horPos_df1 <- horPos_df %>%
   select(-estimate, -region) %>% rename(estimate = adultHorizPosition)
@@ -60,8 +63,8 @@ for(i in 1:nrow(substrate_df)) {
     else{if(substrate_df$estimate[i] %in% c("hard, rocky, biogenic structure", "rocky, coral, sponges", "rocky, rough, corals")) {substrate_df$adultSubstrateCategory[i] <- "rocky and biogenic"}
       else{if(substrate_df$estimate[i] %in% c("muddy, hard, near rocks or gravel, biogenic structure")) {substrate_df$adultSubstrateCategory[i] <- "soft, hard, biogenic"}
         else{if(substrate_df$estimate[i] %in% c("rocky, kelp, sand")) {substrate_df$adultSubstrateCategory[i] <- "algal associate"}
-          #else{substrate_df$estimate[i] <- NA}
-        }}}}#}
+          else{substrate_df$estimate[i] <- NA}
+        }}}}}
 # for ease of binding with other dfs, remove original estimate column and rename adultSubstrateCategory to estimate:
 substrate_df1 <- substrate_df %>%
   select(-estimate, -region) %>% rename(estimate = adultSubstrateCategory) 
@@ -107,7 +110,7 @@ max_df1 <- max_df %>%
 # age- and size-at-maturity: calculate gender-specific means of given ranges
 maturity_df <- traits_df1[which(traits_df1$trait %in% c('age50percentMaturity', 'firstMaturityAge', 'firstMaturityLength', 'length50percentMaturity')),]
 
-maturty_df1 <- maturity_df %>%
+maturity_df1 <- maturity_df %>%
   mutate(estimate = gsub("\\+", "", estimate)) %>% # remove "+"
   filter(estimate != "up to 12") %>% # remove this entry because it's not imformative for determining mean values
   
@@ -116,33 +119,39 @@ maturty_df1 <- maturity_df %>%
   mutate(estimate1=strsplit(estimate,split="-") %>% sapply(function(x) x[1])) %>% 
   mutate(estimate2=strsplit(estimate,split="-") %>% sapply(function(x) x[2])) %>%
   # note that when there is a single estimate, rather than a range, this value is entered into estimate1 and estimate2 is NA
-  mutate(estimate1.num = as.numeric(estimate1), estimate2.num = as.numeric(estimate2)) %>%
+  mutate(estimate1.num = as.numeric(estimate1), estimate2.num = as.numeric(estimate2)) %>% # change these from character to numeric values
   rowwise() %>%
-  mutate(estimate3 = mean(c(estimate1.num, estimate2.num), na.rm=T)) %>%
+  mutate(estimate3 = mean(c(estimate1.num, estimate2.num), na.rm=T)) %>% # calculate mean of the 2 estimates
   ungroup() %>%
   select( -region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
-  rename(estimate = estimate3)
+  rename(estimate = estimate3) %>%
+  group_by(genus.species, common.name, trait, gender, location) %>%
+  summarise_each(funs(max(., na.rm = TRUE))) %>% # calculate means of all estimates for each taxa / gender / location combination
+  ungroup 
 # warning re NAs is OK; it's just reporting that estimate2 is NA when the original cell is a single value rather than a range
 
 
 
 
 # bind these dfs together (bind_rows)
-traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, kl_df1, max_df1, maturty_df1)
+traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, kl_df1, max_df1, maturity_df1)
 #View(traits_df3)
 
 
 # we want to use GoA data wherever it exists; if it doesn't, we'll use data from other locations:
 GoA_df <- traits_df3 %>%
   filter(location == "GoA") # create table of GoA data
+View(GoA_df)
+dim(GoA_df) # len = 391
 
 other_df <- traits_df3 %>%
   filter(location == "other") #, subsetVector != T) # create table of data for location == "other"
+dim(other_df)
 
 
+combos <- unique(traits_df3[,c('genus.species','common.name','trait')]) # create df of all species & trait combinations for which we have data
 
-combos <- unique(traits_df3[,c('genus.species','trait')]) # create df of all species & trait combinations for which we have data
-# use a loop to add vector of desired gender for all traits
+# specify which gender we'll use for each trait:
 for(i in 1:nrow(combos)){
   if(combos$trait[i] %in% c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "ageMaximum", "diet", "guild",
                             "lengthMaximum", "migratoryStatus", "trophicPosition")) {combos$gender[i] <- "both"} # for these traits, we'll use data from males & females
@@ -150,19 +159,83 @@ for(i in 1:nrow(combos)){
                             "K", "Linfinity")) {combos$gender[i] <- "f"} # for life history traits, for now we'll use only female data
   }
 
-
 View(combos)
+dim(combos) # len = 602
+
 # now merge in GoA values
-traits_df4 <- left_join(combos, GoA_df)
-View(traits_df4) # why is traits_df missing most values for common.name?
+traits_df4 <- left_join(combos, GoA_df, by = c("genus.species", "common.name", "trait", "gender"))
+View(traits_df4)
+dim(traits_df4) # len = 602
+
+t4 <- merge(combos, GoA_df, all.x=T)
+View(t4)
+dim(t4) # len = 619. not right
+
+
+
+
+
 
 # then merge in location == other values, preferentially keep GoA value if it's already in there
 
+# remove location & estimate columns from GoA_df and other_df to facilitate set difference operation:
+GoA_df1 <- GoA_df %>% select(-location, -estimate) #; View(GoA_df1)
+other_df1 <- other_df %>% select(-location, -estimate) #; View(other_df1)
 
-diffs <- setdiff(other_df, GoA_df) # retrieve data which exist for location == "other" but not GoA
-View(diffs)
-traits_df5 <- left_join(traits_df4, diffs, by = c("genus.species", "common.name", "trait", "gender")) # does not work; contains multiple columns for location & estimate
+diffs_df <- setdiff(other_df1, GoA_df1) # retrieve data which exist for location == "other" but not GoA
+# does not work when estimate column is left in before doing setdiff(); both GoA_df and diffs have values for Albatrossia pectoralis - female - K
+
+View(diffs_df)
+dim(diffs_df)  # length = 398
+# now add logical vector to diffs_df to subset on, then add data back in by merging in other_df1
+#diffs_df1 <- diffs_df
+  # add column with t
+  # merge other_df back in; only keeping rows that are in diffs_df
+diffs_df1 <- left_join(diffs_df, other_df, by = c("genus.species", "common.name", "trait", "gender"))
+View(diffs_df1); dim(diffs_df1) # should have same length as diffs_df , ie length = 398
+
+
+traits_df5 <- left_join(traits_df4, diffs_df1, by = c("genus.species", "common.name", "trait", "gender")) # does not work; contains multiple columns for location & estimate
+# full_join does not work
 View(traits_df5)
+dim(traits_df5) # length = 602
+
+
+within(merge(d1, d2, by="x"), {b <- ifelse(is.na(b.x),b.y,b.x); b.x <- NULL; b.y <- NULL}) # in my case, b = estimate
+dfa <- within(left_join(traits_df4, diffs_df1, by = c("genus.species", "common.name", "trait", "gender")), 
+              {estimate <- ifelse(is.na(estimate.x),estimate.y,estimate.x); estimate.x <- NULL; estimate.y <- NULL}, 
+              {location <- ifelse(is.na(location.x),location.y,location.x); location.x <- NULL; location.y <- NULL})
+# this successfully merged the estimate column; still need to do for location column
+View(dfa)
+rm(dfa)
+
+
+left_join(df1, df2, by="y") %>% 
+  transmute(y, x1 = ifelse(is.na(x1.y), x1.x, x1.y))
+
+
+traits_df7 <- left_join(traits_df4, diffs_df1, by = c("genus.species", "common.name", "trait", "gender")) %>% 
+  transmute(genus.species, common.name, trait, gender, 
+            estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x), 
+            location = ifelse(is.na(location.x), location.y, location.x)) %>%
+  filter(!is.na(estimate)) # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations 
+
+View(traits_df7); dim(traits_df7) # dim before filtering !is.na(estimate) should be 602: yes.
+rm(traits_df7)
+
+# problems: 
+# Squalus acanthias, ageMaximum, GoA: NA (the filtering operation removed this, but why was it here in the first place?)
+# Merluccius productus, trophicPosition = "3.86 or 4.3 (Fishbase)"
+
+
+# traits_df6 <- left_join(traits_df4, diffs_df1, by = c("estimate" = "estimate")) # no
+#View(traits_df6); dim(traits_df6) 
+
+
+t5 <- merge(traits_df4, diffs_df1, all.x=T)
+dim(t5) # len = same as traits_df4
+View(t5) # does not work; no data from diffs is in t5
+
 # add vector of T to every row in diffs
 
 
