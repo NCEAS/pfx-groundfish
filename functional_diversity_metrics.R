@@ -6,17 +6,16 @@ library(httr)
 library(plyr)
 library(dplyr)
 library(tidyr)
-#library(FD)
+library(FD)
 
-# load the data
-URL_traits <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7uVUFBbzRucGZlNm8"
+# load the functional trait data
+URL_traits <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7uM2M1UnhtTzlGZGM"
 traitsGet <- GET(URL_traits)
 traits1 <- content(traitsGet, as='text')
 traits_df <- read.csv(file=textConnection(traits1),stringsAsFactors=FALSE)
-#View(traits_df)
 
 # or load it from local source:
-#traits_df <- read.csv('Groundfish-Functional-Diversity-Traits.csv', header=T)
+#traits_df <- read.csv("Groundfish-Functional-Diversity-Traits1.csv", header=T, stringsAsFactors=FALSE)
 
 
 ######################################################
@@ -103,8 +102,8 @@ kl_df1 <- kl_df %>%
 
 
 
-# retrieve maximum values of longevity and maximum observed size, regardless of gender
-max_df <- traits_df1[which(traits_df1$trait %in% c('ageMaximum', 'lengthMaximum')),]
+# retrieve maximum values of longevity, maximum observed size, and maximum depth regardless of gender
+max_df <- traits_df1[which(traits_df1$trait %in% c('ageMaximum', 'lengthMaximum', 'depthMax')),]
 max_df1 <- max_df %>%
   mutate(estimate1 = as.numeric(estimate)) %>%
   select(-estimate, -region) %>%
@@ -114,6 +113,24 @@ max_df1 <- max_df %>%
   ungroup %>%
   rename(estimate = estimate1)
 
+
+
+
+# depth range: calculate mean breadth of depth range
+depth_df <- traits_df1[which(traits_df1$trait %in% c('depthRange')),]
+depth_df1 <- depth_df %>%
+  mutate(estimate1=strsplit(estimate,split="-") %>% sapply(function(x) x[1])) %>% 
+  mutate(estimate2=strsplit(estimate,split="-") %>% sapply(function(x) x[2])) %>%
+  mutate(estimate1.num = as.numeric(estimate1), estimate2.num = as.numeric(estimate2)) %>% # change to numeric values
+  rowwise() %>%
+  mutate(estimate3 = estimate2.num-estimate1.num) %>% # calculate breadth of depth range
+  ungroup() %>%
+  select(-region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
+  rename(estimate = estimate3) %>%
+  group_by(genus.species, common.name, trait, gender, location) %>%
+  summarise_each(funs(mean)) %>% # calculate means of depth range breadth for each taxa / gender / location combination
+  ungroup 
+  
 
 
 
@@ -136,16 +153,15 @@ maturity_df1 <- maturity_df %>%
   select( -region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
   rename(estimate = estimate3) %>%
   group_by(genus.species, common.name, trait, gender, location) %>%
-  summarise_each(funs(max(., na.rm = TRUE))) %>% # calculate means of all estimates for each taxa / gender / location combination
+  summarise_each(funs(mean(., na.rm = TRUE))) %>% # calculate means of all estimates for each taxa / gender / location combination
   ungroup 
 # warning re NAs is OK; it's just reporting that estimate2 is NA when the original cell is a single value rather than a range
 
 
 
-
 # bind these dfs together (bind_rows). 
 # This creates a dataframe of all the functional trait data we have (these are summarized values; eg means, maxima, etc) 
-traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, kl_df1, max_df1, maturity_df1)
+traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, kl_df1, max_df1, depth_df1, maturity_df1)
 
 
 
@@ -167,7 +183,7 @@ other_df <- traits_df3 %>%
 combos <- unique(traits_df3[,c('genus.species','common.name','trait')]) # create a table of all species & trait combinations for which we have data
 # specify which gender we'll use for each trait:
 for(i in 1:nrow(combos)){
-  if(combos$trait[i] %in% c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "ageMaximum", "diet", "guild",
+  if(combos$trait[i] %in% c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "depthMax", "depthRange", "ageMaximum", "diet", "guild",
                             "lengthMaximum", "migratoryStatus", "trophicPosition")) {combos$gender[i] <- "both"} # for these traits, we'll use data from males & females
   if(combos$trait[i] %in% c("age50percentMaturity", "firstMaturityAge", "firstMaturityLength", "length50percentMaturity",
                             "K", "Linfinity")) {combos$gender[i] <- "f"} # for life history traits, for now we'll use only female data
@@ -190,4 +206,148 @@ traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "co
   transmute(genus.species, common.name, trait, gender, 
             location = ifelse(is.na(location.x), location.y, location.x),
             estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x)) %>%
-  filter(!is.na(estimate)) # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations 
+  filter(!is.na(estimate)) %>% # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations
+  # the next 6 lines make taxonomic names match style in abundance files
+  mutate(genus.species = revalue(genus.species, c("Clupea pallasii" = "Clupea pallasi",
+                                                  "Sebastes group 1" = "Dusky and Dark Rockfish", 
+                                                  "Sebastes group 2" = "Rougheye and Blackspotted Rockfish", 
+                                                  "Lepidopsetta spp." = "Lepidopsetta sp.", 
+                                                  "Myctophidae spp." = "Myctophidae",
+                                                  "Theragra chalcogramma" = "Gadus chalcogrammus"))) %>%
+  mutate(genus.species = gsub(" ", ".", genus.species)) %>%
+  rename(Species = genus.species)
+
+
+
+######################################################
+######################################################
+######################################################
+
+
+# Organize functional trait data for analysis in FD package:
+
+# Convert to wide format:
+traits_df4$row <- 1:nrow(traits_df4) # create column of unique identifiers to facilitate data spread
+traits_wide <- traits_df4 %>%
+  spread(trait, estimate) %>%
+  select(-gender, -location, -row) %>%
+  group_by(Species, common.name) %>%
+  summarize_each(funs(first(., order_by = is.na(.)))) %>%
+  ungroup()
+# fill in missing NAs?
+cols = c(6:9, 11, 12, 14:17, 19); traits_wide[,cols] <- apply(traits_wide[,cols], 2, function(x) as.numeric(x)) # convert columns to numeric as needed
+cols1 = c(3:5, 10, 13, 18); traits_wide[,cols1] <- lapply(traits_wide[,cols1] , factor) # convert columns to factor as needed
+#write.csv(traits_wide, file = "traits_wide.csv")
+
+
+ft_df <- traits_wide %>%
+  select(Species, lengthMaximum, trophicPosition, diet, guild, adultWaterColumnPosition) %>% # select traits for which we have the most data
+  filter(!(Species %in% c("Berryteuthis.magister", "Chionoecetes.bairdi", "Hyas.lyratus", "Myctophidae", "Lepidopsetta.sp.", "Dusky.and.Dark.Rockfish"))) %>% # remove taxa for which some trait data is missing
+  filter(!(Species %in% c("Hydrolagus.colliei", "Merluccius.productus", "Sebastes.helvomaculatus"))) %>% # remove taxa for which there is no abundance data; there is also no abund data for Berryteuthis.magister
+  arrange(Species)
+rownames(ft_df) <- ft_df$Species # create row names from Species column
+ft_df <- ft_df %>% select(-Species)
+# View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
+
+
+# we have the most data for:
+# adultWaterColumnPosition (missing for 2 taxa)
+#ageMax (missing for 9 taxa)
+#diet (missing 0)
+#sum(is.na(traits_wide$firstMaturityLength)) # missing 23
+#sum(is.na(traits_wide$K)) # missing 27
+#guild (missing 0)
+#lengthMaximum (missing 4)
+#trophicPosition (missing 0)
+#depthRange (missing 6)
+#depthMax (missing 6)
+
+
+
+######################################################
+######################################################
+######################################################
+
+
+# load taxonomic relative presence data:
+#URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udlVNME9rQXEwZ1k"
+#SpByArea_Get <- GET(URL_SpByArea)
+#SpByArea_1 <- content(SpByArea_Get, as='text')
+#SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(SpByArea)
+
+# load taxonomic abundance data:
+URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
+SPCPUEArea_Get <- GET(URL_SPCPUEArea)
+SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
+SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(SPCPUEArea)
+
+# NB  SPCPUEArea has only 53 taxa, not 57. Which ones are missing?
+#spDiffs <- setdiff(traits_wide$Species, SPCPUEArea$Species); spDiffs
+# "Berryteuthis.magister"   "Hydrolagus.colliei"      "Merluccius.productus"    "Sebastes.helvomaculatus"
+
+
+# organize abundance data for analysis in FD package:
+
+sp_df <- SPCPUEArea %>%
+  select(area, year, Species, Mean.totalDensity) %>%
+  filter(!(Species %in% c("Berryteuthis.magister", "Chionoecetes.bairdi", "Hyas.lyratus", 
+                          "Myctophidae", "Lepidopsetta.sp.", "Dusky.and.Dark.Rockfish"))) %>% # remove taxa for which we don't have all trait data
+  mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
+         area = as.numeric(area)) # convert to numeric class
+#View(sp_df)
+
+
+
+
+ar <- seq(1:12) 
+createAreaDf <- function(sp_df){
+  A <- sp_df %>% 
+  filter(area == ar) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+  return(A)
+}
+
+createAreaDf(sp_df)
+
+for(i in 1:12) {
+#for(i in 1:length(unique(sort(sp_df$area)))) {
+  B = 
+    sp_df %>% 
+    filter(sp_df$area == i) %>%
+    select(Species, year, Mean.totalDensity) %>%
+    arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+    spread(Species, Mean.totalDensity) %>%
+    select(-year)
+}
+
+
+area11 <- sp_df %>% 
+  filter(area == "11") %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+View(area11)
+
+
+
+######################################################
+######################################################
+######################################################
+
+
+# calculate Functional Diversity metric (Rao's Q):
+
+# use function dbFD
+# need dataframe of functional traits (x); species are rows
+# need matrix of abundances of species in x; rows are sites, species are columns
+
+a11 <- dbFD(ft_df, area11, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+a11$RaoQ
+
+

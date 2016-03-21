@@ -21,7 +21,7 @@ library(mapdata)
 library(mapproj)
 library(dplyr)
 library(tidyr)
-libary(vegan)
+library(vegan)
 
 # Go get the needed data:
 
