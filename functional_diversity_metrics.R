@@ -292,8 +292,39 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 
 sp_df <- SPCPUEArea %>%
   select(area, year, Species, Mean.totalDensity) %>%
-  filter(!(Species %in% c("Berryteuthis.magister", "Chionoecetes.bairdi", "Hyas.lyratus", "Myctophidae", "Lepidopsetta.sp.", "Dusky.and.Dark.Rockfish")))# remove taxa for which we don't have all trait data
-View(sp_df)
+  filter(!(Species %in% c("Berryteuthis.magister", "Chionoecetes.bairdi", "Hyas.lyratus", 
+                          "Myctophidae", "Lepidopsetta.sp.", "Dusky.and.Dark.Rockfish"))) %>% # remove taxa for which we don't have all trait data
+  mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
+         area = as.numeric(area)) # convert to numeric class
+#View(sp_df)
+
+
+
+
+ar <- seq(1:12) 
+createAreaDf <- function(sp_df){
+  A <- sp_df %>% 
+  filter(area == ar) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+  return(A)
+}
+
+createAreaDf(sp_df)
+
+for(i in 1:12) {
+#for(i in 1:length(unique(sort(sp_df$area)))) {
+  B = 
+    sp_df %>% 
+    filter(sp_df$area == i) %>%
+    select(Species, year, Mean.totalDensity) %>%
+    arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+    spread(Species, Mean.totalDensity) %>%
+    select(-year)
+}
+
 
 area11 <- sp_df %>% 
   filter(area == "11") %>%
@@ -316,13 +347,7 @@ View(area11)
 # need dataframe of functional traits (x); species are rows
 # need matrix of abundances of species in x; rows are sites, species are columns
 
-try1 <- dbFD(ft_df, area11, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-try1$RaoQ
-# Species x species distance matrix was not Euclidean. 'sqrt' correction was applied.
-#          1          2          3          4          5          6          7          8          9         10         11         12         13         14 
-# 0.12231979 0.12320836 0.12940989 0.10922414 0.11868780 0.13115971 0.14004202 0.14990073 0.14458936 0.13092787 0.10899627 0.11301945 0.09984273 0.14023886 
-
-# get Euclidean distance matrix from traits
-#trait.dist <- dist(trait)
+a11 <- dbFD(ft_df, area11, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+a11$RaoQ
 
 
