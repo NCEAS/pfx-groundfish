@@ -24,10 +24,10 @@ Read in the map:
 ```{r bare_map}
 ak <- map_data('worldHires','USA:Alaska')
 
-akmap <- ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black")+
-         theme(panel.background=element_rect(fill='aliceblue'))+
-         xlab(expression(paste(Longitude^o,~'W')))+
-         ylab(expression(paste(Latitude^o,~'N')))+
+akmap <- ggplot() + geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black") +
+         theme(panel.background=element_rect(fill='aliceblue')) +
+         xlab(expression(paste(Longitude^o,~'W'))) +
+         ylab(expression(paste(Latitude^o,~'N'))) +
          coord_map(xlim = c(-165, -142),ylim = c(52, 61))
 
 ```
@@ -45,7 +45,97 @@ D_d <- ALLD %>%
 Make the plot: 
 ```{r plot, fig.height=8, fig.width=12}
 AKgf_150_300 <- akmap +
-                geom_point(data=D_d, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=5, shape=18, colour="blue")
+                geom_point(data=D_d, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="blue")
 AKgf_150_300
 
 ```
+
+```{r}
+D_dd <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        filter(BottomDepth %in% c(301:600))
+```
+
+```{r , fig.height=8, fig.width=12}
+AKgf_301_600 <- akmap +
+                geom_point(data=D_dd, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="green")
+AKgf_301_600
+
+```
+
+```{r}
+D_dd1 <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        filter(BottomDepth %in% c(151:250))
+
+```
+
+```{r, fig.height=8, fig.width=12}
+AKgf_151_250 <- akmap +
+                geom_point(data=D_dd1, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="orange")
+AKgf_151_250
+```
+
+
+```{r}
+D_dd2 <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        filter(BottomDepth %in% c(251:350))
+
+```
+
+```{r, fig.height=8, fig.width=12}
+AKgf_251_350 <- akmap +
+                geom_point(data=D_dd2, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="red")
+AKgf_251_350
+```
+
+```{r}
+D_dd3 <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        filter(BottomDepth %in% c(351:450))
+
+```
+
+```{r, fig.height=8, fig.width=12}
+AKgf_351_450 <- akmap +
+                geom_point(data=D_dd3, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="purple")
+AKgf_351_450
+```
+
+```{r}
+D_dd4 <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        filter(BottomDepth %in% c(451:550))
+
+```
+
+```{r, fig.height=8, fig.width=12}
+AKgf_451_550 <- akmap +
+                geom_point(data=D_dd4, aes(x=as.numeric(Lon), y=as.numeric(Lat)), size=3, shape=18, colour="yellow")
+AKgf_451_550
+```
+
+
+
+```{r}
+D_ddd <- ALLD %>%
+        select(Lat,Lon,LonUTMAlbers,LatUTMAlbers,Station,Year,Stratum,BottomDepth) %>%
+        mutate(DepthBin = ifelse((BottomDepth %in% c(0:100)), "0-100m",
+                          ifelse((BottomDepth %in% c(101:200)),"101-200m",
+                          ifelse((BottomDepth %in% c(201:300)),"201-300m",
+                          ifelse((BottomDepth %in% c(301:400)),"301-400m",
+                          ifelse((BottomDepth %in% c(401:500)),"401-500m",
+                          ifelse((BottomDepth %in% c(501:600)),"500-600m","deep"))))))) %>%
+        filter(DepthBin!="deep")
+```
+
+```{r, fig.height=8, fig.width=12}
+
+AKgf_301_500 <- akmap +
+                geom_point(data=D_ddd, aes(x=as.numeric(Lon), y=as.numeric(Lat),
+                                           color=DepthBin), size=2, shape=18)
+AKgf_301_500
+
+```
+

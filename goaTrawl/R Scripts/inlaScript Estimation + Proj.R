@@ -6,9 +6,9 @@ library(splancs)
 library(sp)
 
 # Use only species with length-based data, or total biomass
-totalBiomass = TRUE
+totalBiomass = FALSE
 #### CHOOSE A MODEL - "binomial" or "positive"
-model = "binomial"
+model = "positive"
 single.intercept =TRUE
 
 #Switch for doing cross-validation (TRUE) or not (FALSE)
@@ -98,7 +98,7 @@ if(totalBiomass==FALSE) {
 ######################################################################################################################
 #################################### START INLA LOOP ACROSS SPECIES
 ######################################################################################################################
-for(i in 40:40) {
+for(i in 5:8) {
   SPECIES <- species[i]
   # Fit the model for species XX
   subdat = df[,c(1:nCovCol,which(names(df)==species[i]))]

@@ -13,7 +13,7 @@ keep.MCMC  = FALSE
 projection = "discrete_areas" # options: 
                               #"goa_shallow","goa_mid","goa_deep","discrete_areas" "goa_to_500"
                               #goa_trawl_data 
-size.data  = FALSE
+size.data  = TRUE
 
 proj.dir <-"/Users/ole.shelton/Documents/GitHub/pfx-groundfish/goaTrawl/" #getwd()
 setwd(proj.dir)
@@ -60,12 +60,14 @@ if(spp != "Merluccius.productus" & spp!="Hydrolagus.colliei"){# Exclude a couple
     }
     if(size.data ==TRUE){
         if(mod=="binomial"){
-          setwd("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Binomial Output/_RData/_Best Size")
+          #setwd("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Binomial Output/_RData/_Best Size")
+          setwd("/Users/ole.shelton/Dropbox/INLA output/Size Data/Pres")
           DIR <- dir()
           load(DIR[which(substr(DIR,1,this.long)==spp)])
         } 
         if(mod!="binomial"){        
-          setwd("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Positive Output/_RData/_Best Size")
+          #setwd("/Users/ole.shelton/Documents/Science/Active projects/Exxon/Groundfish/Positive Output/_RData/_Best Size")
+          setwd("/Users/ole.shelton/Dropbox/INLA output/Size Data/Pos")
           DIR <- dir()
           load(DIR[which(substr(DIR,1,this.long)==spp)])
         } 
@@ -299,7 +301,7 @@ if(size.data==FALSE){
   	 write.csv(all.sp.pos, file = paste("All_sp_index_meanCPUEByArea.csv"), row.names = F)
 	   write.csv(all.sp.pres, file = paste("All_sp_index_occurrenceByArea.csv"), row.names = F)  
 }
-if(size.data==FALSE){
+if(size.data==TRUE){
 	   write.csv(all.sp.pos, file = paste("All_size_sp_index_meanCPUEByArea.csv"), row.names = F)
 	   write.csv(all.sp.pres, file = paste("All_size_sp_index_occurrenceByArea.csv"), row.names = F)  
 }
