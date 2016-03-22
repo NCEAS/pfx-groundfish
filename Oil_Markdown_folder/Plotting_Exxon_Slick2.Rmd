@@ -8,9 +8,11 @@ output: html_document
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ;library(rgdal) ; 
 library(sp) ; library(maptools) ; library(raster) ; library(rgeos) ; library(ggplot2) ; 
-library(maps) ; library(mapdata) ; library(mapproj)
+library(maps) ; library(mapdata) ; library(mapproj) ; library(httr)
 
 ```
+
+
 
 Map plotted in Albers projection (had to convert basemap and use other columns from discrete areas csv):
 
@@ -89,6 +91,7 @@ akslk2
 ```
 
 
+
 Map plotted in Lat Long (converted slick shapefile):
 
 ```{r, include=FALSE, echo=FALSE}
@@ -103,6 +106,7 @@ akmap2
 ```
 
 ```{r, include=FALSE, echo=FALSE}
+# Study Areas
 discrete_areas <- read.csv("../goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 
 discrete_areas$area <- discrete_areas$Area
@@ -116,7 +120,7 @@ ak_areas
 
 ```{r, include=FALSE, echo=FALSE}
 ### Eventually make this download from online source!!
-slk3_shp <- readOGR(dsn="../Oil_Markdown_folder", 
+slk3_shp <- readOGR(dsn="./Oil_Markdown_folder", 
                     layer="ExxonSlick2", 
                     stringsAsFactors=FALSE)
 crs(slk3_shp)
@@ -146,11 +150,85 @@ akslk3
 ```
 
 
+Plotting "Spill Effected Area":
+
+```{r, include=FALSE, echo=FALSE}
+spill_shp <- readOGR(dsn="../Oil_Markdown_folder", 
+                     layer="EVOSOilSpillExtentPolygon", 
+                     stringsAsFactors=FALSE)
+
+spill_shp@data$id = rownames(spill_shp@data)
+
+spill_shp@proj4string 
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+spill_shp <- spTransform(spill_shp, LL_proj)
+
+spill_shp_pt <- fortify(spill_shp, region="id")
+
+spill_shp_df <- join(spill_shp_pt, spill_shp@data, by="id")
+
+```
+
+```{r}
+akslk4 <- ak_areas +
+          geom_polygon(data=spill_shp_df, aes(x=long, y=lat, group=id),
+                       color='yellow', fill='yellow', size=0.25, alpha=0.4)
+akslk4
+#dev.off()
+           
+```
+
 
 
 Plotting Shoreline Sub Surface Oil: 
 
 ```{r, include=FALSE, echo=FALSE}
+SSOzipd <- tempfile()
+download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSurfaceOiling", SSOzipd, mode="wb")
+SSOzip_Unz <- unzip(SSOzipd)
+
+#SSOzip_DB <- SSOzip_L[grep(".mdb", SSOzip_L$Name),]$Name   # creates list of files I want
+#UNz <- unzip(SSOzipd, SSOzip_DB) # unzip the two mdb files (makes list I think)
+
+#mdb_table_list <- function(file_list){
+#                # for every mdb file in the list, do the following 
+#                  conn <- odbcConnectAccess2007(path.expand(file_list)) # establish a connection
+#                  table_list <- subset(sqlTables(conn), TABLE_TYPE=="TABLE") # lists tables in DB
+#                  return(table_list)
+#                  }
+
+#lapply(UNz, mdb_table_list)  # running the function over the two .mdb files
+
+#conn <- odbcConnectAccess2007(path.expand("./EVOSShorelineSurfaceOilingLine")) # establish a connection
+#SubSurfOil <- sqlFetch(conn,"tbl_DATA_OBS")  # read in a table
+
+#close(conn) 
+#unlink(SSOzipd)
+
+
+getShape <- function(temp_file, URL, shapefile) {
+            temp_file <- tempfile()
+            download.file(URL, temp_file, mode="wb")
+            unzip(temp_file)
+            
+            shpfledat <- sapply(".", function(f) {fp <- file.path(temp_file, f) 
+                                                  return(readOGR(".", shapefile, stringsAsFactors=FALSE))})
+            
+            }
+
+test_get <- getShape(SSOzipdtest, "http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSurfaceOiling", "EVOSShorelineSubSurfaceOilingLine")
+
+
+
+slk_sss_test <- readOGR(dsn="SSOzip_Unz",
+                   layer="EVOSShorelineSubSurfaceOilingLine",
+                   stringsAsFactors=FALSE)
+
+
+######################################
+
 ### Eventually make this download from online source!!
 slk_sss <- readOGR(dsn="../Oil_Markdown_folder",
                    layer="EVOSShorelineSubSurfaceOilingLine",
@@ -169,8 +247,6 @@ slk_sss_pt <- fortify(slk_sss, region="id")
 slk_sss_df <- join(data.frame(slk_sss), slk_sss_pt, by="id")
 
 
-# slk_sss_pt <- do.call(rbind,lapply(slk_sss$SegmentID,
-# function(x)data.frame(SegmentID=x,coordinates(slk_sss[slk_sss$SegmentID==x,]))))
 
 ```
 
@@ -182,6 +258,7 @@ ak_ssso
 
 
 ```
+
 
 
 Plotting Shoreline Surface Oil:
@@ -216,34 +293,44 @@ ak_so
 
 
 
-Plotting "Spill Effected Area":
+
+
+
+
 
 ```{r, include=FALSE, echo=FALSE}
-spill_shp <- readOGR(dsn="../Oil_Markdown_folder", 
-                     layer="EVOSOilSpillExtentPolygon", 
-                     stringsAsFactors=FALSE)
+AEA_proj <-  "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m
++no_defs +ellps=GRS80 +towgs84=0,0,0 "
 
-spill_shp@data$id = rownames(spill_shp@data)
 
-spill_shp@proj4string 
+spill_new <- readOGR(dsn="./Oil_Markdown_folder", 
+                     layer="Oil_Spill_Boundary_py", 
+                     stringsAsFactors=FALSE, 
+                     p4s=AEA_proj)
+
+spill_new@data$id = rownames(spill_new@data)
+
+spill_new@proj4string 
 
 LL_proj <-  "+proj=longlat +datum=NAD83"
 
-spill_shp <- spTransform(spill_shp, LL_proj)
+spill_new <- spTransform(spill_new, LL_proj)
 
-spill_shp_pt <- fortify(spill_shp, region="id")
+spill_new_pt <- fortify(spill_new, region="id")
 
-spill_shp_df <- join(spill_shp_pt, spill_shp@data, by="id")
+spill_new_df <- join(spill_new_pt, spill_new@data, by="id")
 
 ```
 
 ```{r}
-akslk4 <- akslk3 +
-          geom_polygon(data=spill_shp_df, aes(x=long, y=lat, group=id),
-                       color='yellow', fill='yellow', size=0.25, alpha=0.4)
-akslk4
+akslk5 <- akmap2 +
+          geom_polygon(data=spill_new_df, aes(x=long, y=lat, group=id),
+                       color='orange', fill='orange', alpha=0.4)
+akslk5
            
 ```
+
+
 
 
 
