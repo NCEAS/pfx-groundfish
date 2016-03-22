@@ -2,7 +2,7 @@
 title: "portfolio_plots.rmd"
 author: "Ole Shelton"
 date: "March 8, 2016"
-output: pdf_document
+output: html_document
 ---
 
 This is a file for trying out alternative plots of portfolio metrics for groundfish.
@@ -395,8 +395,8 @@ Calculate diversity metrics
 ```{r, echo=FALSE}
 # First, calculate Shannon and Simpson's using biomass and then calculate Shannon, Simpson and richness using occurrence data (more to be added. e.g. trait and taxonomic divesity)
 
-libary(vegan)
-libary(dplyr)
+library(vegan)
+library(dplyr)
 
 # Metrics using Biomass data
 meanCPUE$Area <- meanCPUE$area
