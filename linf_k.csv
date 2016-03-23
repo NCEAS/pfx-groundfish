@@ -1,0 +1,90 @@
+"","genus.species","common.name","trait","value"
+"1","Albatrossia pectoralis","giant grenadier","K",0.14
+"2","Albatrossia pectoralis","giant grenadier","Linfinity",119.2
+"3","Anoplopoma fimbria","sablefish","K",0.2
+"4","Anoplopoma fimbria","sablefish","Linfinity",75.6
+"5","Atheresthes stomias","arrowtooth flounder","K",0.169
+"6","Atheresthes stomias","arrowtooth flounder","Linfinity",69.915
+"7","Bathyraja interrupta","sandpaper skate","K",0.215
+"8","Bathyraja interrupta","sandpaper skate","Linfinity",70.4
+"9","Bathyraja.aleutica","Aleutian skate","K",0.13
+"10","Bathyraja.aleutica","Aleutian skate","Linfinity",149.1
+"11","Clupea pallasii","Pacific herring","K",0.36
+"12","Clupea pallasii","Pacific herring","Linfinity",32
+"13","Dasycottus setiger","spinyhead sculpin","K",0.11
+"14","Dasycottus setiger","spinyhead sculpin","Linfinity",56.7
+"15","Gadus macrocephalus","Pacific cod","K",0.181
+"16","Gadus macrocephalus","Pacific cod","Linfinity",104.65
+"17","Glyptocephalus zachirus","rex sole","K",0.38
+"18","Glyptocephalus zachirus","rex sole","Linfinity",41.82
+"19","Hippoglossoides elassodon","flathead sole","K",0.1895
+"20","Hippoglossoides elassodon","flathead sole","Linfinity",44.21
+"21","Hippoglossus stenolepis","Pacific halibut","K",0.054
+"22","Hippoglossus stenolepis","Pacific halibut","Linfinity",196.2
+"23","Hydrolagus colliei","spotted ratfish","K",0.24
+"24","Hydrolagus colliei","spotted ratfish","Linfinity",60.5
+"25","Isopsetta isolepis","butter sole","K",0.31
+"26","Isopsetta isolepis","butter sole","Linfinity",40
+"27","Lepidopsetta spp.","rock soles","K",0.209
+"28","Lepidopsetta spp.","rock soles","Linfinity",40.8
+"29","Limanda aspera","yellowfin sole","K",0.14
+"30","Limanda aspera","yellowfin sole","Linfinity",43.6
+"31","Malacocottus zonurus","darkfin sculpin","K",0.12
+"32","Malacocottus zonurus","darkfin sculpin","Linfinity",47.3
+"33","Mallotus villosus","capelin","K",0.467
+"34","Mallotus villosus","capelin","Linfinity",19.9
+"35","Merluccius productus","Pacific hake","K",0.345
+"36","Merluccius productus","Pacific hake","Linfinity",58.76
+"37","Microstomus pacificus","Dover sole","K",0.094
+"38","Microstomus pacificus","Dover sole","Linfinity",48.2
+"39","Myoxocephalus polyacanthocephalus","great sculpin","K",0.1
+"40","Myoxocephalus polyacanthocephalus","great sculpin","Linfinity",90.85
+"41","Oncorhynchus keta","Chum salmon","K",0.345
+"42","Oncorhynchus keta","Chum salmon","Linfinity",105.5
+"43","Ophiodon elongatus","lingcod","K",0.215
+"44","Ophiodon elongatus","lingcod","Linfinity",97.5
+"45","Parophrys vetulus","English sole","K",0.295
+"46","Parophrys vetulus","English sole","Linfinity",36.15
+"47","Platichthys stellatus","starry flounder","K",0.23
+"48","Platichthys stellatus","starry flounder","Linfinity",44.8
+"49","Pleurogrammus monopterygius","Atka mackerel","K",0.3295
+"50","Pleurogrammus monopterygius","Atka mackerel","Linfinity",47.98
+"51","Pleurogrammus.monopterygius","Atka mackerel","K",0.22
+"52","Pleurogrammus.monopterygius","Atka mackerel","Linfinity",54.56
+"53","Pleuronectes quadrituberculatus","Alaska plaice","K",0.127
+"54","Pleuronectes quadrituberculatus","Alaska plaice","Linfinity",49.9
+"55","Raja binoculata","big skate","K",0.4
+"56","Raja binoculata","big skate","Linfinity",153.3
+"57","Raja rhina","longnose skate","K",0.205
+"58","Raja rhina","longnose skate","Linfinity",101.8
+"59","Raja.binoculata","big skate","K",0.0535
+"60","Raja.binoculata","big skate","Linfinity",201.5
+"61","Sebastes alutus","Pacific ocean perch","K",0.1475
+"62","Sebastes alutus","Pacific ocean perch","Linfinity",40.79
+"63","Sebastes borealis","shortraker rockfish","K",0.042
+"64","Sebastes borealis","shortraker rockfish","Linfinity",83.2
+"65","Sebastes brevispinis","silvergray rockfish","K",0.1
+"66","Sebastes brevispinis","silvergray rockfish","Linfinity",57.14
+"67","Sebastes group 1","sebastes group 1","K",0.22
+"68","Sebastes group 1","sebastes group 1","Linfinity",46.1
+"69","Sebastes helvomaculatus","rosethorn rockfish","K",0.105
+"70","Sebastes helvomaculatus","rosethorn rockfish","Linfinity",28.295
+"71","Sebastes polyspinis","northern rockfish","K",0.17
+"72","Sebastes polyspinis","northern rockfish","Linfinity",37.98
+"73","Sebastes proriger","redstripe rockfish","K",0.165
+"74","Sebastes proriger","redstripe rockfish","Linfinity",37.65
+"75","Sebastes variegatus","harlequin rockfish","K",0.137
+"76","Sebastes variegatus","harlequin rockfish","Linfinity",30.66
+"77","Sebastes zacentrus","sharpchin rockfish","K",0.131
+"78","Sebastes zacentrus","sharpchin rockfish","Linfinity",32.64
+"79","Sebastes.polyspinis","northern rockfish","Linfinity",41.72
+"80","Sebastolobus alascanus","shortspine thornyhead","K",0.02
+"81","Sebastolobus alascanus","shortspine thornyhead","Linfinity",72.8
+"82","Squalus acanthias","piked dogfish","K",0.044
+"83","Squalus acanthias","piked dogfish","Linfinity",114.94
+"84","Thaleichthys pacificus","eulachon","K",0.34
+"85","Thaleichthys pacificus","eulachon","Linfinity",19.3
+"86","Theragra chalcogramma","walleye pollock","K",0.2945
+"87","Theragra chalcogramma","walleye pollock","Linfinity",63.47
+"88","Zaprora silenus","prowfish","K",0.181
+"89","Zaprora silenus","prowfish","Linfinity",89.33
