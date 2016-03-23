@@ -1,3 +1,4 @@
+#Mary modified Ole's code, March 23, 2016
 rm(list=ls())
 library(INLA)
 library(rgdal)
