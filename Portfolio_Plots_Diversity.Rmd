@@ -89,10 +89,10 @@ space_plot <- function(df,NAME){
       axis(1,at=AT); box(bty="o")
       axis(2,las=2)
       title(xlab="Area",line=2)
-    plot(Grand.w.mean~Area,data=df,type="b",axes=F,xlab="",pch=21,bg=1)
-      axis(1,at=AT); box(bty="o")
-      axis(2,las=2)
-      title(xlab="Area",line=2)
+   # plot(Grand.w.mean~Area,data=df,type="b",axes=F,xlab="",pch=21,bg=1)
+  #    axis(1,at=AT); box(bty="o")
+  #    axis(2,las=2)
+  #    title(xlab="Area",line=2)
     plot(SD~Area,data=df,type="b",axes=F,ylim= c(0,max(df$SD)),xlab="",pch=21,bg=1)
       axis(1,at=AT); box(bty="o")
       axis(2,las=2)
@@ -101,10 +101,10 @@ space_plot <- function(df,NAME){
       axis(1,at=AT); box(bty="o")
       axis(2,las=2)
       title(xlab="Area",line=2)
-    plot(Var~Grand.w.mean,data=df,axes=F,xlab="",pch=21,bg=1)
-      axis(1); box(bty="o")
-      axis(2,las=2)
-      title(xlab="W.mean",line=2)
+   # plot(Var~Grand.w.mean,data=df,axes=F,xlab="",pch=21,bg=1)
+  #    axis(1); box(bty="o")
+  #    axis(2,las=2)
+  #    title(xlab="W.mean",line=2)
 }
 
 
@@ -146,7 +146,7 @@ time_plot <- function(df,NAME){
 **Diversity Metrics (biomass data)**
 
 Calculate diversity metrics
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 # First, calculate Shannon and Simpson's using biomass and then calculate Shannon, Simpson and richness using occurrence data (more to be added. e.g. trait and taxonomic divesity)
 
 
@@ -164,7 +164,8 @@ DivMetrics <- meanCPUE %>%
 
 
 dat <- DivMetrics
-AREA <- as.numeric(as.character(unique(dat$Area)))
+dat$Area <- as.factor(dat$Area)
+AREA <- sort(as.numeric(as.character(unique(dat$Area))))
 YEAR <- sort(unique(dat$Year))
 ```
 
@@ -431,7 +432,7 @@ space_plot(df=dat.2,NAME='Inv Simpson')
 **Diversity Metrics (occurrence data)**
 
 Calculate diversity metrics
-```{r, echo=FALSE}  
+```{r, echo=FALSE, include=FALSE}  
 DivMetrics.Occ <- meanOcc %>%
                   rename(Area=area) %>%
                   filter(Area!="Total") %>%
@@ -445,7 +446,9 @@ DivMetrics.Occ <- meanOcc %>%
                   print(width = Inf)
 
 dat_occ <- DivMetrics.Occ
-AREA <- as.numeric(as.character(unique(dat_occ$Area)))
+dat_occ$Year <- as.numeric(dat_occ$Year)
+dat_occ$Area <- as.factor(dat_occ$Area)
+AREA <- sort(as.numeric(as.character(unique(dat_occ$Area))))
 YEAR <- sort(unique(dat_occ$Year))
 ```
 
@@ -516,9 +519,9 @@ for(j in 1:length(AREA)){
   B <- lm(SpRich~1,data=dat_occ[dat_occ$Area == AREA[j] & dat_occ$Year > 1989,]) #,weights = inv.var )
   vals <- rbind(vals,c(AREA[j],
                        coef(summary(A))["Year",c("Estimate","Std. Error")],
-                       coef(summary(B))[1,c("Estimate","Std. Error")]#,
-                  #     var(A$residuals),
-                  #     sd(A$residuals)
+                       coef(summary(B))[1,c("Estimate","Std. Error")],
+                       var(A$residuals),
+                       sd(A$residuals)
                        )
                   )
 }
@@ -532,6 +535,12 @@ dat.2 <- vals
 space_plot(df=dat.2,NAME="Species Richness")
 
 ```
+
+
+
+
+
+
 
 
 OK.  Combine Trends in to one file to make a 4x4 array of plots for potential publication-like Figure.
@@ -569,7 +578,7 @@ for(i in 1:5){
 ```    
   
   
-```{r, echo=FALSE}  
+```{r, echo=FALSE, eval=FALSE}  
 ### DIVERSITY METRIC 
 # GUILDS
   GUILD <- c("A","B","P") #unique(meanCPUE$guild)
@@ -584,7 +593,7 @@ for(i in 1:5){
   }
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval=FALSE}
 # Lifestyle
   DIET <- unique(meanCPUE$diet1)
   for(i in 1:length(DIET)){
