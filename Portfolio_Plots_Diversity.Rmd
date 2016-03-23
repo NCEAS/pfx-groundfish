@@ -242,10 +242,10 @@ Plot of Alpha Diversity "exp(Shannon-Wiener)" ie: effective # of species :
 
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
 Eff_Sp <- ggplot(Div_SpCPUEArea, aes(Year, Exp_A_Div, color=Area)) +
-          geom_line(size=1) + theme_bw() +
+          geom_line(size=1) + theme_bw() + ylab("Alpha Diversity (exp H')") +
           scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
           scale_x_continuous(breaks=pretty_breaks(n=15)) + 
-          theme(panel.grid.minor=element_blank(), 
+          theme(panel.grid=element_blank(), 
                 legend.key=element_blank())
 Eff_Sp
 
@@ -306,6 +306,7 @@ Plot beta diversity "(Exp_G_Div/Exp_A_Div)":
 Bdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_B_Div, color=Area)) + geom_line(size=1) + 
         scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
         scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
+        ylab("Beta Diversity") +
         theme(panel.grid=element_blank(),
               legend.key=element_blank())
 Bdiv
@@ -317,7 +318,8 @@ Plot gamma diversity:
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
 Gdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_G_Div)) + geom_line(size=1, color="blue") + 
         scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
-        scale_x_continuous(breaks=pretty_breaks(n=15)) + 
+        scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
+        ylab("Gamma Diversity") +
         theme(panel.grid=element_blank(),
               legend.key=element_blank())
 Gdiv
@@ -467,6 +469,19 @@ Div_SpOccArea <- meanOcc %>%
 
 ```
 
+Species Richness by Area.
+```{r, echo=FALSE}
+SpRdiv <- ggplot(Div_SpOccArea, aes(as.numeric(Year), Sp_Rich, color=Area)) +
+          geom_line(size=1) + theme_bw() + xlab("Year") + ylab("Species Richness") +
+          scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+          scale_x_continuous(breaks=pretty_breaks(n=15)) + 
+          theme(panel.grid=element_blank(),
+                legend.key=element_blank())
+SpRdiv
+
+```
+
+
 
 Species richness
 ```{r, echo=FALSE}  
@@ -501,10 +516,11 @@ for(j in 1:length(AREA)){
   B <- lm(SpRich~1,data=dat_occ[dat_occ$Area == AREA[j] & dat_occ$Year > 1989,]) #,weights = inv.var )
   vals <- rbind(vals,c(AREA[j],
                        coef(summary(A))["Year",c("Estimate","Std. Error")],
-                       coef(summary(B))[1,c("Estimate","Std. Error")],
-                       var(A$residuals),
-                       sd(A$residuals)))
-  
+                       coef(summary(B))[1,c("Estimate","Std. Error")]#,
+                  #     var(A$residuals),
+                  #     sd(A$residuals)
+                       )
+                  )
 }
 
 vals <- data.frame(vals)
