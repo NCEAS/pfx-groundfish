@@ -45,11 +45,8 @@ ak_areas
 
 ```{r, include=FALSE, echo=FALSE}
 # Deeper Study Areas
-dpURL <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWUHBtYWNRN19VcFU"
-deep_Get <- GET(dpURL)
-deep_1 <- content(deep_Get, as='text')
-deep_areas <- read.csv(file=textConnection(deep_1), sep=",", 
-                       stringsAsFactors=FALSE,header=TRUE)
+discrete_areas_deep <- read.csv("../goaTrawl/Output Data/discrete_areas_deep_151_300m.csv")
+
 
 ```
 
