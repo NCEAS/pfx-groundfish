@@ -1,0 +1,232 @@
+---
+title: "Plotting Oil Spill"
+author: "Rachael Blake"
+date: "March 14, 2016"
+output: html_document
+---
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ;library(rgdal) ; 
+library(sp) ; library(maptools) ; library(raster) ; library(rgeos) ; library(ggplot2) ; 
+library(maps) ; library(mapdata) ; library(mapproj) ; library(httr)
+
+```
+
+
+
+
+Map plotted in Lat Long (converted slick shapefile):
+
+```{r, include=FALSE, echo=FALSE}
+ak <- map_data('worldHires','USA:Alaska')
+
+akmap2 <- ggplot() + geom_polygon(data=ak, aes(long,lat,group=group), fill=8, color="black") +
+          xlab(expression(paste(Longitude^o,~'W'))) +
+          ylab(expression(paste(Latitude^o,~'N'))) +
+          coord_map(xlim=c(-165, -142), ylim=c(54, 62)) +
+          theme(panel.background=element_rect(fill='aliceblue')) 
+akmap2
+```
+
+```{r, include=FALSE, echo=FALSE}
+# Shallow Study Areas
+discrete_areas <- read.csv("../goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
+
+discrete_areas$area <- discrete_areas$Area
+discrete_areas$Area <- factor(discrete_areas$area)
+```
+
+```{r, echo=FALSE}
+ak_areas <- akmap2 + 
+            geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,color=Area)) + 
+            theme(legend.key=element_blank())
+ak_areas
+```
+
+```{r, include=FALSE, echo=FALSE}
+# Deeper Study Areas
+dpURL <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWUHBtYWNRN19VcFU"
+deep_Get <- GET(dpURL)
+deep_1 <- content(deep_Get, as='text')
+deep_areas <- read.csv(file=textConnection(deep_1), sep=",", 
+                       stringsAsFactors=FALSE,header=TRUE)
+
+```
+
+```{r, echo=FALSE}
+ak_areas_deep <- akmap2 +
+                 geom_point(data=deep_areas, aes()) +
+                 theme(legend.key=element_blank())
+ 
+```
+
+
+```{r, include=FALSE, echo=FALSE}
+### Eventually make this download from online source!!
+slk3_shp <- readOGR(dsn="../Oil_Markdown_folder", 
+                    layer="ExxonSlick2", 
+                    stringsAsFactors=FALSE)
+crs(slk3_shp)
+plot(slk3_shp, col='light blue', border='blue')
+
+slk3_shp@data$id = rownames(slk3_shp@data)
+
+slk3_shp@proj4string 
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+slk3_shp <- spTransform(slk3_shp, LL_proj)
+
+slk3_shp_pt <- fortify(slk3_shp, region="id")
+
+slk3_shp_df <- join(slk3_shp_pt, slk3_shp@data, by="id")
+
+```
+
+```{r, echo=FALSE}
+akslk3 <- ak_areas + 
+          geom_polygon(data=slk3_shp_df, aes(x=long, y=lat, group=id),
+                       color='blue', fill='blue', size=0.25, alpha=0.4)
+
+akslk3
+
+```
+
+
+Plotting "Spill Effected Area":
+
+```{r, include=FALSE, echo=FALSE}
+SEAzipd <- tempfile()
+download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSOilSpillExtent", SEAzipd, mode="wb")
+SEAzip_Unz <- unzip(SEAzipd, exdir="SEAzipd")
+
+spill_shp <- readOGR(dsn="SEAzipd",
+                     layer="EVOSOilSpillExtentPolygon",
+                     stringsAsFactors=FALSE)
+
+spill_shp@data$id = rownames(spill_shp@data)
+
+spill_shp@proj4string 
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+spill_shp <- spTransform(spill_shp, LL_proj)
+
+spill_shp_pt <- fortify(spill_shp, region="id")
+
+spill_shp_df <- join(spill_shp_pt, spill_shp@data, by="id")
+
+```
+
+```{r, echo=FALSE}
+akslk4 <- ak_areas +
+          geom_polygon(data=spill_shp_df, aes(x=long, y=lat, group=id),
+                       color='yellow', fill='yellow', size=0.25, alpha=0.4)
+akslk4
+#dev.off()
+           
+```
+
+
+
+Plotting Shoreline Sub Surface Oil: 
+
+```{r, include=FALSE, echo=FALSE}
+SSOzipd <- tempfile()
+download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSubSurfaceOiling", SSOzipd, mode="wb")
+SSOzip_Unz <- unzip(SSOzipd, exdir="SSOzipd")
+
+slk_sss <- readOGR(dsn="SSOzipd",
+                   layer="EVOSShorelineSubSurfaceOilingLine",
+                   stringsAsFactors=FALSE)
+
+crs(slk_sss)
+plot(slk_sss, col='blue')
+
+slk_sss@data$id = rownames(slk_sss@data)
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+slk_sss <- spTransform(slk_sss, LL_proj)
+
+slk_sss_pt <- fortify(slk_sss, region="id")
+
+slk_sss_df <- join(data.frame(slk_sss), slk_sss_pt, by="id")
+
+
+
+```
+
+```{r,  echo=FALSE}
+ak_ssso <- akslk3 + 
+           geom_point(data=slk_sss_df,aes(x=long,y=lat, group=as.factor(SegmentID)), 
+                      size=3, color="black", fill="black") 
+           
+ak_ssso           
+
+
+```
+
+
+
+Plotting Shoreline Surface Oil:
+
+```{r, include=FALSE, echo=FALSE}
+SOzipd <- tempfile()
+download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSurfaceOiling", SOzipd, mode="wb")
+SOzip_Unz <- unzip(SOzipd, exdir="SOzipd")
+
+slk_so <- readOGR(dsn="SOzipd",
+                     layer="EVOSShorelineSurfaceOilingLine",
+                     stringsAsFactors=FALSE)
+
+crs(slk_so)
+plot(slk_so, col='blue')
+
+slk_so@data$id = rownames(slk_so@data)
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+slk_so <- spTransform(slk_so, LL_proj)
+
+slk_so_pt <- fortify(slk_so, region="id")
+
+slk_so_df <- join(slk_so_pt, slk_so@data, by="id")
+
+```
+
+```{r,  echo=FALSE}
+ak_so <- ak_ssso + 
+         geom_point(data=slk_so_df,aes(x=long,y=lat, group=as.factor(SegmentID)), 
+                    size=1, color="orange") 
+           
+ak_so           
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# another US AK base map
+USA <- getData("GADM",country="USA",level=1)
+plot(USA)
+AK <- USA[USA$NAME_1=="Alaska",]
+
+
+
+```
+
+
+

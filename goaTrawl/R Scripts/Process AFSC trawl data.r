@@ -12,10 +12,24 @@ plot.dir	<-	paste(proj.dir,"/Output plots",sep="")
 data.dir	<-	paste(proj.dir,"/Raw Trawl Data",sep="")
 
 #### GO GET THE OBSERVED TRAWL DATA
- setwd(data.dir)
+setwd(data.dir)
 #setwd("/Users/ole.shelton/Desktop/_TEMP/goaTrawl/")
-dat 		<- read.csv("goa_data.csv")
+# Data downloaded from (10/29/2015)
+# http://www.afsc.noaa.gov/RACE/groundfish/survey_data/data.htm
+dat1 		<- read.csv("goa1984_1987.csv")
+dat2 		<- read.csv("goa1990_1999.csv")
+dat3 		<- read.csv("goa2001_2005.csv")
+dat4 		<- read.csv("goa2007_2013.csv")
+dat5 		<- read.csv("goa2015.csv")
+
+dat     <- rbind(dat1,dat2)
+dat     <- rbind(dat,dat3)
+dat     <- rbind(dat,dat4)
+dat     <- rbind(dat,dat5)
+
 dat[is.na(dat)==T]	<-	-9999	# make sure missing data is -9999
+# Get rid of some missing data in the haul 
+dat     <- dat[dat$HAUL != -9999,]
 
 #Summarize
 #A		<- aggregate(dat$WTCPUE,by=list(cruise=dat$CRUISE,
@@ -67,9 +81,11 @@ for(i in 1:length(YEARS)){
 	colnames(all.temp)[which(colnames(all.temp)=="x")]	<-	"sum.CPUE"
 	all.temp	<-	all.temp[order(all.temp$Station),]
 
+	  print(YEARS[i])
 		print(dim(all.temp))
 		print(length(unique(paste(dat.temp$LATITUDE,dat.temp$LONGITUDE))))
-	for(j in 1:nrow(dat.names)){
+
+		for(j in 1:nrow(dat.names)){
 
 			if(NAMES.sci[j] != ""){
 				dat.sp	<-	dat.temp[dat.temp$SCIENTIFIC == as.character(NAMES.sci[j]),]
@@ -90,7 +106,6 @@ for(i in 1:length(YEARS)){
 	}
 		
 	all.years	<-	rbind(all.years,all.temp)
-
 }
 
 #Replace NA with 0
@@ -104,15 +119,14 @@ all.years[,12:ncol(all.years)]	<- temp
 
 all.mod	<- all.years
 
-all.mod[,"Lepidopsettasp."]		 <-	all.mod[,"Lepidopsettasp."] + all.mod[,"Lepidopsettapolyxystra"] + all.mod[,"Lepidopsettabilineata"]
-all.mod[,"DuskyandDarkRockfish"] <- all.mod[,"duskyanddarkrockfishesunid"] + all.mod[,"Sebastesvariabilis"] + all.mod[,"Sebastesciliatus"]
-all.mod[,"RougheyeandBlackspottedRockfish"] <- all.mod[,"rougheyeandblackspottedrockfishunid."] + all.mod[,"Sebastesaleutianus"] + 
-										all.mod[,"Sebastesmelanostictus"] + all.mod[,"Sebastes aleutianus"] + all.mod[,"Sebastes melanostictus"]
+all.mod[,"Lepidopsetta sp."]		 <-	all.mod[,"Lepidopsetta sp."] + all.mod[,"Lepidopsetta polyxystra"] + all.mod[,"Lepidopsetta bilineata"]
+all.mod[,"Dusky and Dark Rockfish"] <- all.mod[,"dusky and dark rockfishes unid."] + all.mod[,"Sebastes variabilis"] + all.mod[,"Sebastes ciliatus"]
+all.mod[,"Rougheye and Blackspotted Rockfish"] <- all.mod[,"rougheye and blackspotted rockfish unid."] + all.mod[,"Sebastes aleutianus"] + 
+										all.mod[,"Sebastes melanostictus"]
 
-drops	<- c("Lepidopsettapolyxystra","Lepidopsettabilineata",
-				"duskyanddarkrockfishesunid","Sebastesvariabilis","Sebastesciliatus",
-				"rougheyeandblackspottedrockfishunid.", "Sebastesaleutianus", "Sebastesmelanostictus",
-				"Sebastes aleutianus", "Sebastes melanostictus")
+drops	<- c("Lepidopsetta polyxystra","Lepidopsetta bilineata",
+				"dusky and dark rockfishes unid.","Sebastes variabilis","Sebastes ciliatus",
+				"rougheye and blackspotted rockfish unid.","Sebastes aleutianus", "Sebastes melanostictus")
 
 THESE	<- which(match(colnames(all.mod),drops,nomatch=0)>0)
 all.mod	<-	all.mod[,-THESE]
@@ -129,8 +143,8 @@ for(i in 1:length(ID)){
 	SPECIES			<-	as.character(dat.names$Scientific[is.na(match(dat.names$SpID,ID[i]))==F])
 	temp$species	<-	SPECIES
 	Break			<-	dat.size.breaks[dat.size.breaks$Species == SPECIES,"break.cm"]
-	A				<-	dat.size.breaks[dat.size.breaks$Species == SPECIES,"fishbase.a"]
-	B				<-	dat.size.breaks[dat.size.breaks$Species == SPECIES,"fishbase.b"]
+	A				  <-	dat.size.breaks[dat.size.breaks$Species == SPECIES,"fishbase.a"]
+	B				  <-	dat.size.breaks[dat.size.breaks$Species == SPECIES,"fishbase.b"]
 	
 	temp$per.capita.kg		<-	(A * (temp$LENGTH/10)^B) / 1000
 	temp$mass.kg			<-	temp$per.capita.kg * temp$FREQUENCY
@@ -159,7 +173,7 @@ for(i in 1:length(ID)){
 	both$Scientific <- SPECIES
 
 	#drop 2013 tows and 1985 tows
-	both <- both[substr(both$Cruise,1,4) != "2013" & substr(both$Cruise,1,4) != "1985",]
+	both <- both[substr(both$Cruise,1,4) != "2015" & substr(both$Cruise,1,4) != "1985",]
 
 	all.mod.temp	<-	data.frame(all.mod[,1:11],all.mod[,SPECIES])
 	colnames(all.mod.temp)[12]	<-	SPECIES
@@ -265,6 +279,6 @@ for(i in 1:length(YEAR)){
 all.dat2		<-all.dat[,c(1:12,69:71,13:68)]
 all.size.dat	<- merge(all.size.albers,all.dat2[,c(1:6,13:16)])
 
-write.csv(all.dat2,file="goa_trawl_final_albers+temp 2 .csv",row.names=F)
+write.csv(all.dat2,file="goa_trawl_final_albers+temp.csv",row.names=F)
 write.csv(all.size.dat,file="goa_trawl_final_size_albers+temp.csv",row.names=F)
 write.csv(project.dat,file="goa_projection_points+temp.csv",row.names=F)
