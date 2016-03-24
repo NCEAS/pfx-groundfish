@@ -332,7 +332,8 @@ theme_boxplot <- function(base_size = 12)
 
 sp_box <- ggplot(data=Div_SpCPUEArea, aes(x=Area, y=Exp_A_Div)) + 
           geom_boxplot() + theme_boxplot() +  xlab("Area") +
-          ylab("Mean CPUE") + xlim("1","2","3","4","5","6","7","8","9","10","11") +
+          ylab("Mean Alpha Diversity (exp H')") +
+          xlim("1","2","3","4","5","6","7","8","9","10","11") +
         #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
           theme(legend.position="none", plot.background=element_blank(),
                 axis.text.x=element_text(size=15),
