@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load all necessary packages
 library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ;library(rgdal) ; 
 library(sp) ; library(maptools) ; library(raster) ; library(rgeos) ; library(ggplot2) ; 
 library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ; library(extrafont) ; 
@@ -14,6 +15,7 @@ library(vegan) ; library(scales)
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+# Load the Species by Area Occurrance data and clean it
 URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udlVNME9rQXEwZ1k"
 SpByArea_Get <- GET(URL_SpByArea)
 SpByArea_1 <- content(SpByArea_Get, as='text')
@@ -42,6 +44,7 @@ head(meanOcc)
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+# Load the CPUE by Area data and merge in trawl species list
 URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
@@ -73,7 +76,7 @@ deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head
 
 ```{r, include=FALSE, echo=FALSE}
 # Read in deeper areas data OCCURRANCE
-URL_deepOCC <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWUHBtYWNRN19VcFU"
+URL_deepOCC <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWUG1oMV9keGZRdzg"
 deepOCC_Get <- GET(URL_deepOCC)
 deepOCC_1 <- content(deepOCC_Get, as='text')
 deepOCC <- read.csv(file=textConnection(deepOCC_1),stringsAsFactors=FALSE,head=TRUE)
@@ -163,10 +166,8 @@ time_plot <- function(df,NAME){
 
 Calculate diversity metrics
 ```{r, echo=FALSE, include=FALSE}
+# Shallower Areas (50-150m)
 # First, calculate Shannon and Simpson's using biomass and then calculate Shannon, Simpson and richness using occurrence data (more to be added. e.g. trait and taxonomic divesity)
-
-
-# Metrics using Biomass data
 
 DivMetrics <- meanCPUE %>%
               filter(Area!="Total") %>%
@@ -183,11 +184,13 @@ dat <- DivMetrics
 dat$Area <- as.factor(dat$Area)
 AREA <- sort(as.numeric(as.character(unique(dat$Area))))
 YEAR <- sort(unique(dat$Year))
+
 ```
 
 
 Here we calculate Shannon diversity, effective # of species, beta diversity, and gamma diversity.
 ```{r, echo=FALSE}
+# Shallower Areas (50-150m)
 Div_SpCPUEArea <- meanCPUE %>%
                   filter(Area!="Total") %>%
                   group_by(Area, Year) %>% 
@@ -204,6 +207,7 @@ Div_SpCPUEArea <- meanCPUE %>%
 ```
 
 ```{r, echo=FALSE}
+# Deeper Areas (151-300m)
 Div_SpCPUEDeep <- deepCPUE %>%
                   dplyr::select(-X) %>%
                   group_by(Area, Year) %>% 
