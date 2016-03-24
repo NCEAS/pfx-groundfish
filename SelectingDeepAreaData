@@ -1,11 +1,16 @@
 #Mary modified Ole's code, March 23, 2016
+
 rm(list=ls())
 library(INLA)
 library(rgdal)
 library(ggplot2)
 library(splancs)
+library(dplyr)
 library(sp)
 library(readr)
+library(vegan)
+
+#load("goaDeepAreas.RData")
 
 #### GO GET THE PROJECTION POINTS
 #proj.dir	<- "/Users/ole.shelton/GitHub/exxonValdez_nceas/goaTrawl/"
@@ -100,8 +105,6 @@ p2
 #########################################################################################
 MIN.D	<-	150
 MAX.D	<-	300
-
-
 
 ######## Region 12: East of Shelikof Strait
 trim.x	<- c(-25,150)
@@ -262,29 +265,202 @@ dat.region <- rbind(dat.region,dat.select)
 goaDat.pos<-merge(dat.region, allDat, by="MASTER_ID")
 goaDat.occ<-merge(dat.region, allDat.Occ, by="MASTER_ID")
 
-write.csv(goaDat.pos,"goaDat.deep.pos.csv")
-write.csv(goaDat.occ,"goaDat.deep.occ.csv")
+### SUM CPUE & CALCULATE AVERAGE PROPORTION(?) BY SPECIES ACROSS SELECTED REGION
+goaGF.pos <- goaDat.pos %>%
+  group_by(Area, Species, Year) %>% 
+  summarise(meanCPUE = mean(Mean)) %>%
+  ungroup() %>%
+  print(width = Inf)
+write.csv(goaGF.pos,"goaDat.deep.pos.csv")
 
-###### Calculate diversity metrics
-DivMetrics.pos <- goaDat.pos %>%
+goaGF.occ <- goaDat.occ %>%
+  group_by(Area, Species, Year) %>% 
+  summarise(meanOcc = mean(Mean)) %>%
+  ungroup() %>%
+  print(width = Inf)
+write.csv(goaGF.occ,"goaDat.deep.occ.csv")
+
+
+### Function for later
+space_plot <- function(dat,NAME){
+  par(mfrow=c(3,2),mar=c(3,4,1,0.5))
+  AT <- dat$Area  
+  plot(1:5,1:5,type="n",axes=F,xlab="",ylab="")
+  text(1.5,4,NAME,cex=3,pos=4)
+  y.lim <- c(min(dat$Trend - dat$SE.trend),max(dat$Trend + dat$SE.trend))
+  plot(Trend~Area,data=dat,ylim=y.lim,axes=F,pch=21,bg=1)
+  abline(h=0,lty=2)
+  arrows(x0=dat$Area,x1=dat$Area,
+         y0=dat$Trend + dat$SE,y1= dat$Trend - dat$SE,
+         length=0,lwd=1.5)
+  axis(1,at=AT); box(bty="o")
+  axis(2,las=2)
+  title(xlab="Area",line=2)
+  plot(Grand.w.mean~Area,data=dat,type="b",axes=F,xlab="",pch=21,bg=1)
+  axis(1,at=AT); box(bty="o")
+  axis(2,las=2)
+  title(xlab="Area",line=2)
+  plot(SD~Area,data=dat,type="b",axes=F,ylim= c(0,max(dat$SD)),xlab="",pch=21,bg=1)
+  axis(1,at=AT); box(bty="o")
+  axis(2,las=2)
+  title(xlab="Area",line=2)
+  plot(CV~Area,data=dat,type="b",axes=F,xlab="",pch=21,bg=1)
+  axis(1,at=AT); box(bty="o")
+  axis(2,las=2)
+  title(xlab="Area",line=2)
+  plot(Var~Grand.w.mean,data=dat,axes=F,xlab="",pch=21,bg=1)
+  axis(1); box(bty="o")
+  axis(2,las=2)
+  title(xlab="W.mean",line=2)
+}
+
+###### Calculate diversity metrics - 
+head(goaGF.pos)
+goaGF.pos$Area<-as.factor(goaGF.pos$Area)
+DivMetrics.pos <- goaGF.pos %>%
 group_by(Area, Year) %>% 
-  summarise(SW_Div = diversity(Mean.totalDensity, index="shannon"), Eff_Num_Sp = exp(SW_Div),
-            simp_Div = diversity(Mean.totalDensity, index="simpson"), 
-            invsimp = diversity(Mean.totalDensity,index="inv")) %>%
+  summarise(SW_Div = diversity(meanCPUE, index="shannon"), Eff_Num_Sp = exp(SW_Div),
+            simp_Div = diversity(meanCPUE, index="simpson"), 
+            invsimp = diversity(meanCPUE,index="inv")) %>%
   ungroup() %>%
   print(width = Inf)
 
-
-dat<-DivMetrics.posDat
+dat<-DivMetrics.pos
 AREA <- as.numeric(as.character(unique(dat$Area)))
 YEAR <- sort(unique(dat$Year))
 
-DivMetrics.Occ <- goaDat.occ %>%
+#Plot time series by area -Effective number of species
+y.lim <- c(min(dat$Eff_Num_Sp),max(dat$Eff_Num_Sp))
+for(i in 1:length(AREA)){
+  if(AREA[i] !=12){par(new=T)}
+    if(AREA[i] == 12 | AREA[i] == 13 ){
+    plot(Eff_Num_Sp~Year,data=dat[dat$Area==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+  }
+  if(AREA[i] == 14 | AREA[i] == 15){
+    plot(Eff_Num_Sp~Year,data=dat[dat$Area ==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+  }
+}
+axis(1,at=YEAR,las=2)
+axis(2,las=2)
+box(bty="o",lwd=2)
+title(ylab="Effective number of species",line=2.5)
+#mtext(NAME,adj=0)
+abline(v=1989,lty=2,lwd=2)
+
+# Calculate least squares trend in each area and portfolio metrics.
+vals <- NULL
+for(j in 1:length(AREA)){
+  A <- lm(Eff_Num_Sp~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  B <- lm(Eff_Num_Sp~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  vals <- rbind(vals,c(AREA[j],
+                       coef(summary(A))["Year",c("Estimate","Std. Error")],
+                       coef(summary(B))[1,c("Estimate","Std. Error")],
+                       var(A$residuals),
+                       sd(A$residuals)))
+  
+}
+vals <- data.frame(vals)
+colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+vals$CV  <- vals$SD / vals$Grand.w.mean 
+
+dat.2 <- vals
+
+space_plot(dat=dat.2,NAME="Effective number of species")
+
+
+#Plot time series by area - Inverse Simpsons
+y.lim <- c(min(dat$invsimp),max(dat$invsimp))
+for(i in 1:length(AREA)){
+  if(AREA[i] !=12){par(new=T)}
+  if(AREA[i] == 12 | AREA[i] == 13 ){
+    plot(invsimp~Year,data=dat[dat$Area==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+  }
+  if(AREA[i] == 14 | AREA[i] == 15){
+    plot(invsimp~Year,data=dat[dat$Area ==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+  }
+}
+axis(1,at=YEAR,las=2)
+axis(2,las=2)
+box(bty="o",lwd=2)
+title(ylab="Inverse Simpson",line=2.5)
+#mtext(NAME,adj=0)
+abline(v=1989,lty=2,lwd=2)
+
+# Calculate least squares trend in each area and portfolio metrics.
+vals <- NULL
+for(j in 1:length(AREA)){
+  A <- lm(invsimp~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  B <- lm(invsimp~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  vals <- rbind(vals,c(AREA[j],
+                       coef(summary(A))["Year",c("Estimate","Std. Error")],
+                       coef(summary(B))[1,c("Estimate","Std. Error")],
+                       var(A$residuals),
+                       sd(A$residuals)))
+  
+}
+vals <- data.frame(vals)
+colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+vals$CV  <- vals$SD / vals$Grand.w.mean 
+
+dat.2 <- vals
+
+space_plot(dat=dat.2,NAME="Inverse Simpson")
+
+#### CALCULATE SPECIES RICHNESS
+head(goaGF.occ)
+goaGF.occ$Area<-as.factor(goaGF.occ$Area)
+DivMetrics.Occ <- goaGF.occ %>%
   group_by(Area, Year) %>% 
-  summarise(SpRich = sum(Mean)) %>%
+  summarise(SpRich = sum(meanOcc)) %>%
   ungroup() %>%
   print(width = Inf)
 
 dat<-DivMetrics.Occ
 AREA <- as.numeric(as.character(unique(dat$Area)))
 YEAR <- sort(unique(dat$Year))
+
+#Plot time series by area -Effective number of species
+y.lim <- c(min(dat$SpRich),max(dat$SpRich))
+for(i in 1:length(AREA)){
+  if(AREA[i] !=12){par(new=T)}
+  if(AREA[i] == 12 | AREA[i] == 13 ){
+    plot(SpRich~Year,data=dat[dat$Area==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+  }
+  if(AREA[i] == 14 | AREA[i] == 15){
+    plot(SpRich~Year,data=dat[dat$Area ==AREA[i],],
+         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+  }
+}
+axis(1,at=YEAR,las=2)
+axis(2,las=2)
+box(bty="o",lwd=2)
+title(ylab="Species Richness",line=2.5)
+#mtext(NAME,adj=0)
+abline(v=1989,lty=2,lwd=2)
+
+# Calculate least squares trend in each area and portfolio metrics.
+vals <- NULL
+for(j in 1:length(AREA)){
+  A <- lm(SpRich~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  B <- lm(SpRich~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,]) #,weights = inv.var )
+  vals <- rbind(vals,c(AREA[j],
+                       coef(summary(A))["Year",c("Estimate","Std. Error")],
+                       coef(summary(B))[1,c("Estimate","Std. Error")],
+                       var(A$residuals),
+                       sd(A$residuals)))
+  
+}
+vals <- data.frame(vals)
+colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+vals$CV  <- vals$SD / vals$Grand.w.mean 
+
+dat.2 <- vals
+
+space_plot(dat=dat.2,NAME="Species richness")
+
+
