@@ -301,6 +301,51 @@ space_plot(df=dat.2,NAME='exp(H)')
 ```
 
 
+Plot Boxplots of Alpha Diversity (exp H'):
+```{r, echo=FALSE}
+# Plotting boxplots of species
+theme_boxplot <- function(base_size = 12)
+{theme_bw(base_size)%+replace%
+   theme(legend.key.size=unit(15,"points"),
+         legend.text=element_text(size=14),
+         legend.key=element_blank(),
+         legend.title=element_blank(),
+         legend.background=element_rect(colour="white", fill="transparent"),
+         plot.margin=unit(c(2,1,2,1), "lines"),  # respectively: top, right, bottom, left; refers to margin *outside* labels; default is c(1,1,0.5,0.5)
+         #  panel.border=element_rect(colour="black", fill=NA),
+         panel.border = element_blank(),
+         panel.margin=unit(0,"lines"),
+         panel.background=element_rect(fill=NA, colour=NA),
+         axis.line.x = element_line(color = "black"),
+         axis.line.y = element_line(color = "black"),
+         axis.ticks.length=unit(1,"mm"),
+         axis.text.x=element_blank(),
+         axis.title.x=element_text(size=17, margin=margin(20,0,0,0)),
+         axis.text.y=element_text(size=15),
+         axis.title.y=element_text(size=17, angle=90, margin=margin(0,20,0,0)),
+         panel.grid.major=element_blank(),
+         panel.grid.minor=element_blank(),
+         strip.text.x=element_text(size=14),
+         strip.background=element_rect(colour="black", fill=NA))
+}
+
+
+sp_box <- ggplot(data=Div_SpCPUEArea, aes(x=Area, y=Exp_A_Div)) + 
+          geom_boxplot() + theme_boxplot() +  xlab("Area") +
+          ylab("Mean CPUE") + xlim("1","2","3","4","5","6","7","8","9","10","11") +
+        #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
+          theme(legend.position="none", plot.background=element_blank(),
+                axis.text.x=element_text(size=15),
+                plot.title=element_text(colour="black", size=15,
+                                        hjust=0.04, vjust=0.5, face="bold"))
+sp_box
+
+```
+
+
+
+
+
 Plot beta diversity "(Exp_G_Div/Exp_A_Div)":   
 
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
