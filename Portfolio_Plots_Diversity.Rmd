@@ -63,49 +63,65 @@ meanCPUE <- merge(meanCPUE,temp)
 ```
 
 ```{r, include=FALSE, echo=FALSE}
-discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
-#head(discrete_areas)
+# Read in deeper areas data CPUE
+URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWdXk5WVlMa1dvSDQ"
+deepCPUE_Get <- GET(URL_deepCPUE)
+deepCPUE_1 <- content(deepCPUE_Get, as='text')
+deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
 
 ```
 
+```{r, include=FALSE, echo=FALSE}
+# Read in deeper areas data OCCURRANCE
+URL_deepOCC <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWUHBtYWNRN19VcFU"
+deepOCC_Get <- GET(URL_deepOCC)
+deepOCC_1 <- content(deepOCC_Get, as='text')
+deepOCC <- read.csv(file=textConnection(deepOCC_1),stringsAsFactors=FALSE,head=TRUE)
 
+```
 
 ```{r, include=FALSE, echo=FALSE}
 # Functions to create plots
 weight.var <- function(w){
-  return(sum(w)^(-1))
-}
+              return(sum(w)^(-1))
+              }
+
 space_plot <- function(df,NAME){
-    par(mfrow=c(3,2),mar=c(3,4,1,0.5))
-    AT <- df$Area  
-    plot(1:5,1:5,type="n",axes=F,xlab="",ylab="")
-    text(1.5,4,NAME,cex=3,pos=4)
-    y.lim <- c(min(df$Trend - df$SE.trend),max(df$Trend + df$SE.trend))
-    plot(Trend~Area,data=df,ylim=y.lim,axes=F,pch=21,bg=1)
-    abline(h=0,lty=2)
-    arrows(x0=df$Area,x1=df$Area,
-          y0=df$Trend + df$SE,y1= df$Trend - df$SE,
-          length=0,lwd=1.5)
-      axis(1,at=AT); box(bty="o")
-      axis(2,las=2)
-      title(xlab="Area",line=2)
-   # plot(Grand.w.mean~Area,data=df,type="b",axes=F,xlab="",pch=21,bg=1)
-  #    axis(1,at=AT); box(bty="o")
-  #    axis(2,las=2)
-  #    title(xlab="Area",line=2)
-    plot(SD~Area,data=df,type="b",axes=F,ylim= c(0,max(df$SD)),xlab="",pch=21,bg=1)
-      axis(1,at=AT); box(bty="o")
-      axis(2,las=2)
-      title(xlab="Area",line=2)
-    plot(CV~Area,data=df,type="b",axes=F,xlab="",pch=21,bg=1)
-      axis(1,at=AT); box(bty="o")
-      axis(2,las=2)
-      title(xlab="Area",line=2)
-   # plot(Var~Grand.w.mean,data=df,axes=F,xlab="",pch=21,bg=1)
-  #    axis(1); box(bty="o")
-  #    axis(2,las=2)
-  #    title(xlab="W.mean",line=2)
-}
+              par(mfrow=c(3,2),mar=c(3,4,1,0.5))
+              AT <- df$Area  
+              
+              plot(1:5,1:5,type="n",axes=F,xlab="",ylab="")
+              text(1.5,4,NAME,cex=3,pos=4)
+              y.lim <- c(min(df$Trend - df$SE.trend),max(df$Trend + df$SE.trend))
+              plot(Trend~Area,data=df,ylim=y.lim,axes=F,pch=21,bg=1)
+              abline(h=0,lty=2)
+              arrows(x0=df$Area,x1=df$Area,
+                     y0=df$Trend + df$SE,y1= df$Trend - df$SE,
+                     length=0,lwd=1.5)
+              axis(1,at=AT); box(bty="o")
+              axis(2,las=2)
+              title(xlab="Area",line=2)
+              
+             # plot(Grand.w.mean~Area,data=df,type="b",axes=F,xlab="",pch=21,bg=1)
+          #    axis(1,at=AT); box(bty="o")
+          #    axis(2,las=2)
+          #    title(xlab="Area",line=2)
+              
+              plot(SD~Area,data=df,type="b",axes=F,ylim= c(0,max(df$SD)),xlab="",pch=21,bg=1)
+              axis(1,at=AT); box(bty="o")
+              axis(2,las=2)
+              title(xlab="Area",line=2)
+      
+              plot(CV~Area,data=df,type="b",axes=F,xlab="",pch=21,bg=1)
+              axis(1,at=AT); box(bty="o")
+              axis(2,las=2)
+              title(xlab="Area",line=2)
+      
+             # plot(Var~Grand.w.mean,data=df,axes=F,xlab="",pch=21,bg=1)
+          #    axis(1); box(bty="o")
+          #    axis(2,las=2)
+          #    title(xlab="W.mean",line=2)
+              }
 
 
 
@@ -135,7 +151,7 @@ time_plot <- function(df,NAME){
              #abline(v=1989,lty=2,lwd=2)
              arrows(x0=1989,x1=1989,y0=y.lim[1],y1=y.lim[1]+
                     c(y.lim[2]-y.lim[1])*0.8,length=0,lty=2,lwd=2)
-}
+             }
 
 
 
@@ -187,6 +203,20 @@ Div_SpCPUEArea <- meanCPUE %>%
 
 ```
 
+```{r, echo=FALSE}
+Div_SpCPUEDeep <- deepCPUE %>%
+                  dplyr::select(-X) %>%
+                  group_by(Area, Year) %>% 
+                  mutate(SW_Div = diversity(meanCPUE, index="shannon"),
+                         Exp_A_Div = exp(SW_Div)) %>%  # this is alpha diversity
+                  ungroup() %>%
+                  group_by(Year) %>%
+                  mutate(G_Div = diversity(meanCPUE, index="shannon"),
+                         Exp_G_Div = exp(G_Div),
+                         Exp_B_Div = (Exp_G_Div/Exp_A_Div)) %>%   # calculate beta diversity (gamma = alpha * beta)
+                  ungroup() 
+
+```
 
 
 
@@ -249,6 +279,18 @@ Eff_Sp <- ggplot(Div_SpCPUEArea, aes(Year, Exp_A_Div, color=Area)) +
           theme(panel.grid=element_blank(), 
                 legend.key=element_blank())
 Eff_Sp
+
+```
+
+Alpha Diversity deep areas: 
+```{r, echo=FALSE, fig.height=4, fig.width=7}
+Eff_Sp_dp <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_A_Div, color=as.character(Area))) +
+          geom_line(size=1) + theme_bw() + ylab("Alpha Diversity (exp H')") +
+          scale_color_hue(breaks=c("12","13","14","15")) + 
+          scale_x_continuous(breaks=pretty_breaks(n=15)) + 
+          theme(panel.grid=element_blank(), 
+                legend.key=element_blank())
+Eff_Sp_dp
 
 ```
 
@@ -331,9 +373,9 @@ theme_boxplot <- function(base_size = 12)
 
 
 sp_box <- ggplot(data=Div_SpCPUEArea, aes(x=Area, y=Exp_A_Div)) + 
-          geom_boxplot() + theme_boxplot() +  xlab("Area") +
+          geom_boxplot() + theme_boxplot() +  xlab("Area (West <-> East)") +
           ylab("Mean Alpha Diversity (exp H')") +
-          xlim("1","2","3","4","5","6","7","8","9","10","11") +
+          xlim("11","10","9","8","7","6","5","4","3","2","1") +
         #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
           theme(legend.position="none", plot.background=element_blank(),
                 axis.text.x=element_text(size=15),
@@ -359,6 +401,20 @@ Bdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_B_Div, color=Area)) + geom_line(siz
 Bdiv
 
 ```
+Beta Diversity deep areas: 
+```{r, echo=FALSE, fig.height=4, fig.width=7}
+Bdiv_dp <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_B_Div, color=as.character(Area))) +
+           geom_line(size=1) + 
+           scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+           scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
+           ylab("Beta Diversity") +
+           theme(panel.grid=element_blank(),
+                 legend.key=element_blank())
+Bdiv_dp
+
+```
+
+
 
 Plot gamma diversity:  
 
@@ -372,7 +428,18 @@ Gdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_G_Div)) + geom_line(size=1, color="
 Gdiv
 
 ```
+Gamma Diversity Deep Areas:
+```{r, echo=FALSE, fig.height=4, fig.width=7}
+Gdiv <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_G_Div)) + 
+        geom_line(size=1, color="blue") + 
+        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+        scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
+        ylab("Gamma Diversity") +
+        theme(panel.grid=element_blank(),
+              legend.key=element_blank())
+Gdiv
 
+```
 
 
 
@@ -589,7 +656,7 @@ space_plot(df=dat.2,NAME="Species Richness")
 
 
 
-OK.  Combine Trends in to one file to make a 4x4 array of plots for potential publication-like Figure.
+
 ```{r, echo=FALSE, eval=FALSE}  
 ##############################################################################################
 # TOTAL BIOMASS
