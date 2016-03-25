@@ -40,10 +40,10 @@ discrete_areas$Area <- factor(discrete_areas$area)
 ak_areas <- akmap2 + 
             geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,
                                                color=Area)) + 
-        #    scale_color_manual() +
+            scale_color_manual() +
             theme(legend.key=element_blank())
 ak_areas
-
+# make "Area" numeric then use scale_color_gradient
 ```
 
 ```{r, include=FALSE, echo=FALSE}
