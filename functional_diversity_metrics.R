@@ -6,6 +6,7 @@ library(httr)
 library(plyr)
 library(dplyr)
 library(tidyr)
+library(psych)
 library(FD)
 
 # load the functional trait data
@@ -15,7 +16,7 @@ traits1 <- content(traitsGet, as='text')
 traits_df <- read.csv(file=textConnection(traits1),stringsAsFactors=FALSE)
 
 # or load it from local source:
-#traits_df <- read.csv("Groundfish-Functional-Diversity-Traits1.csv", header=T, stringsAsFactors=FALSE)
+traits_df <- read.csv("Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
 
 
 ######################################################
@@ -90,14 +91,14 @@ trChr_df1 <- trChr_df %>% select(-region)
 
 
 # calculate gender-specific means of von Bertalanffy K & L_infinity
-kl_df <- traits_df1[which(traits_df1$trait %in% c('K', 'Linfinity')),]
-kl_df1 <- kl_df %>%
-  mutate(estimate1 = as.numeric(estimate)) %>%
-  select(-estimate, -region) %>%
-  group_by(genus.species, common.name, trait, gender, location) %>%
-  summarise_each(funs(mean(., na.rm = TRUE))) %>%
-  ungroup %>%
-  rename(estimate = estimate1)
+#kl_df <- traits_df1[which(traits_df1$trait %in% c('K', 'Linfinity')),]
+#kl_df1 <- kl_df %>%
+#  mutate(estimate1 = as.numeric(estimate)) %>%
+#  select(-estimate, -region) %>%
+#  group_by(genus.species, common.name, trait, gender, location) %>%
+#  summarise_each(funs(mean(., na.rm = TRUE))) %>%
+#  ungroup %>%
+#  rename(estimate = estimate1)
 
 
 
@@ -161,8 +162,35 @@ maturity_df1 <- maturity_df %>%
 
 # bind these dfs together (bind_rows). 
 # This creates a dataframe of all the functional trait data we have (these are summarized values; eg means, maxima, etc) 
-traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, kl_df1, max_df1, depth_df1, maturity_df1)
+traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1) #kl_df1,
 
+
+
+######################################################
+######################################################
+######################################################
+
+# merge in Ben's K & L_infinity table
+KL_df <- read.csv("linf_k.csv", header=T, stringsAsFactors = F)
+KL_df1 <- KL_df %>%
+  select(-X) %>%
+  rename(estimate = value) %>%
+  mutate(genus.species = revalue(genus.species, c("Bathyraja.aleutica" = "Bathyraja aleutica", "Pleurogrammus.monopterygius" = "Pleurogrammus monopterygius", 
+                                 "Raja.binoculata" = "Raja binoculata", "Sebastes.polyspinis" = "Sebastes polyspinis")))
+
+
+# missing from KL_df1:
+"Bathymaster signatus", "Berryteuthis magister", "Chionoecetes bairdi", "Hemilepidotus jordani", "Hemitripterus bolini", 
+"Hexagrammos decagrammus", "Hyas lyratus", "Lycodes brevipes", "Lycodes palearis", "Lyopsetta exilis", "Myctophidae spp.",
+"Oncorhynchus tshawytscha", "Podothecus accipenserinus", "Sebastes babcocki", "Sebastes group 2"
+
+
+for(i in 1:nrow(KL_df1)) { # add columns for gender & location
+  KL_df1$gender[[i]] <- "goodEnough"
+  KL_df1$location[[i]] <- "goodEnough"
+}
+
+traits_df4 <- rbind(traits_df3, KL_df1)
 
 
 
@@ -172,21 +200,22 @@ traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, kl_df1, max_df1, depth
 
 
 # We want to use GoA data wherever it exists; if it doesn't, we'll use data from other locations.
-GoA_df <- traits_df3 %>%
-  filter(location == "GoA") # create table of GoA data
+GoA_df <- traits_df4 %>%
+  filter(location %in% c("GoA", "goodEnough")) # create table of GoA data
 
-other_df <- traits_df3 %>%
+other_df <- traits_df4 %>%
   filter(location == "other") # create table of data for location == "other"
 
 
 
-combos <- unique(traits_df3[,c('genus.species','common.name','trait')]) # create a table of all species & trait combinations for which we have data
+combos <- unique(traits_df4[,c('genus.species','common.name','trait')]) # create a table of all species & trait combinations for which we have data
 # specify which gender we'll use for each trait:
 for(i in 1:nrow(combos)){
   if(combos$trait[i] %in% c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "depthMax", "depthRange", "ageMaximum", "diet", "guild",
                             "lengthMaximum", "migratoryStatus", "trophicPosition")) {combos$gender[i] <- "both"} # for these traits, we'll use data from males & females
-  if(combos$trait[i] %in% c("age50percentMaturity", "firstMaturityAge", "firstMaturityLength", "length50percentMaturity",
-                            "K", "Linfinity")) {combos$gender[i] <- "f"} # for life history traits, for now we'll use only female data
+  if(combos$trait[i] %in% c("age50percentMaturity", "firstMaturityAge", "firstMaturityLength", "length50percentMaturity" #"K", "Linfinity"
+                            )) {combos$gender[i] <- "f"} # for life history traits, for now we'll use only female data
+  if(combos$trait[i] %in% c("K", "Linfinity")) {combos$gender[i] <- "goodEnough"} 
   }
 traitsGoA_df <- left_join(combos, GoA_df, by = c("genus.species", "common.name", "trait", "gender")) # merge GoA data onto combos
 
@@ -202,7 +231,7 @@ diffsOther_df <- left_join(diffs_df, other_df, by = c("genus.species", "common.n
 
 
 # now merge the table with non-GoA trait data onto the table with GoA data: 
-traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "common.name", "trait", "gender")) %>% 
+traits_df5 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "common.name", "trait", "gender")) %>% 
   transmute(genus.species, common.name, trait, gender, 
             location = ifelse(is.na(location.x), location.y, location.x),
             estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x)) %>%
@@ -217,7 +246,11 @@ traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "co
   mutate(genus.species = gsub(" ", ".", genus.species)) %>%
   rename(Species = genus.species)
 
+for(i in 1:nrow(traits_df5)) {
+  if(traits_df5$Species[i] == "Dusky.and.Dark.Rockfish") {traits_df5$common.name[i] <- "sebastes group 1"} 
+}
 
+View(traits_df5)
 
 ######################################################
 ######################################################
@@ -227,8 +260,8 @@ traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "co
 # Organize functional trait data for analysis in FD package:
 
 # Convert to wide format:
-traits_df4$row <- 1:nrow(traits_df4) # create column of unique identifiers to facilitate data spread
-traits_wide <- traits_df4 %>%
+traits_df5$row <- 1:nrow(traits_df5) # create column of unique identifiers to facilitate data spread
+traits_wide <- traits_df5 %>%
   spread(trait, estimate) %>%
   select(-gender, -location, -row) %>%
   group_by(Species, common.name) %>%
@@ -237,17 +270,20 @@ traits_wide <- traits_df4 %>%
 # fill in missing NAs?
 cols = c(6:9, 11, 12, 14:17, 19); traits_wide[,cols] <- apply(traits_wide[,cols], 2, function(x) as.numeric(x)) # convert columns to numeric as needed
 cols1 = c(3:5, 10, 13, 18); traits_wide[,cols1] <- lapply(traits_wide[,cols1] , factor) # convert columns to factor as needed
-#write.csv(traits_wide, file = "traits_wide.csv")
+#View(traits_wide)
+write.csv(traits_wide, file = "traits_wide.csv")
 
 
 ft_df <- traits_wide %>%
-  select(Species, lengthMaximum, trophicPosition, diet, guild, adultWaterColumnPosition) %>% # select traits for which we have the most data
-  filter(!(Species %in% c("Berryteuthis.magister", "Chionoecetes.bairdi", "Hyas.lyratus", "Myctophidae", "Lepidopsetta.sp.", "Dusky.and.Dark.Rockfish"))) %>% # remove taxa for which some trait data is missing
+  select(Species, lengthMaximum, ageMaximum, K, depthMax, trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
+  filter(!(is.na(K)), !(is.na(depthMax)), !(is.na(ageMaximum))) %>%
   filter(!(Species %in% c("Hydrolagus.colliei", "Merluccius.productus", "Sebastes.helvomaculatus"))) %>% # remove taxa for which there is no abundance data; there is also no abund data for Berryteuthis.magister
   arrange(Species)
 rownames(ft_df) <- ft_df$Species # create row names from Species column
 ft_df <- ft_df %>% select(-Species)
-# View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
+View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
+
+#unique(sort(setdiff(ft_df$Species, SPCPUEArea$Species))) # sp in traits_df3 but not SPCPUEArea
 
 
 # we have the most data for:
@@ -255,13 +291,28 @@ ft_df <- ft_df %>% select(-Species)
 #ageMax (missing for 9 taxa)
 #diet (missing 0)
 #sum(is.na(traits_wide$firstMaturityLength)) # missing 23
-#sum(is.na(traits_wide$K)) # missing 27
+sum(is.na(traits_wide$K)) # missing 16
+sum(is.na(traits_wide$Linfinity)) # missing 16
 #guild (missing 0)
 #lengthMaximum (missing 4)
+sum(is.na(traits_wide$ageMaximum)) # missing 10
 #trophicPosition (missing 0)
 #depthRange (missing 6)
 #depthMax (missing 6)
 
+
+
+cor.test(traits_wide$K, traits_wide$Linfinity) # not sig
+cor.test(traits_wide$lengthMaximum, traits_wide$Linfinity) # sig
+cor.test(traits_wide$lengthMaximum, traits_wide$ageMaximum) # not sig
+cor.test(traits_wide$lengthMaximum, traits_wide$depthMax) # not sig
+cor.test(traits_wide$depthMax, traits_wide$depthRange) # sig
+
+# use lengthMaximum, ageMaximum, K, depthMax
+
+
+# which pairs of traits are correlated?
+pairs.panels(traits_wide[,c(3:19)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
 
 
 ######################################################
@@ -290,15 +341,19 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 
 # organize abundance data for analysis in FD package:
 
+
+unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species))) # 
+
 sp_df <- SPCPUEArea %>%
   select(area, year, Species, Mean.totalDensity) %>%
-  filter(!(Species %in% c("Berryteuthis.magister", "Chionoecetes.bairdi", "Hyas.lyratus", 
-                          "Myctophidae", "Lepidopsetta.sp.", "Dusky.and.Dark.Rockfish"))) %>% # remove taxa for which we don't have all trait data
+  filter(!(Species %in% c("Bathymaster.signatus", "Chionoecetes.bairdi", "Hemilepidotus.jordani", 
+                          "Hemitripterus.bolini", "Hexagrammos.decagrammus", "Hyas.lyratus",
+                          "Lycodes.brevipes", "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", 
+                          "Oncorhynchus.keta", "Oncorhynchus.tshawytscha", "Podothecus.accipenserinus", 
+                          "Rougheye.and.Blackspotted.Rockfish", "Sebastes.babcocki"))) %>% # remove taxa for which we don't have all trait data
   mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
-#View(sp_df)
-
-
+View(sp_df)
 
 
 ar <- seq(1:12) 
@@ -326,6 +381,7 @@ for(i in 1:12) {
 }
 
 
+
 area11 <- sp_df %>% 
   filter(area == "11") %>%
   select(Species, year, Mean.totalDensity) %>%
@@ -347,7 +403,13 @@ View(area11)
 # need dataframe of functional traits (x); species are rows
 # need matrix of abundances of species in x; rows are sites, species are columns
 
-a11 <- dbFD(ft_df, area11, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-a11$RaoQ
+try1 <- dbFD(ft_df, area11, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+try1$RaoQ
+# Species x species distance matrix was not Euclidean. 'sqrt' correction was applied.
+#          1          2          3          4          5          6          7          8          9         10         11         12         13 
+# 0.04267776 0.03808977 0.04048863 0.03712162 0.04121119 0.04666894 0.05006386 0.05526918 0.05168965 0.04734521 0.03745888 0.03594875 0.03234521 
+#         14 
+# 0.05031753 
 
-
+# get Euclidean distance matrix from traits
+#trait.dist <- dist(trait)
