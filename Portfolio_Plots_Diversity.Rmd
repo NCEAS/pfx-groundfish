@@ -386,6 +386,21 @@ sp_box <- ggplot(data=Div_SpCPUEArea, aes(x=Area, y=Exp_A_Div)) +
                 plot.title=element_text(colour="black", size=15,
                                         hjust=0.04, vjust=0.5, face="bold"))
 sp_box
+```
+
+```{r, echo=FALSE}
+
+sp_box_2 <- ggplot(data=Div_SpCPUEDeep, aes(x=as.factor(Area), y=Exp_A_Div)) + 
+            geom_boxplot() + theme_boxplot() +  xlab("Area (West <-> East)") +
+            ylab("Mean Alpha Diversity (exp H')") +
+            xlim("15","14","13","12") +
+          #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
+            theme(legend.position="none", plot.background=element_blank(),
+                  axis.text.x=element_text(size=15),
+                  plot.title=element_text(colour="black", size=15,
+                                          hjust=0.04, vjust=0.5, face="bold"))
+sp_box_2
+
 
 ```
 
@@ -405,6 +420,7 @@ Bdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_B_Div, color=Area)) + geom_line(siz
 Bdiv
 
 ```
+
 Beta Diversity deep areas: 
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
 Bdiv_dp <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_B_Div, color=as.character(Area))) +
@@ -432,6 +448,7 @@ Gdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_G_Div)) + geom_line(size=1, color="
 Gdiv
 
 ```
+
 Gamma Diversity Deep Areas:
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
 Gdiv <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_G_Div)) + 
