@@ -52,16 +52,6 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 
 meanCPUE <- rename(SPCPUEArea, Year=year, Area=area)
 
-### Merge in the guild identifiers, fish habit, and other functional categories into the meanCPUE data.frame
-trawl_species <- read.csv("./goaTrawl/Output Data/trawl_species_control_file.csv")
-s <- trawl_species$diet
-s <- as.data.frame(s) %>% separate(s, into = paste("diet", 1:2, sep = ""))
-trawl_species <- cbind(trawl_species,s)
-
-temp <- trawl_species[,c("database.name","fish.invert","pelagic.benthic","total.biomass.fish","guild","diet1","diet2")]
-colnames(temp)[1] <- "Species"
-
-meanCPUE <- merge(meanCPUE,temp)
 
 ```
 
@@ -80,6 +70,36 @@ URL_deepOCC <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWUG1o
 deepOCC_Get <- GET(URL_deepOCC)
 deepOCC_1 <- content(deepOCC_Get, as='text')
 deepOCC <- read.csv(file=textConnection(deepOCC_1),stringsAsFactors=FALSE,head=TRUE)
+
+```
+
+```{r, echo=FALSE}
+# Make custom theme for plotting
+theme_boxplot <- function(base_size = 12){
+                 theme_bw(base_size)%+replace%
+                 theme(legend.key.size=unit(15,"points"),
+                       legend.text=element_text(size=14),
+                       legend.key=element_blank(),
+                       legend.title=element_blank(),
+                       legend.background=element_rect(colour="white", 
+                                                      fill="transparent"),
+                       plot.margin=unit(c(2,1,2,1), "lines"),  
+                       panel.border = element_blank(),
+                       panel.margin=unit(0,"lines"),
+                       panel.background=element_rect(fill=NA, colour=NA),
+                       axis.line.x = element_line(color = "black"),
+                       axis.line.y = element_line(color = "black"),
+                       axis.ticks.length=unit(1,"mm"),
+                       axis.text.x=element_blank(),
+                       axis.title.x=element_text(size=17, margin=margin(20,0,0,0)),
+                       axis.text.y=element_text(size=15),
+                       axis.title.y=element_text(size=17, angle=90,
+                                                 margin=margin(0,20,0,0)),
+                       panel.grid.major=element_blank(),
+                       panel.grid.minor=element_blank(),
+                       strip.text.x=element_text(size=14),
+                       strip.background=element_rect(colour="black", fill=NA))
+}
 
 ```
 
@@ -105,12 +125,13 @@ space_plot <- function(df,NAME){
               axis(2,las=2)
               title(xlab="Area",line=2)
               
-             # plot(Grand.w.mean~Area,data=df,type="b",axes=F,xlab="",pch=21,bg=1)
+             # B <- plot(Grand.w.mean~Area,data=df,type="b",axes=F,xlab="",pch=21,bg=1)
           #    axis(1,at=AT); box(bty="o")
           #    axis(2,las=2)
           #    title(xlab="Area",line=2)
               
-              plot(SD~Area,data=df,type="b",axes=F,ylim= c(0,max(df$SD)),xlab="",pch=21,bg=1)
+              plot(SD~Area,data=df,type="b",axes=F,
+                   ylim= c(0,max(df$SD)),xlab="",pch=21,bg=1)
               axis(1,at=AT); box(bty="o")
               axis(2,las=2)
               title(xlab="Area",line=2)
@@ -120,10 +141,15 @@ space_plot <- function(df,NAME){
               axis(2,las=2)
               title(xlab="Area",line=2)
       
-             # plot(Var~Grand.w.mean,data=df,axes=F,xlab="",pch=21,bg=1)
+             # E <- plot(Var~Grand.w.mean,data=df,axes=F,xlab="",pch=21,bg=1)
           #    axis(1); box(bty="o")
           #    axis(2,las=2)
           #    title(xlab="W.mean",line=2)
+              
+             # G <- c(A,C,D)
+              
+              return()
+              
               }
 
 
@@ -156,9 +182,65 @@ time_plot <- function(df,NAME){
                     c(y.lim[2]-y.lim[1])*0.8,length=0,lty=2,lwd=2)
              }
 
+##########
+# Calculate least squares trend in each area and portfolio metrics.
+
+trend_calc <- function(df,y,x, plot_name){
+              vals <- NULL
+
+              for(j in 1:length(AREA)){
+              A <- lm(y~x,data=df[df$Area == AREA[j] & df$Year > 1989,]) 
+              B <- lm(y~1,data=df[df$Area == AREA[j] & df$Year > 1989,]) 
+              vals <- rbind(vals,c(AREA[j],
+                                   coef(summary(A))["x",c("Estimate","Std. Error")],
+                                   coef(summary(B))[1,c("Estimate","Std. Error")],
+                                   var(A$residuals),
+                                   sd(A$residuals)))
+              }
+
+              vals <- data.frame(vals)
+              colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean",
+                                  "Grand.w.mean.se","Var","SD")
+              vals$CV  <- vals$SD / vals$Grand.w.mean 
+
+              df_2 <- vals
+              
+              C <- space_plot(df=df_2,NAME=plot_name)
+              
+              return(C)
+              }
+
+
+
+#trend_calc(df=dat,y="SW_Div",x="Year", plot_name="Shannon Wiener")
+
+#########
+
+Plot_area_time <-function(df,y,ylabel){
+
+                 plot_1 <- ggplot(df, aes(x=Year, y=y, color=Area)) +
+                           geom_line(size=1) + theme_bw() + 
+                           ylab(ylabel) +
+                           geom_vline(aes(xintercept=1989), colour="black",
+                                      linetype="dashed") +
+                           scale_color_manual(values=line_colors, 
+                                              breaks=area_breaks) + 
+                           scale_x_continuous(breaks=pretty_breaks(n=15)) + 
+                           theme(panel.grid=element_blank(), 
+                                 legend.key=element_blank())
+     
+                 return(plot_1)
+                 } 
 
 
 ```
+
+
+# Need to bootstrap the individual species means per area per year to get a variance
+# to include in the diversity calculations - the re-do the diversity calculations
+# 
+# Look up Kristin France's paper for alpha, beta, gamma diversity and how to plot it up
+
 
 
 
@@ -209,7 +291,8 @@ Div_SpCPUEArea <- meanCPUE %>%
 ```{r, echo=FALSE}
 # Deeper Areas (151-300m)
 Div_SpCPUEDeep <- deepCPUE %>%
-                  dplyr::select(-X) %>%
+                  dplyr::select(-X) %>%  
+                  mutate_each(funs(as.character), Area) %>%
                   group_by(Area, Year) %>% 
                   mutate(SW_Div = diversity(meanCPUE, index="shannon"),
                          Exp_A_Div = exp(SW_Div)) %>%  # this is alpha diversity
@@ -218,7 +301,13 @@ Div_SpCPUEDeep <- deepCPUE %>%
                   mutate(G_Div = diversity(meanCPUE, index="shannon"),
                          Exp_G_Div = exp(G_Div),
                          Exp_B_Div = (Exp_G_Div/Exp_A_Div)) %>%   # calculate beta diversity (gamma = alpha * beta)
-                  ungroup() 
+                  ungroup() %>%
+                  group_by(Area, Year) %>%
+                  mutate(Simp_Div = diversity(meanCPUE, index="simpson"), 
+                         InvSimp = diversity(meanCPUE,index="inv")) %>%
+                  ungroup %>%
+                  arrange(Area, Year)
+
 
 ```
 
@@ -270,57 +359,59 @@ dat.2 <- vals
 
 space_plot(df=dat.2,NAME='Shannon Wiener')
 
+
+#trend_calc(df=dat,y=SW_Div,x=Year, plot_name="Shannon Wiener")
+
 ```
 
 
 Plot of Alpha Diversity "exp(Shannon-Wiener)" ie: effective # of species :   
 
-```{r, echo=FALSE, fig.height=4, fig.width=7}
-Eff_Sp <- ggplot(Div_SpCPUEArea, aes(Year, Exp_A_Div, color=Area)) +
-          geom_line(size=1) + theme_bw() + ylab("Alpha Diversity (exp H')") +
-          scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
-          scale_x_continuous(breaks=pretty_breaks(n=15)) + 
-          theme(panel.grid=element_blank(), 
-                legend.key=element_blank())
-Eff_Sp
+```{r, echo=FALSE, fig.height=5, fig.width=7}
+line_colors <- c("black","black","black","black","red","red","red","black","black",
+                 "black","black")
+area_breaks <- c("1","2","3","4","5","6","7","8","9","10","11")
 
+Eff_Sp <- Plot_area_time(df=Div_SpCPUEArea, y=Div_SpCPUEArea$Exp_A_Div, 
+                         ylabel="Alpha Diversity (exp H')")
+Eff_Sp
 ```
 
 Alpha Diversity deep areas: 
-```{r, echo=FALSE, fig.height=4, fig.width=7}
-Eff_Sp_dp <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_A_Div, color=as.character(Area))) +
-          geom_line(size=1) + theme_bw() + ylab("Alpha Diversity (exp H')") +
-          scale_color_hue(breaks=c("12","13","14","15")) + 
-          scale_x_continuous(breaks=pretty_breaks(n=15)) + 
-          theme(panel.grid=element_blank(), 
-                legend.key=element_blank())
+```{r, echo=FALSE, fig.height=5, fig.width=7}
+line_colors <- c("red","red","black","black")
+area_breaks <- c("12","13","14","15")
+
+Eff_Sp_dp <- Plot_area_time(df=Div_SpCPUEDeep, y=Div_SpCPUEDeep$Exp_A_Div, 
+                            ylabel="Alpha Diversity (exp H')")
 Eff_Sp_dp
+
 
 ```
 
 
 Shannon Effective Number exp(H')
 ```{r, echo=FALSE}
-y.lim <- c(min(dat$Exp_A_Div),max(dat$Exp_A_Div))
+#y.lim <- c(min(dat$Exp_A_Div),max(dat$Exp_A_Div))
 
-for(i in 1:length(AREA)){
-  if(AREA[i] !=1){par(new=T)}
-  if(AREA[i] >= 3 & AREA[i] <= 5 ){
-    plot(Exp_A_Div~Year,data=dat[dat$Area==AREA[i],],
-         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
-  }
-  if(AREA[i] < 3 | AREA[i] > 5){
-    plot(Exp_A_Div~Year,data=dat[dat$Area ==AREA[i],],
-         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
-  }
-}
+#for(i in 1:length(AREA)){
+#  if(AREA[i] !=1){par(new=T)}
+#  if(AREA[i] >= 3 & AREA[i] <= 5 ){
+#    plot(Exp_A_Div~Year,data=dat[dat$Area==AREA[i],],
+#         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+#  }
+#  if(AREA[i] < 3 | AREA[i] > 5){
+#    plot(Exp_A_Div~Year,data=dat[dat$Area ==AREA[i],],
+#         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+#  }
+#}
 
-axis(1,at=YEAR,las=2)
-axis(2,las=2)
-box(bty="o",lwd=2)
-title(ylab="exp(H)",line=2.5)
+#axis(1,at=YEAR,las=2)
+#axis(2,las=2)
+#box(bty="o",lwd=2)
+#title(ylab="exp(H)",line=2.5)
 #mtext(NAME,adj=0)
-abline(v=1989,lty=2,lwd=2)
+#abline(v=1989,lty=2,lwd=2)
 
 # Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
@@ -348,34 +439,10 @@ space_plot(df=dat.2,NAME='exp(H)')
 
 
 Plot Boxplots of Alpha Diversity (exp H'):
-```{r, echo=FALSE}
-# Plotting boxplots of species
-theme_boxplot <- function(base_size = 12)
-{theme_bw(base_size)%+replace%
-   theme(legend.key.size=unit(15,"points"),
-         legend.text=element_text(size=14),
-         legend.key=element_blank(),
-         legend.title=element_blank(),
-         legend.background=element_rect(colour="white", fill="transparent"),
-         plot.margin=unit(c(2,1,2,1), "lines"),  # respectively: top, right, bottom, left; refers to margin *outside* labels; default is c(1,1,0.5,0.5)
-         #  panel.border=element_rect(colour="black", fill=NA),
-         panel.border = element_blank(),
-         panel.margin=unit(0,"lines"),
-         panel.background=element_rect(fill=NA, colour=NA),
-         axis.line.x = element_line(color = "black"),
-         axis.line.y = element_line(color = "black"),
-         axis.ticks.length=unit(1,"mm"),
-         axis.text.x=element_blank(),
-         axis.title.x=element_text(size=17, margin=margin(20,0,0,0)),
-         axis.text.y=element_text(size=15),
-         axis.title.y=element_text(size=17, angle=90, margin=margin(0,20,0,0)),
-         panel.grid.major=element_blank(),
-         panel.grid.minor=element_blank(),
-         strip.text.x=element_text(size=14),
-         strip.background=element_rect(colour="black", fill=NA))
-}
 
 
+```{r, echo=FALSE, fig.height=5, fig.width=7}
+# Plotting boxplots of mean of alpha diversity
 sp_box <- ggplot(data=Div_SpCPUEArea, aes(x=Area, y=Exp_A_Div)) + 
           geom_boxplot() + theme_boxplot() +  xlab("Area (West <-> East)") +
           ylab("Mean Alpha Diversity (exp H')") +
@@ -388,7 +455,7 @@ sp_box <- ggplot(data=Div_SpCPUEArea, aes(x=Area, y=Exp_A_Div)) +
 sp_box
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height=5, fig.width=7}
 
 sp_box_2 <- ggplot(data=Div_SpCPUEDeep, aes(x=as.factor(Area), y=Exp_A_Div)) + 
             geom_boxplot() + theme_boxplot() +  xlab("Area (West <-> East)") +
@@ -410,26 +477,25 @@ sp_box_2
 
 Plot beta diversity "(Exp_G_Div/Exp_A_Div)":   
 
-```{r, echo=FALSE, fig.height=4, fig.width=7}
-Bdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_B_Div, color=Area)) + geom_line(size=1) + 
-        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
-        scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
-        ylab("Beta Diversity") +
-        theme(panel.grid=element_blank(),
-              legend.key=element_blank())
+```{r, echo=FALSE, fig.height=5, fig.width=7}
+line_colors <- c("black","black","black","black","red","red","red","black","black",
+                 "black","black")
+area_breaks <- c("1","2","3","4","5","6","7","8","9","10","11")
+
+Bdiv <- Plot_area_time(df=Div_SpCPUEArea, y=Div_SpCPUEArea$Exp_B_Div,
+                       ylabel="Beta Diversity")
 Bdiv
+
 
 ```
 
 Beta Diversity deep areas: 
-```{r, echo=FALSE, fig.height=4, fig.width=7}
-Bdiv_dp <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_B_Div, color=as.character(Area))) +
-           geom_line(size=1) + 
-           scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
-           scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
-           ylab("Beta Diversity") +
-           theme(panel.grid=element_blank(),
-                 legend.key=element_blank())
+```{r, echo=FALSE, fig.height=5, fig.width=7}
+line_colors <- c("red","red","black","black")
+area_breaks <- c("12","13","14","15")
+
+Bdiv_dp <- Plot_area_time(df=Div_SpCPUEDeep, y=Div_SpCPUEDeep$Exp_B_Div,
+                       ylabel="Beta Diversity")
 Bdiv_dp
 
 ```
@@ -438,9 +504,9 @@ Bdiv_dp
 
 Plot gamma diversity:  
 
-```{r, echo=FALSE, fig.height=4, fig.width=7}
+```{r, echo=FALSE, fig.height=5, fig.width=7}
 Gdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_G_Div)) + geom_line(size=1, color="blue") + 
-        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+        geom_vline(aes(xintercept=1989), colour="black", linetype="dashed") +
         scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
         ylab("Gamma Diversity") +
         theme(panel.grid=element_blank(),
@@ -450,10 +516,10 @@ Gdiv
 ```
 
 Gamma Diversity Deep Areas:
-```{r, echo=FALSE, fig.height=4, fig.width=7}
+```{r, echo=FALSE, fig.height=5, fig.width=7}
 Gdiv <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_G_Div)) + 
         geom_line(size=1, color="blue") + 
-        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+        geom_vline(aes(xintercept=1989), colour="black", linetype="dashed") +
         scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
         ylab("Gamma Diversity") +
         theme(panel.grid=element_blank(),
@@ -590,6 +656,7 @@ Here we calculate Shannon diversity, effective # of species, beta diversity, and
 ```{r, echo=FALSE}
 
 Div_SpOccArea <- meanOcc %>%
+                 mutate_each(funs(as.numeric), Year) %>%
                  rename(Area=area) %>%
                  filter(Area!="Total") %>%
                  group_by(Area, Year) %>% 
@@ -607,43 +674,50 @@ Div_SpOccArea <- meanOcc %>%
 ```
 
 Species Richness by Area.
-```{r, echo=FALSE}
-SpRdiv <- ggplot(Div_SpOccArea, aes(as.numeric(Year), Sp_Rich, color=Area)) +
-          geom_line(size=1) + theme_bw() + xlab("Year") + ylab("Species Richness") +
-          scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
-          scale_x_continuous(breaks=pretty_breaks(n=15)) + 
-          theme(panel.grid=element_blank(),
-                legend.key=element_blank())
+```{r, echo=FALSE, fig.height=5, fig.width=7}
+# Shallow Species Richness
+line_colors <- c("black","black","black","black","red","red","red","black","black",
+                 "black","black")
+area_breaks <- c("1","2","3","4","5","6","7","8","9","10","11")
+
+SpRdiv <- Plot_area_time(df=Div_SpOccArea, y=Div_SpOccArea$Sp_Rich,
+                         ylabel="Species Richness")
 SpRdiv
+
 
 ```
 
+```{r, echo=FALSE, fig.height=5, fig.width=7}
+# Deep Species Richness
+
+
+```
 
 
 Species richness
 ```{r, echo=FALSE}  
 #Species richness
 #Plot time series by area
-y.lim <- c(min(dat_occ$SpRich),max(dat_occ$SpRich))
+#y.lim <- c(min(dat_occ$SpRich),max(dat_occ$SpRich))
 
-for(i in 1:length(AREA)){
-  if(AREA[i] !=1){par(new=T)}
-  if(AREA[i] >= 3 & AREA[i] <= 5 ){
-    plot(SpRich~Year,data=dat_occ[dat_occ$Area==AREA[i],],
-         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
-  }
-  if(AREA[i] < 3 | AREA[i] > 5){
-    plot(SpRich~Year,data=dat_occ[dat_occ$Area ==AREA[i],],
-         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
-  }
-}
+#for(i in 1:length(AREA)){
+#  if(AREA[i] !=1){par(new=T)}
+#  if(AREA[i] >= 3 & AREA[i] <= 5 ){
+#    plot(SpRich~Year,data=dat_occ[dat_occ$Area==AREA[i],],
+#         type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=2,ylab="")
+#  }
+#  if(AREA[i] < 3 | AREA[i] > 5){
+#    plot(SpRich~Year,data=dat_occ[dat_occ$Area ==AREA[i],],
+#         type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1.5,ylab="")
+#  }
+#}
 
-axis(1,at=YEAR,las=2)
-axis(2,las=2)
-box(bty="o",lwd=2)
-title(ylab="Species Richness",line=2.5)
+#axis(1,at=YEAR,las=2)
+#axis(2,las=2)
+#box(bty="o",lwd=2)
+#title(ylab="Species Richness",line=2.5)
 #mtext(NAME,adj=0)
-abline(v=1989,lty=2,lwd=2)
+#abline(v=1989,lty=2,lwd=2)
 
 # Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
