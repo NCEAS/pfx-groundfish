@@ -160,15 +160,6 @@ maturity_df1 <- maturity_df %>%
 
 
 
-# bind these dfs together (bind_rows). 
-# This creates a dataframe of all the functional trait data we have (these are summarized values; eg means, maxima, etc) 
-traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1) #kl_df1,
-
-
-
-######################################################
-######################################################
-######################################################
 
 # merge in additional K & L_infinity data from Ben Williams:
 KL_df <- read.csv("linf_k.csv", header=T, stringsAsFactors = F)
@@ -176,13 +167,19 @@ KL_df1 <- KL_df %>%
   select(-X) %>%
   rename(estimate = value) %>%
   mutate(genus.species = revalue(genus.species, c("Bathyraja.aleutica" = "Bathyraja aleutica", "Pleurogrammus.monopterygius" = "Pleurogrammus monopterygius", 
-                                 "Raja.binoculata" = "Raja binoculata", "Sebastes.polyspinis" = "Sebastes polyspinis")))
+                                                  "Raja.binoculata" = "Raja binoculata", "Sebastes.polyspinis" = "Sebastes polyspinis")))
 for(i in 1:nrow(KL_df1)) { # add columns for gender & location
   KL_df1$gender[[i]] <- "goodEnough"
   KL_df1$location[[i]] <- "goodEnough"
 }
 
-traits_df4 <- rbind(traits_df3, KL_df1)
+
+
+
+# bind these dfs together (bind_rows). 
+# This creates a dataframe of all the functional trait data we have (these are summarized values; eg means, maxima, etc) 
+traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1, KL_df1) #kl_df1,
+
 
 
 
@@ -192,15 +189,15 @@ traits_df4 <- rbind(traits_df3, KL_df1)
 
 
 # We want to use GoA data wherever it exists; if it doesn't, we'll use data from other locations.
-GoA_df <- traits_df4 %>%
+GoA_df <- traits_df3 %>%
   filter(location %in% c("GoA", "goodEnough")) # create table of GoA data
 
-other_df <- traits_df4 %>%
+other_df <- traits_df3 %>%
   filter(location == "other") # create table of data for location == "other"
 
 
 
-combos <- unique(traits_df4[,c('genus.species','common.name','trait')]) # create a table of all species & trait combinations for which we have data
+combos <- unique(traits_df3[,c('genus.species','common.name','trait')]) # create a table of all species & trait combinations for which we have data
 # specify which gender we'll use for each trait:
 for(i in 1:nrow(combos)){
   if(combos$trait[i] %in% c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "depthMax", "depthRange", "ageMaximum", "diet", "guild",
@@ -223,7 +220,7 @@ diffsOther_df <- left_join(diffs_df, other_df, by = c("genus.species", "common.n
 
 
 # now merge the table with non-GoA trait data onto the table with GoA data: 
-traits_df5 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "common.name", "trait", "gender")) %>% 
+traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "common.name", "trait", "gender")) %>% 
   transmute(genus.species, common.name, trait, gender, 
             location = ifelse(is.na(location.x), location.y, location.x),
             estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x)) %>%
@@ -238,11 +235,12 @@ traits_df5 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "co
   mutate(genus.species = gsub(" ", ".", genus.species)) %>%
   rename(Species = genus.species)
 
-for(i in 1:nrow(traits_df5)) {
-  if(traits_df5$Species[i] == "Dusky.and.Dark.Rockfish") {traits_df5$common.name[i] <- "sebastes group 1"} 
+for(i in 1:nrow(traits_df4)) {
+  if(traits_df4$Species[i] == "Dusky.and.Dark.Rockfish") {traits_df4$common.name[i] <- "sebastes group 1"}
+  if(traits_df4$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {traits_df4$common.name[i] <- "sebastes group 2"}
 }
 
-View(traits_df5)
+View(traits_df4)
 
 ######################################################
 ######################################################
@@ -252,8 +250,8 @@ View(traits_df5)
 # Organize functional trait data for analysis in FD package:
 
 # Convert to wide format:
-traits_df5$row <- 1:nrow(traits_df5) # create column of unique identifiers to facilitate data spread
-traits_wide <- traits_df5 %>%
+traits_df4$row <- 1:nrow(traits_df4) # create column of unique identifiers to facilitate data spread
+traits_wide <- traits_df4 %>%
   spread(trait, estimate) %>%
   select(-gender, -location, -row) %>%
   group_by(Species, common.name) %>%
@@ -343,7 +341,7 @@ sp_df <- SPCPUEArea %>%
                           "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
   mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
-View(sp_df)
+#View(sp_df)
 
 
 
@@ -352,76 +350,51 @@ A <- sp_df %>%
   arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
   spread(Species, Mean.totalDensity) %>%
   select(-year)
+
 byArea_list <- split(A, f = A$area) # create a list of dataframes (one for each area; NB area 12 is Total)
-
-byArea_list
-byArea_list[[1]]
-byArea_list$`1`
-byArea_list$`5`
-byArea_list$`1`[2]
-
-is.data.frame(byArea_list$`1`) # TRUE
 
 byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
+
+
+######################################################
+######################################################
+######################################################
+
+
+# Calculate Functional Diversity metrics for each area:
 fd <- list()
 for (i in seq_along(byArea_list1)) {
   fd[[i]] <- dbFD(ft_df, byArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
 }
 
-fd[[i]]$RaoQ
 
-is.data.frame(fd[[1]]) # FALSE
-is.data.frame(fd[[i]]$RaoQ) # FALSE
-is.list(fd[[i]]$RaoQ) # FALSE
+# Create a table of Rao's Q values for each area, by year:
+Cols <- paste("Area", 1:12, sep="")
+Rao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 12)); colnames(Rao1) <- Cols
 
-year <- unique(sort(SPCPUEArea$year))
-
-Rao1 <- list()
 for (i in seq_along(fd)) {
-  Rao1[[i]] <- data.frame(fd[[i]]$RaoQ)
-}
-is.data.frame(Rao1) #FALSE
-
-Rao <- data.frame(year, fd1$RaoQ, fd2$RaoQ, fd3$RaoQ, fd4$RaoQ, fd5$RaoQ, fd6$RaoQ, 
-                  fd7$RaoQ, fd8$RaoQ, fd9$RaoQ, fd10$RaoQ, fd11$RaoQ)
-
-
-
-
-
-
-# make a list of all dataframes
-my.list <- list(d1, d2)
-# or
-mylist <- list()
-mylist[[1]] <- mtcars
-mylist[[2]] <- data.frame(a = rnorm(50), b = runif(50))
-
-
-my_data <- list()
-for (i in seq_along(my_files)) {
-  my_data[[i]] <- read.csv(file = my_files[i])
+  Rao1[,i] <- data.frame(as.data.frame(fd[[i]]$RaoQ))
 }
 
-my_data <- lapply(my_files, read.csv)
-my_dfs <- lapply(byArea_list, createAreaDf)
-
-names(my_data) <- gsub("\\.csv", "", my_files)
-# or, if you prefer the consistent syntax of stringr
-names(my_data) <- stringr::str_replace(my_files, pattern = ".csv", replacement = "")
-
-
-
-Splitting a data frame into a list of data frames
-This is super-easy, the base function split() does it for you. You can split by a column (or columns) of the data, or by anything else you want
-mt_list = split(mtcars, f = mtcars$cyl)
-# This gives a list of three data frames, one for each value of cyl
+year <- as.data.frame(unique(sort(SPCPUEArea$year))); colnames(year) <- "year"
+RaoQ <- bind_cols(year, Rao1) %>%
+  rename(Total = Area12)
+View(RaoQ)
 
 
 
 
-  
+
+
+
+
+
+
+
+######################################################
+######################################################
+######################################################
 
 
 # create dataframes for each area
