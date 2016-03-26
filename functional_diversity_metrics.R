@@ -170,21 +170,13 @@ traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, ma
 ######################################################
 ######################################################
 
-# merge in Ben's K & L_infinity table
+# merge in additional K & L_infinity data from Ben Williams:
 KL_df <- read.csv("linf_k.csv", header=T, stringsAsFactors = F)
 KL_df1 <- KL_df %>%
   select(-X) %>%
   rename(estimate = value) %>%
   mutate(genus.species = revalue(genus.species, c("Bathyraja.aleutica" = "Bathyraja aleutica", "Pleurogrammus.monopterygius" = "Pleurogrammus monopterygius", 
                                  "Raja.binoculata" = "Raja binoculata", "Sebastes.polyspinis" = "Sebastes polyspinis")))
-
-
-# missing from KL_df1:
-"Bathymaster signatus", "Berryteuthis magister", "Chionoecetes bairdi", "Hemilepidotus jordani", "Hemitripterus bolini", 
-"Hexagrammos decagrammus", "Hyas lyratus", "Lycodes brevipes", "Lycodes palearis", "Lyopsetta exilis", "Myctophidae spp.",
-"Oncorhynchus tshawytscha", "Podothecus accipenserinus", "Sebastes babcocki", "Sebastes group 2"
-
-
 for(i in 1:nrow(KL_df1)) { # add columns for gender & location
   KL_df1$gender[[i]] <- "goodEnough"
   KL_df1$location[[i]] <- "goodEnough"
@@ -274,17 +266,6 @@ cols1 = c(3:5, 10, 13, 18); traits_wide[,cols1] <- lapply(traits_wide[,cols1] , 
 write.csv(traits_wide, file = "traits_wide.csv")
 
 
-ft_df <- traits_wide %>%
-  select(Species, lengthMaximum, ageMaximum, K, depthMax, trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
-  filter(!(is.na(K)), !(is.na(depthMax)), !(is.na(ageMaximum))) %>%
-  filter(!(Species %in% c("Hydrolagus.colliei", "Merluccius.productus", "Sebastes.helvomaculatus"))) %>% # remove taxa for which there is no abundance data; there is also no abund data for Berryteuthis.magister
-  arrange(Species)
-rownames(ft_df) <- ft_df$Species # create row names from Species column
-ft_df <- ft_df %>% select(-Species)
-View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
-
-#unique(sort(setdiff(ft_df$Species, SPCPUEArea$Species))) # sp in traits_df3 but not SPCPUEArea
-
 
 # we have the most data for:
 # adultWaterColumnPosition (missing for 2 taxa)
@@ -301,18 +282,29 @@ sum(is.na(traits_wide$ageMaximum)) # missing 10
 #depthMax (missing 6)
 
 
-
-cor.test(traits_wide$K, traits_wide$Linfinity) # not sig
-cor.test(traits_wide$lengthMaximum, traits_wide$Linfinity) # sig
-cor.test(traits_wide$lengthMaximum, traits_wide$ageMaximum) # not sig
-cor.test(traits_wide$lengthMaximum, traits_wide$depthMax) # not sig
-cor.test(traits_wide$depthMax, traits_wide$depthRange) # sig
-
-# use lengthMaximum, ageMaximum, K, depthMax
-
-
 # which pairs of traits are correlated?
 pairs.panels(traits_wide[,c(3:19)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
+names(traits_wide)
+# significant correlations:
+# adultSlopeShelf, adultSubstrate
+# K, firstMaturityAge, age50percentMaturity, ageMaximum
+# Linfinity, trophicPosition, firstMaturityLength, length50percentMaturity, lengthMaximum
+# depthRange & depthMax
+
+
+
+
+
+ft_df <- traits_wide %>%
+  select(Species, lengthMaximum, ageMaximum, depthMax, trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
+  filter(!(is.na(depthMax)), !(is.na(ageMaximum))) %>%
+  filter(!(Species %in% c("Hydrolagus.colliei", "Merluccius.productus", "Sebastes.helvomaculatus"))) %>% # remove taxa for which there is no abundance data; there is also no abund data for Berryteuthis.magister
+  arrange(Species)
+rownames(ft_df) <- ft_df$Species # create row names from Species column
+ft_df <- ft_df %>% select(-Species)
+#View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
+
+#unique(sort(setdiff(ft_df$Species, SPCPUEArea$Species))) # sp in traits_df3 but not SPCPUEArea
 
 
 ######################################################
@@ -342,35 +334,64 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 # organize abundance data for analysis in FD package:
 
 
-unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species))) # 
+#unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species))) # 
 
 sp_df <- SPCPUEArea %>%
   select(area, year, Species, Mean.totalDensity) %>%
-  filter(!(Species %in% c("Bathymaster.signatus", "Chionoecetes.bairdi", "Hemilepidotus.jordani", 
-                          "Hemitripterus.bolini", "Hexagrammos.decagrammus", "Hyas.lyratus",
-                          "Lycodes.brevipes", "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", 
-                          "Oncorhynchus.keta", "Oncorhynchus.tshawytscha", "Podothecus.accipenserinus", 
-                          "Rougheye.and.Blackspotted.Rockfish", "Sebastes.babcocki"))) %>% # remove taxa for which we don't have all trait data
+  filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
+                          "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
+                          "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
   mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
 View(sp_df)
 
 
-ar <- seq(1:12) 
-createAreaDf <- function(sp_df){
-  A <- sp_df %>% 
-  filter(area == ar) %>%
-  select(Species, year, Mean.totalDensity) %>%
+
+A <- sp_df %>% 
+  select(Species, area, year, Mean.totalDensity) %>%
   arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
   spread(Species, Mean.totalDensity) %>%
   select(-year)
+View(A)
+byArea_list <- split(A, f = A$area)
+byArea_list
+byArea_list$`1`
+byArea_list$`5`
+byArea_list$`1`[2]
+
+
+for (i in seq_along(byArea_list)) {
+  #area[[i]] <- read.csv(file = my_files[i])
+  # drop area & year
+  dplyr::select(-area[i], -year[i])
+  #fd1 <- dbFD(ft_df, area1, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+  fd[[i]] <- dbFD(ft_df, byArea_list[i], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+  
+}
+
+
+
+
+
+
+
+
+ar <- seq(1:12) 
+createAreaDf <- function(sp_df){
+  A <- sp_df %>% 
+    filter(area == ar) %>%
+    select(Species, year, Mean.totalDensity) %>%
+    arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+    spread(Species, Mean.totalDensity) %>%
+    select(-year)
   return(A)
 }
 
 createAreaDf(sp_df)
 
-for(i in 1:12) {
-#for(i in 1:length(unique(sort(sp_df$area)))) {
+
+#for(i in 1:12) {
+for(i in 1:length(unique(sort(sp_df$area)))) {
   B = 
     sp_df %>% 
     filter(sp_df$area == i) %>%
@@ -382,13 +403,121 @@ for(i in 1:12) {
 
 
 
-area11 <- sp_df %>% 
-  filter(area == "11") %>%
+
+
+# make a list of all dataframes
+my.list <- list(d1, d2)
+# or
+mylist <- list()
+mylist[[1]] <- mtcars
+mylist[[2]] <- data.frame(a = rnorm(50), b = runif(50))
+
+
+my_data <- list()
+for (i in seq_along(my_files)) {
+  my_data[[i]] <- read.csv(file = my_files[i])
+}
+
+my_data <- lapply(my_files, read.csv)
+my_dfs <- lapply(byArea_list, createAreaDf)
+
+names(my_data) <- gsub("\\.csv", "", my_files)
+# or, if you prefer the consistent syntax of stringr
+names(my_data) <- stringr::str_replace(my_files, pattern = ".csv", replacement = "")
+
+
+
+
+
+
+Splitting a data frame into a list of data frames
+This is super-easy, the base function split() does it for you. You can split by a column (or columns) of the data, or by anything else you want
+mt_list = split(mtcars, f = mtcars$cyl)
+# This gives a list of three data frames, one for each value of cyl
+
+
+
+
+  
+
+
+# create dataframes for each area
+area1 <- sp_df %>% 
+  filter(area == 1) %>%
   select(Species, year, Mean.totalDensity) %>%
   arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
   spread(Species, Mean.totalDensity) %>%
   select(-year)
-View(area11)
+
+area2 <- sp_df %>% 
+  filter(area == 2) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area3 <- sp_df %>% 
+  filter(area == 3) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area4 <- sp_df %>% 
+  filter(area == 4) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area5 <- sp_df %>% 
+  filter(area == 5) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area6 <- sp_df %>% 
+  filter(area == 6) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area7 <- sp_df %>% 
+  filter(area == 7) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area8 <- sp_df %>% 
+  filter(area == 8) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area9 <- sp_df %>% 
+  filter(area == 9) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area10 <- sp_df %>% 
+  filter(area == 10) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+area11 <- sp_df %>% 
+  filter(area == 11) %>%
+  select(Species, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
 
 
 
@@ -397,19 +526,65 @@ View(area11)
 ######################################################
 
 
-# calculate Functional Diversity metric (Rao's Q):
+# calculate & plot Rao's Q
 
-# use function dbFD
-# need dataframe of functional traits (x); species are rows
-# need matrix of abundances of species in x; rows are sites, species are columns
+fd1 <- dbFD(ft_df, area1, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd2 <- dbFD(ft_df, area2, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd3 <- dbFD(ft_df, area3, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd4 <- dbFD(ft_df, area4, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd5 <- dbFD(ft_df, area5, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd6 <- dbFD(ft_df, area6, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd7 <- dbFD(ft_df, area7, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd8 <- dbFD(ft_df, area8, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd9 <- dbFD(ft_df, area9, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd10 <- dbFD(ft_df, area10, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+fd11 <- dbFD(ft_df, area11, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+# for each area:
+# "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
 
-try1 <- dbFD(ft_df, area11, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-try1$RaoQ
-# Species x species distance matrix was not Euclidean. 'sqrt' correction was applied.
-#          1          2          3          4          5          6          7          8          9         10         11         12         13 
-# 0.04267776 0.03808977 0.04048863 0.03712162 0.04121119 0.04666894 0.05006386 0.05526918 0.05168965 0.04734521 0.03745888 0.03594875 0.03234521 
-#         14 
-# 0.05031753 
+
+year <- unique(sort(SPCPUEArea$year))
+Rao <- data.frame(year, fd1$RaoQ, fd2$RaoQ, fd3$RaoQ, fd4$RaoQ, fd5$RaoQ, fd6$RaoQ, 
+                  fd7$RaoQ, fd8$RaoQ, fd9$RaoQ, fd10$RaoQ, fd11$RaoQ)
+
+
+
+ggplot(data=Rao, aes(x=year, y = value)) + 
+  geom_point(aes(y = fd1.RaoQ), size=2) +
+  geom_point(aes(y = fd2.RaoQ), size=2) +
+  geom_point(aes(y = fd3.RaoQ), size=2, col=2) +
+  geom_point(aes(y = fd4.RaoQ), size=2, col=2) +
+  geom_point(aes(y = fd5.RaoQ), size=2, col=2) +
+  geom_point(aes(y = fd6.RaoQ), size=2) +
+  geom_point(aes(y = fd7.RaoQ), size=2) +
+  geom_point(aes(y = fd8.RaoQ), size=2) +
+  geom_point(aes(y = fd9.RaoQ), size=2) +
+  geom_point(aes(y = fd10.RaoQ), size=2) +
+  geom_point(aes(y = fd11.RaoQ), size=2) +
+  
+  geom_line(aes(y = fd1.RaoQ), size=2) +
+  geom_line(aes(y = fd2.RaoQ), size=2) +
+  geom_line(aes(y = fd3.RaoQ), size=2, col=2) +
+  geom_line(aes(y = fd4.RaoQ), size=2, col=2) +
+  geom_line(aes(y = fd5.RaoQ), size=2, col=2) +
+  geom_line(aes(y = fd6.RaoQ), size=2) +
+  geom_line(aes(y = fd7.RaoQ), size=2) +
+  geom_line(aes(y = fd8.RaoQ), size=2) +
+  geom_line(aes(y = fd9.RaoQ), size=2) +
+  geom_line(aes(y = fd10.RaoQ), size=2) +
+  geom_line(aes(y = fd11.RaoQ), size=2) +
+  
+  theme(axis.line=element_line('black'),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
+  theme(axis.text.y = element_text(size=22))+
+  scale_x_continuous(breaks=c(year), labels=c(year)) +
+  ylab("Rao's Q") +
+  xlab("Year") 
+
 
 # get Euclidean distance matrix from traits
 #trait.dist <- dist(trait)
