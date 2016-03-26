@@ -8,15 +8,17 @@ library(dplyr)
 library(tidyr)
 library(psych)
 library(FD)
+library(ggplot2)
 
-# load the functional trait data
-URL_traits <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7uM2M1UnhtTzlGZGM"
-traitsGet <- GET(URL_traits)
-traits1 <- content(traitsGet, as='text')
-traits_df <- read.csv(file=textConnection(traits1),stringsAsFactors=FALSE)
 
-# or load it from local source:
+# load the functional trait data from local source in our repository:
 traits_df <- read.csv("Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
+
+# or load it from our google drive:
+#URL_traits <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7uV0h5SG1UeC1lbjg"
+#traitsGet <- GET(URL_traits)
+#traits1 <- content(traitsGet, as='text')
+#traits_df <- read.csv(file=textConnection(traits1),stringsAsFactors=FALSE)
 
 
 ######################################################
@@ -161,7 +163,7 @@ maturity_df1 <- maturity_df %>%
 
 
 
-# merge in additional K & L_infinity data from Ben Williams:
+# pull in additional K & L_infinity values from Ben Williams:
 KL_df <- read.csv("linf_k.csv", header=T, stringsAsFactors = F)
 KL_df1 <- KL_df %>%
   select(-X) %>%
@@ -176,8 +178,8 @@ for(i in 1:nrow(KL_df1)) { # add columns for gender & location
 
 
 
-# bind these dfs together (bind_rows). 
-# This creates a dataframe of all the functional trait data we have (these are summarized values; eg means, maxima, etc) 
+# bind these dfs together 
+# This creates a dataframe of all the functional trait data we have. These are summarized values - ie means, maxima, etc
 traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1, KL_df1) #kl_df1,
 
 
@@ -187,8 +189,10 @@ traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, ma
 ######################################################
 ######################################################
 
+# This section creates a dataframe with GoA data wherever it exists; 
+# where we don't have GoA data, we use data from other locations.
+# we also select only female data for age / size at maturity
 
-# We want to use GoA data wherever it exists; if it doesn't, we'll use data from other locations.
 GoA_df <- traits_df3 %>%
   filter(location %in% c("GoA", "goodEnough")) # create table of GoA data
 
@@ -240,7 +244,7 @@ for(i in 1:nrow(traits_df4)) {
   if(traits_df4$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {traits_df4$common.name[i] <- "sebastes group 2"}
 }
 
-View(traits_df4)
+#View(traits_df4)
 
 ######################################################
 ######################################################
@@ -257,11 +261,11 @@ traits_wide <- traits_df4 %>%
   group_by(Species, common.name) %>%
   summarize_each(funs(first(., order_by = is.na(.)))) %>%
   ungroup()
-# fill in missing NAs?
+
 cols = c(6:9, 11, 12, 14:17, 19); traits_wide[,cols] <- apply(traits_wide[,cols], 2, function(x) as.numeric(x)) # convert columns to numeric as needed
 cols1 = c(3:5, 10, 13, 18); traits_wide[,cols1] <- lapply(traits_wide[,cols1] , factor) # convert columns to factor as needed
 #View(traits_wide)
-write.csv(traits_wide, file = "traits_wide.csv")
+#write.csv(traits_wide, file = "traits_wide.csv")
 
 
 
@@ -270,11 +274,11 @@ write.csv(traits_wide, file = "traits_wide.csv")
 #ageMax (missing for 9 taxa)
 #diet (missing 0)
 #sum(is.na(traits_wide$firstMaturityLength)) # missing 23
-sum(is.na(traits_wide$K)) # missing 16
-sum(is.na(traits_wide$Linfinity)) # missing 16
+#sum(is.na(traits_wide$K)) # missing 16
+#sum(is.na(traits_wide$Linfinity)) # missing 16
 #guild (missing 0)
 #lengthMaximum (missing 4)
-sum(is.na(traits_wide$ageMaximum)) # missing 10
+#sum(is.na(traits_wide$ageMaximum)) # missing 10
 #trophicPosition (missing 0)
 #depthRange (missing 6)
 #depthMax (missing 6)
@@ -310,7 +314,7 @@ ft_df <- ft_df %>% select(-Species)
 ######################################################
 
 
-# load taxonomic relative presence data:
+# load taxonomic occurrence data:
 #URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udlVNME9rQXEwZ1k"
 #SpByArea_Get <- GET(URL_SpByArea)
 #SpByArea_1 <- content(SpByArea_Get, as='text')
@@ -329,11 +333,12 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 # "Berryteuthis.magister"   "Hydrolagus.colliei"      "Merluccius.productus"    "Sebastes.helvomaculatus"
 
 
+
+
+
 # organize abundance data for analysis in FD package:
 
-
-#unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species))) # 
-
+#unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
 sp_df <- SPCPUEArea %>%
   select(area, year, Species, Mean.totalDensity) %>%
   filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
@@ -341,7 +346,6 @@ sp_df <- SPCPUEArea %>%
                           "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
   mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
-#View(sp_df)
 
 
 
@@ -362,11 +366,18 @@ byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "yea
 ######################################################
 
 
-# Calculate Functional Diversity metrics for each area:
+# Calculate Functional Diversity metrics by area:
+
 fd <- list()
 for (i in seq_along(byArea_list1)) {
   fd[[i]] <- dbFD(ft_df, byArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
 }
+# for each area:
+# "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
+
+# get Euclidean distance matrix from traits
+#trait.dist <- dist(trait)
+
 
 
 # Create a table of Rao's Q values for each area, by year:
@@ -380,15 +391,7 @@ for (i in seq_along(fd)) {
 year <- as.data.frame(unique(sort(SPCPUEArea$year))); colnames(year) <- "year"
 RaoQ <- bind_cols(year, Rao1) %>%
   rename(Total = Area12)
-View(RaoQ)
-
-
-
-
-
-
-
-
+#View(RaoQ)
 
 
 
@@ -396,139 +399,34 @@ View(RaoQ)
 ######################################################
 ######################################################
 
+# Plot Rao's Q
 
-# create dataframes for each area
-area1 <- sp_df %>% 
-  filter(area == 1) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
+year1 <- unique(sort(SPCPUEArea$year))
 
-area2 <- sp_df %>% 
-  filter(area == 2) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area3 <- sp_df %>% 
-  filter(area == 3) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area4 <- sp_df %>% 
-  filter(area == 4) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area5 <- sp_df %>% 
-  filter(area == 5) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area6 <- sp_df %>% 
-  filter(area == 6) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area7 <- sp_df %>% 
-  filter(area == 7) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area8 <- sp_df %>% 
-  filter(area == 8) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area9 <- sp_df %>% 
-  filter(area == 9) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area10 <- sp_df %>% 
-  filter(area == 10) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-area11 <- sp_df %>% 
-  filter(area == 11) %>%
-  select(Species, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-  spread(Species, Mean.totalDensity) %>%
-  select(-year)
-
-
-
-######################################################
-######################################################
-######################################################
-
-
-# calculate & plot Rao's Q
-
-fd1 <- dbFD(ft_df, area1, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd2 <- dbFD(ft_df, area2, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd3 <- dbFD(ft_df, area3, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd4 <- dbFD(ft_df, area4, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd5 <- dbFD(ft_df, area5, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd6 <- dbFD(ft_df, area6, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd7 <- dbFD(ft_df, area7, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd8 <- dbFD(ft_df, area8, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd9 <- dbFD(ft_df, area9, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd10 <- dbFD(ft_df, area10, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-fd11 <- dbFD(ft_df, area11, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-# for each area:
-# "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
-
-
-year <- unique(sort(SPCPUEArea$year))
-Rao <- data.frame(year, fd1$RaoQ, fd2$RaoQ, fd3$RaoQ, fd4$RaoQ, fd5$RaoQ, fd6$RaoQ, 
-                  fd7$RaoQ, fd8$RaoQ, fd9$RaoQ, fd10$RaoQ, fd11$RaoQ)
-
-
-
-ggplot(data=Rao, aes(x=year, y = value)) + 
-  geom_point(aes(y = fd1.RaoQ), size=2) +
-  geom_point(aes(y = fd2.RaoQ), size=2) +
-  geom_point(aes(y = fd3.RaoQ), size=2, col=2) +
-  geom_point(aes(y = fd4.RaoQ), size=2, col=2) +
-  geom_point(aes(y = fd5.RaoQ), size=2, col=2) +
-  geom_point(aes(y = fd6.RaoQ), size=2) +
-  geom_point(aes(y = fd7.RaoQ), size=2) +
-  geom_point(aes(y = fd8.RaoQ), size=2) +
-  geom_point(aes(y = fd9.RaoQ), size=2) +
-  geom_point(aes(y = fd10.RaoQ), size=2) +
-  geom_point(aes(y = fd11.RaoQ), size=2) +
+ggplot(data=RaoQ, aes(x=year, y = value)) + 
+  geom_point(aes(y = Area1), size=2) +
+  geom_point(aes(y = Area2), size=2) +
+  geom_point(aes(y = Area3), size=2, col=2) +
+  geom_point(aes(y = Area4), size=2, col=2) +
+  geom_point(aes(y = Area5), size=2, col=2) +
+  geom_point(aes(y = Area6), size=2) +
+  geom_point(aes(y = Area7), size=2) +
+  geom_point(aes(y = Area8), size=2) +
+  geom_point(aes(y = Area9), size=2) +
+  geom_point(aes(y = Area10), size=2) +
+  geom_point(aes(y = Area11), size=2) +
   
-  geom_line(aes(y = fd1.RaoQ), size=2) +
-  geom_line(aes(y = fd2.RaoQ), size=2) +
-  geom_line(aes(y = fd3.RaoQ), size=2, col=2) +
-  geom_line(aes(y = fd4.RaoQ), size=2, col=2) +
-  geom_line(aes(y = fd5.RaoQ), size=2, col=2) +
-  geom_line(aes(y = fd6.RaoQ), size=2) +
-  geom_line(aes(y = fd7.RaoQ), size=2) +
-  geom_line(aes(y = fd8.RaoQ), size=2) +
-  geom_line(aes(y = fd9.RaoQ), size=2) +
-  geom_line(aes(y = fd10.RaoQ), size=2) +
-  geom_line(aes(y = fd11.RaoQ), size=2) +
+  geom_line(aes(y = Area1), size=2) +
+  geom_line(aes(y = Area2), size=2) +
+  geom_line(aes(y = Area3), size=2, col=2) +
+  geom_line(aes(y = Area4), size=2, col=2) +
+  geom_line(aes(y = Area5), size=2, col=2) +
+  geom_line(aes(y = Area6), size=2) +
+  geom_line(aes(y = Area7), size=2) +
+  geom_line(aes(y = Area8), size=2) +
+  geom_line(aes(y = Area9), size=2) +
+  geom_line(aes(y = Area10), size=2) +
+  geom_line(aes(y = Area11), size=2) +
   
   theme(axis.line=element_line('black'),
         panel.grid.major = element_blank(),
@@ -537,10 +435,6 @@ ggplot(data=Rao, aes(x=year, y = value)) +
         panel.background = element_blank())+
   theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
   theme(axis.text.y = element_text(size=22))+
-  scale_x_continuous(breaks=c(year), labels=c(year)) +
+  scale_x_continuous(breaks=c(year1), labels=c(year1)) +
   ylab("Rao's Q") +
   xlab("Year") 
-
-
-# get Euclidean distance matrix from traits
-#trait.dist <- dist(trait)
