@@ -352,54 +352,40 @@ A <- sp_df %>%
   arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
   spread(Species, Mean.totalDensity) %>%
   select(-year)
-View(A)
-byArea_list <- split(A, f = A$area)
+byArea_list <- split(A, f = A$area) # create a list of dataframes (one for each area; NB area 12 is Total)
+
 byArea_list
+byArea_list[[1]]
 byArea_list$`1`
 byArea_list$`5`
 byArea_list$`1`[2]
 
+is.data.frame(byArea_list$`1`) # TRUE
 
-for (i in seq_along(byArea_list)) {
-  #area[[i]] <- read.csv(file = my_files[i])
-  # drop area & year
-  dplyr::select(-area[i], -year[i])
-  #fd1 <- dbFD(ft_df, area1, calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-  fd[[i]] <- dbFD(ft_df, byArea_list[i], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
-  
+byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+
+fd <- list()
+for (i in seq_along(byArea_list1)) {
+  fd[[i]] <- dbFD(ft_df, byArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
 }
 
+fd[[i]]$RaoQ
 
+is.data.frame(fd[[1]]) # FALSE
+is.data.frame(fd[[i]]$RaoQ) # FALSE
+is.list(fd[[i]]$RaoQ) # FALSE
 
+year <- unique(sort(SPCPUEArea$year))
 
-
-
-
-
-ar <- seq(1:12) 
-createAreaDf <- function(sp_df){
-  A <- sp_df %>% 
-    filter(area == ar) %>%
-    select(Species, year, Mean.totalDensity) %>%
-    arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-    spread(Species, Mean.totalDensity) %>%
-    select(-year)
-  return(A)
+Rao1 <- list()
+for (i in seq_along(fd)) {
+  Rao1[[i]] <- data.frame(fd[[i]]$RaoQ)
 }
+is.data.frame(Rao1) #FALSE
 
-createAreaDf(sp_df)
+Rao <- data.frame(year, fd1$RaoQ, fd2$RaoQ, fd3$RaoQ, fd4$RaoQ, fd5$RaoQ, fd6$RaoQ, 
+                  fd7$RaoQ, fd8$RaoQ, fd9$RaoQ, fd10$RaoQ, fd11$RaoQ)
 
-
-#for(i in 1:12) {
-for(i in 1:length(unique(sort(sp_df$area)))) {
-  B = 
-    sp_df %>% 
-    filter(sp_df$area == i) %>%
-    select(Species, year, Mean.totalDensity) %>%
-    arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
-    spread(Species, Mean.totalDensity) %>%
-    select(-year)
-}
 
 
 
@@ -424,9 +410,6 @@ my_dfs <- lapply(byArea_list, createAreaDf)
 names(my_data) <- gsub("\\.csv", "", my_files)
 # or, if you prefer the consistent syntax of stringr
 names(my_data) <- stringr::str_replace(my_files, pattern = ".csv", replacement = "")
-
-
-
 
 
 
