@@ -80,6 +80,7 @@ colnames(Bin) <- species
 colnames(Pos) <- species
 
 Uncond <- Bin * Pos
+Uncond <- data.frame(depth.m=D,Bin)
 Bin <- data.frame(depth.m=D,Bin)
 Pos <- data.frame(depth.m=D,Pos)
 Both <- list(Uncond,Bin,Pos)
