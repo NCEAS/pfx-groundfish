@@ -78,9 +78,11 @@ for(i in 1: length(species)){
 
 colnames(Bin) <- species
 colnames(Pos) <- species
+
+Uncond <- Bin * Pos
 Bin <- data.frame(depth.m=D,Bin)
 Pos <- data.frame(depth.m=D,Pos)
-Both <- list(Bin,Pos)
+Both <- list(Uncond,Bin,Pos)
 
 save(file=paste(getwd(),"/goaTrawl/_Estimated Coefs/Depth predictions mean.R",sep=""),Both)
  
