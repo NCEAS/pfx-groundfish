@@ -32,9 +32,8 @@ if(size.data == TRUE){
  
  all.sp.pos	<-	NULL
  all.sp.pres	<-	NULL
-
  all.depth.param <- NULL
- 
+ all.spatial.range <- NULL
  
 for(i in 1:length(sppList)) {
 spp = sppList[i] # focal species
@@ -80,15 +79,26 @@ if(spp != "Merluccius.productus" & spp!="Hydrolagus.colliei"){# Exclude a couple
     dat   <- Output$INLA.mod
     log.center <- mean(Output$Covar$log.depth)
     
+    #posterior mean of effective range
+    spde=inla.spde2.matern(Output$Mesh, alpha=3/2)
+    spatial.par <- inla.spde.result(Output$INLA.mod, "i2D", spde, do.transf= TRUE)
+    A <- inla.emarginal(function(x) x, spatial.par$marginals.range.nominal[[1]])
+    A  <- c(Species=spp,Model=mod,A,inla.qmarginal(c(0.05,0.25,0.50,0.75,0.95),spatial.par$marginals.range.nominal[[1]]))
+    
     temp <- data.frame(Species=spp,Model=mod,Coef.name=rownames(dat$summary.fixed),dat$summary.fixed,log.center=log.center)
-    all.depth.param <- rbind(all.depth.param,temp)     
+    all.depth.param <- rbind(all.depth.param,temp)
+    
+    all.spatial.range <- rbind(all.spatial.range,A)
     } # end mod loop
   }  # end if catch for merluccius.productus, etc.
 }    # end sppList
-    
+
+ colnames(all.spatial.range) <- c("Species","Model","Mean","q.05","q.25","q.50","q.75","q.95")
+     
   	setwd(proj.dir)
 if(size.data==FALSE){
   	 write.csv(all.depth.param, file = paste("All_sp_depth_coef.csv"), row.names = F)
+     write.csv(all.spatial.range, file = paste("All_sp_spatial_coef.csv"), row.names = F)
 }
 if(size.data==TRUE){
     write.csv(all.depth.param, file = paste("All_sp_depth_coef_size.csv"), row.names = F)
