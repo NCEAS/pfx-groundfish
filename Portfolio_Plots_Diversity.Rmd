@@ -16,39 +16,39 @@ library(vegan) ; library(scales)
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # Load the Species by Area Occurrance data and clean it
-URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udlVNME9rQXEwZ1k"
+URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uWlFSTk03S1pveE0"
 SpByArea_Get <- GET(URL_SpByArea)
 SpByArea_1 <- content(SpByArea_Get, as='text')
-SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head=TRUE)
+SpByArea <- read.csv(file=textConnection(SpByArea_1), stringsAsFactors=FALSE, header=TRUE)
 
 
 meanOcc <- SpByArea %>%
-            mutate(Year = ifelse((year.numb=="1"),'1984',
-                          ifelse((year.numb=="2"),'1987',
-                          ifelse((year.numb=="3"),'1990',
-                          ifelse((year.numb=="4"),'1993',       
-                          ifelse((year.numb=="5"),'1996',
-                          ifelse((year.numb=="6"),'1999',
-                          ifelse((year.numb=="7"),'2001',
-                          ifelse((year.numb=="8"),'2003',
-                          ifelse((year.numb=="9"),'2005',
-                          ifelse((year.numb=="10"),'2007',
-                          ifelse((year.numb=="11"),'2009',
-                          ifelse((year.numb=="12"),'2011',
-                          ifelse((year.numb=="13"),'2013',
-                          ifelse((year.numb=="14"),'2015',        
-                          ""))))))))))))))
-                   )
+           mutate(Year = ifelse((year.numb=="1"),'1984',
+                         ifelse((year.numb=="2"),'1987',
+                         ifelse((year.numb=="3"),'1990',
+                         ifelse((year.numb=="4"),'1993',       
+                         ifelse((year.numb=="5"),'1996',
+                         ifelse((year.numb=="6"),'1999',
+                         ifelse((year.numb=="7"),'2001',
+                         ifelse((year.numb=="8"),'2003',
+                         ifelse((year.numb=="9"),'2005',
+                         ifelse((year.numb=="10"),'2007',
+                         ifelse((year.numb=="11"),'2009',
+                         ifelse((year.numb=="12"),'2011',
+                         ifelse((year.numb=="13"),'2013',
+                         ifelse((year.numb=="14"),'2015',        
+                         ""))))))))))))))
+                  )
 head(meanOcc)
 
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # Load the CPUE by Area data and merge in trawl species list
-URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
+URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udjdieGNMQ1A5V2M"
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
-SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1), stringsAsFactors=FALSE, header=TRUE)
 
 meanCPUE <- rename(SPCPUEArea, Year=year, Area=area)
 
