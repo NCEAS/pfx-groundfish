@@ -263,22 +263,7 @@ traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("Species", "trait", 
             location = ifelse(is.na(location.x), location.y, location.x),
             estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x)) %>%
   filter(!is.na(estimate)) # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations
-  # the next 6 lines make taxonomic names match style in abundance files
-  #mutate(genus.species = revalue(genus.species, c("Clupea pallasii" = "Clupea pallasi",
-  #                                                "Sebastes group 1" = "Dusky and Dark Rockfish", 
-  #                                                "Sebastes group 2" = "Rougheye and Blackspotted Rockfish", 
-  #                                                "Lepidopsetta spp." = "Lepidopsetta sp.", 
-  #                                                "Myctophidae spp." = "Myctophidae",
-  #                                                "Theragra chalcogramma" = "Gadus chalcogrammus"))) %>%
-  #mutate(genus.species = gsub(" ", ".", genus.species)) %>%
-  #rename(Species = genus.species)
 
-#for(i in 1:nrow(traits_df4)) {
-#  if(traits_df4$Species[i] == "Dusky.and.Dark.Rockfish") {traits_df4$common.name[i] <- "sebastes group 1"}
-#  if(traits_df4$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {traits_df4$common.name[i] <- "sebastes group 2"}
-#}
-
-#View(traits_df4)
 
 ######################################################
 ######################################################
@@ -336,10 +321,12 @@ names(traits_wide)
 
 
 
-
+# Prep functional traits df to load into functional diversity analysis
 ft_df <- traits_wide %>%
-  select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
-  filter(!(is.na(depthMax)), !(is.na(ageMaximum))) %>%
+  transmute(Species, logLengthMax = log(lengthMaximum), logAgeMax = log(ageMaximum), 
+            logDepthMax = log(depthMax), logDepthCoefPos = log(depthCoefPos), trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
+  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
+  filter(!(is.na(logDepthMax)), !(is.na(logAgeMax))) %>%
   filter(!(Species %in% c("Hydrolagus.colliei", "Merluccius.productus", "Sebastes.helvomaculatus"))) %>% # remove taxa for which there is no abundance data; there is also no abund data for Berryteuthis.magister
   arrange(Species)
 rownames(ft_df) <- ft_df$Species # create row names from Species column
@@ -361,12 +348,18 @@ ft_df <- ft_df %>% select(-Species)
 #SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head=TRUE)
 #View(SpByArea)
 
-# load taxonomic abundance data:
+
+# *** Need to add new data for shallow areas (combining areas 7-9) and data for our new deep areas ***
+
+
+# load taxonomic abundance data for Shallow Areas 1-11:
+# (the following is the old data for Shallow Areas 1-11)
 URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
 SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
 # View(SPCPUEArea)
+
 
 # NB  SPCPUEArea has only 53 taxa, not 57. Which ones are missing?
 #spDiffs <- setdiff(traits_wide$Species, SPCPUEArea$Species); spDiffs
@@ -377,7 +370,6 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 
 
 # organize abundance data for analysis in FD package:
-
 #unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
 sp_df <- SPCPUEArea %>%
   select(area, year, Species, Mean.totalDensity) %>%
@@ -476,5 +468,5 @@ ggplot(data=RaoQ, aes(x=year, y = value)) +
   theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
   theme(axis.text.y = element_text(size=22))+
   scale_x_continuous(breaks=c(year1), labels=c(year1)) +
-  ylab("Rao's Q") +
-  xlab("Year") 
+  labs(title = "Rao's Q for Shallow Areas 1-11", 
+       x = "Year", y = "Rao's Q")
