@@ -21,6 +21,7 @@ SpByArea_Get <- GET(URL_SpByArea)
 SpByArea_1 <- content(SpByArea_Get, as='text')
 SpByArea <- read.csv(file=textConnection(SpByArea_1), stringsAsFactors=FALSE, header=TRUE)
 
+testing2 <- read.csv("C:/Users/rblake/Documents/NCEAS/GoA Portfolio Effects WG/pfx-groundfish/goaDat.occ.Shallow.AllData.Combined.7.8.9.csv")
 
 meanOcc <- SpByArea %>%
            mutate(Year = ifelse((year.numb=="1"),'1984',
@@ -55,18 +56,18 @@ meanCPUE <- rename(SPCPUEArea, Year=year, Area=area)
 
 ```
 
-```{r, include=FALSE, echo=FALSE}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # Read in deeper areas data CPUE
-URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWdXk5WVlMa1dvSDQ"
+URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-ubjkxNHEzZ0tpN2M"
 deepCPUE_Get <- GET(URL_deepCPUE)
 deepCPUE_1 <- content(deepCPUE_Get, as='text')
 deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
 
 ```
 
-```{r, include=FALSE, echo=FALSE}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # Read in deeper areas data OCCURRANCE
-URL_deepOCC <- "https://drive.google.com/uc?export=download&id=0B85qTNI1PAFWUG1oMV9keGZRdzg"
+URL_deepOCC <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uV1QtMjZ5bXBka1E"
 deepOCC_Get <- GET(URL_deepOCC)
 deepOCC_1 <- content(deepOCC_Get, as='text')
 deepOCC <- read.csv(file=textConnection(deepOCC_1),stringsAsFactors=FALSE,head=TRUE)
