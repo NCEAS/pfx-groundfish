@@ -21,7 +21,6 @@ SpByArea_Get <- GET(URL_SpByArea)
 SpByArea_1 <- content(SpByArea_Get, as='text')
 SpByArea <- read.csv(file=textConnection(SpByArea_1), stringsAsFactors=FALSE, header=TRUE)
 
-testing2 <- read.csv("C:/Users/rblake/Documents/NCEAS/GoA Portfolio Effects WG/pfx-groundfish/goaDat.occ.Shallow.AllData.Combined.7.8.9.csv")
 
 meanOcc <- SpByArea %>%
            mutate(Year = ifelse((year.numb=="1"),'1984',
