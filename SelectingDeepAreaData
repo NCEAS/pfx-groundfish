@@ -26,7 +26,7 @@ setwd("~/Desktop/Diversity")
 #write_csv(midDat.Occ,"mid.occ.csv",col_names=T)
 #write_csv(deepDat.Occ,"deep.occ.csv",col_names=T)
 
-## OTHE OPTION IS TO LOAD WORKSPACE
+## OTHE OPTION IS TO LOAD WORKSPACE - WHERE I COMBINEED SHALLOW and DEEP FILES
 load("goaDatForKristin.RData")
 allDat.pos<-allDat
 head(allDat.pos)
@@ -265,7 +265,7 @@ dat.region <- rbind(dat.region,dat.select)
 goaDat.pos<-merge(dat.region, allDat, by="MASTER_ID")
 goaDat.occ<-merge(dat.region, allDat.Occ, by="MASTER_ID")
 
-### SUM CPUE & CALCULATE AVERAGE PROPORTION(?) BY SPECIES ACROSS SELECTED REGION
+### CALCULATE AVERAGE CPUE & PROPORTIONS BY SPECIES ACROSS SELECTED REGION
 goaGF.pos <- goaDat.pos %>%
   group_by(Area, Species, Year) %>% 
   summarise(meanCPUE = mean(Mean)) %>%
