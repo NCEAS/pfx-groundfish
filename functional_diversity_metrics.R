@@ -223,6 +223,7 @@ traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, ma
 ######################################################
 ######################################################
 
+
 # This section creates a dataframe with GoA data wherever it exists; 
 # where we don't have GoA data, we use data from other locations.
 # we also select only female data for age / size at maturity
@@ -281,15 +282,26 @@ traits_wide <- traits_df4 %>%
   summarize_each(funs(first(., order_by = is.na(.)))) %>%
   ungroup()
 
-# convert columns to factors and numeric as needed:
-cols = c("age50percentMaturity", "ageMaximum", "depthCoefPos", "depthMax", "depthRange", 
+
+quant = c("age50percentMaturity", "ageMaximum", "depthCoefPos", "depthMax", "depthRange", 
          "firstMaturityAge", "firstMaturityLength", "K", "length50percentMaturity", 
          "lengthMaximum", "Linfinity", "trophicPosition")
-traits_wide[,cols] <- apply(traits_wide[,cols], 2, function(x) as.numeric(x))
+traits_wide[,quant] <- apply(traits_wide[,quant], 2, function(x) as.numeric(x)) # convert columns to numeric as needed
+traits_wide[,quant] <- apply(traits_wide[,quant], 2, function(y) log(y)) # log-transform the quantitative traits (as per recommendation in Botta-Dukat 2005)
+head(traits_wide)
 
-cols1 = c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "diet", "guild", "migratoryStatus")
-traits_wide[,cols1] <- lapply(traits_wide[,cols1] , factor)
+categ = c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "diet", "guild", "migratoryStatus") # convert columns to factors as needed
+traits_wide[,categ] <- lapply(traits_wide[,categ] , factor)
 #write.csv(traits_wide, file = "traits_wide.csv")
+
+
+# which pairs of (log-transformed) quantitative traits are correlated?
+pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
+names(traits_wide[,quant])
+# significant correlations:
+# K, firstMaturityAge, age50percentMaturity, ageMaximum
+# Linfinity, trophicPosition, firstMaturityLength, length50percentMaturity, lengthMaximum
+# depthRange & depthMax; note that depthCoefficient is not correlated with either
 
 
 
@@ -309,29 +321,15 @@ traits_wide[,cols1] <- lapply(traits_wide[,cols1] , factor)
 #depthCoefPos (missing 0)
 
 
-# which pairs of traits are correlated?
-pairs.panels(traits_wide[,c(2:19)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
-names(traits_wide)
-# significant correlations:
-# adultSlopeShelf, adultSubstrate
-# K, firstMaturityAge, age50percentMaturity, ageMaximum
-# Linfinity, trophicPosition, firstMaturityLength, length50percentMaturity, lengthMaximum
-# depthRange, depthMax, depthCoefPos
-
-
-
-
 # Prep functional traits df to load into functional diversity analysis
 ft_df <- traits_wide %>%
-  transmute(Species, logLengthMax = log(lengthMaximum), logAgeMax = log(ageMaximum), 
-            logDepthMax = log(depthMax), logDepthCoefPos = log(depthCoefPos), trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
-  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
-  filter(!(is.na(logDepthMax)), !(is.na(logAgeMax))) %>%
-  filter(!(Species %in% c("Hydrolagus.colliei", "Merluccius.productus", "Sebastes.helvomaculatus"))) %>% # remove taxa for which there is no abundance data; there is also no abund data for Berryteuthis.magister
+  # select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos) %>% # select log-transformed quantitative traits
+  select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, diet) %>% # select log-transformed quantitative traits & categorical diet trait
+  filter(!(is.na(ageMaximum)), !(is.na(depthMax)), !is.na(depthCoefPos)) %>% # remove taxa for which trait data are missing
   arrange(Species)
 rownames(ft_df) <- ft_df$Species # create row names from Species column
 ft_df <- ft_df %>% select(-Species)
-#View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
+# View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
 
 #unique(sort(setdiff(ft_df$Species, SPCPUEArea$Species))) # sp in traits_df3 but not SPCPUEArea
 
@@ -370,7 +368,7 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 
 
 # organize abundance data for analysis in FD package:
-#unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
+unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
 sp_df <- SPCPUEArea %>%
   select(area, year, Species, Mean.totalDensity) %>%
   filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
@@ -398,17 +396,28 @@ byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "yea
 ######################################################
 
 
-# Calculate Functional Diversity metrics by area:
+# Calculate Rao's Q:
+
+# Methods info from FD package documentation:
+# "If not all traits are numeric, Gower’s (1971) standardization by the
+#  range is automatically used; see gowdis for more details."
+
+# "If x (trait df) is a matrix or a data frame that contains only continuous traits, no NAs, and no weights
+# are specified (i.e. w is missing), a species-species Euclidean distance matrix is computed via dist.
+# Otherwise, a Gower dissimilarity matrix is computed via gowdis."
+
+# "Rao’s quadratic entropy (Q) is computed from the uncorrected species-species distance matrix via divc."
+
+# gowdis computes the Gower (1971) similarity coefficient exactly as described by Podani (1999),
+# then converts it to a dissimilarity coefficient by using D = 1-S
+
 
 fd <- list()
 for (i in seq_along(byArea_list1)) {
   fd[[i]] <- dbFD(ft_df, byArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
 }
-# for each area:
+# when quantitative & categorical traits are used:
 # "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
-
-# get Euclidean distance matrix from traits
-#trait.dist <- dist(trait)
 
 
 
