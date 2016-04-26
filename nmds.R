@@ -43,20 +43,37 @@ byArea_nmds_list2 <- lapply(byArea_nmds_list1, function(x) x[!(names(x) %in% c("
 # NMDS:
 ord1 <- list()
 for (i in seq_along(byArea_nmds_list2)) {
-  ord1[[i]] <- metaMDS(byArea_nmds_list2[[1]], distance='bray', k=2, trymax=1000, autotransform=F)
+  ord1[[i]] <- metaMDS(byArea_nmds_list2[[i]], distance='bray', k=2, trymax=1000)
 }
 
 
+# examine Shepard's stressplots:
+# shows the relationship between real distances between samples in resulting m dimensional ordination solution, 
+# and their particular compositional dissimilarities expressed by the selected dissimilarity measure
+par (mfrow = c(3,4), pty="m") 
+stressplots <- list()
+for (i in seq_along(ord1)) {
+  stressplots[[i]] <- stressplot(ord1[[i]])
+}
+
+
+
+# examine goodness of fit plots:
+# size represents goodness of fit (bigger = worse fit)
+par (mfrow = c(3,4), pty="m") 
+goodness <- list()
+for (i in seq_along(ord1)) {
+  goodness[[i]] <- plot (ord1[[i]], display = 'sites', type = 't', main = 'Goodness of fit')
+  points (ord1[[i]], display = 'sites', cex = goodness (ord1[[i]])*200)
+}
+
+
+
+# ordination plots:
+par (mfrow = c(3,4), pty="m") 
 plots <- list()
-for (j in seq_along(ord1)) {
-  plots[[j]] <- plot(ord1[[j]], type = "n")
-  points(ord1[[j]], display = "spec", cex = 0.8, pch=21, col="red", bg="yellow")
-  text(ord1[[j]], display = "sites", cex=0.7, col="blue")
+for (i in seq_along(ord1)) {
+  plots[[i]] <- plot(ord1[[i]], type = "n")
+  points(ord1[[i]], display = "spec", cex = 0.8, pch=21, col="red", bg="yellow")
+  text(ord1[[i]], display = "sites", cex=0.7, col="blue")
 }
-
-# show the plots:
-plots[[1]]; plots[[2]]; plots[[3]]; plots[[4]]; plots[[5]]; plots[[6]]; plots[[7]]; plots[[8]]; plots[[9]]; plots[[10]]; plots[[11]]; plots[[12]]
-
-
-
-
