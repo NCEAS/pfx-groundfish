@@ -93,13 +93,14 @@ for (i in seq_along(ordShallow)) {
 }
 
 
-# ordination plots:
+# Ordination plots:
 # NB Area 10 is Total of our 9 areas
-par (mfrow = c(3,4), pty="m") 
-ordPlotsShallow <- list()
+# >50 species requires small text for legibility; save as .pdf and enlarge to read
+par(mfrow = c(2,2))
+ordPlotsShallow1 <- list()
 for (i in seq_along(ordShallow)) {
-  ordPlotsShallow[[i]] <- plot(ordShallow[[i]], type = "n", main = paste("Area",i))
-  points(ordShallow[[i]], display = "spec", cex = 1, pch=21, col="red", bg="yellow")
+  ordPlotsShallow1[[i]] <- plot(ordShallow[[i]], type = "n", main = paste("Shallow Area",i))
+  text(ordShallow[[i]], display = "spec", cex = 0.15, col="red")
   text(ordShallow[[i]], display = "sites", cex=0.7, col="blue")
 }
 
@@ -133,12 +134,13 @@ for (i in seq_along(ordDeep)) {
 }
 
 
-# ordination plots:
+# Ordination plots:
 # NB Area 6 is total of our 5 areas
-par (mfrow = c(2,3), pty="m") 
-ordPlotsDeep <- list()
-for (i in seq_along(ordDeep)) {
-  ordPlotsDeep[[i]] <- plot(ordDeep[[i]], type = "n", main = paste("Area",i))
-  points(ordDeep[[i]], display = "spec", cex = 1, pch=21, col="red", bg="yellow")
-  text(ordDeep[[i]], display = "sites", cex=1, col="blue")
+# >50 species requires small text for legibility; save as .pdf and enlarge to read
+par(mfrow = c(2,2))
+ordPlotsDeep1 <- list()
+for (i in seq_along(ordShallow)) {
+  ordPlotsDeep1[[i]] <- plot(ordDeep[[i]], type = "n", main = paste("Deep Area",i))
+  text(ordDeep[[i]], display = "spec", cex = 0.15, col="red")
+  text(ordDeep[[i]], display = "sites", cex=0.7, col="blue")
 }
