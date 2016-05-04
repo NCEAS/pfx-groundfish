@@ -10,70 +10,135 @@ library(tidyr)
 
 
 
-# *** Need to add new data for shallow areas (combining areas 7-9) and data for our new deep areas ***
-
-# load CPUE data from our google drive (this is the old data for Shallow Areas 1-11)
-URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
+# load & prepare Mean annual CPUE data for Shallow Areas:
+URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
 SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(SPCPUEArea)
 
 
-######################################################
-
-
-# prepare CPUE data for NMDS analysis:
 cpue_spread <- SPCPUEArea %>%
   select(Species, Mean.totalDensity, area, year) %>%
   spread(Species, Mean.totalDensity) %>% # make each species a column
-  mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
+  mutate(area = revalue(area, c("Total" = "10")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
 
+shallowByArea_nmds_list <- split(cpue_spread, f = cpue_spread$area) # create a list of dataframes (one for each area; NB area 10 is Total)
 
-byArea_nmds_list <- split(cpue_spread, f = cpue_spread$area) # create a list of dataframes (one for each area; NB area 12 is Total)
+shallowByArea_nmds_list1 <- lapply(shallowByArea_nmds_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
+shallowByArea_nmds_list2 <- lapply(shallowByArea_nmds_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
 
-byArea_nmds_list1 <- lapply(byArea_nmds_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
-byArea_nmds_list2 <- lapply(byArea_nmds_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+
+#########################
+
+
+# load & prepare mean annual CPUE for Deep areas:
+URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUE_Get <- GET(URL_deepCPUE)
+deepCPUE_1 <- content(deepCPUE_Get, as='text')
+deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUE)
+
+deepCPUE_spread <- deepCPUE %>%
+  select(Species, Mean.totalDensity, area, year) %>%
+  spread(Species, Mean.totalDensity) %>% # make each species a column
+  mutate(area = revalue(area, c("Total" = "6")), # recode Total for looping later
+         area = as.numeric(area)) # convert to numeric class
+
+deepByArea_nmds_list <- split(deepCPUE_spread, f = deepCPUE_spread$area) # create a list of dataframes (one for each area; NB area 6 is Total)
+
+deepByArea_nmds_list1 <- lapply(deepByArea_nmds_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
+deepByArea_nmds_list2 <- lapply(deepByArea_nmds_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+
 
 
 ######################################################
+######################################################
+######################################################
 
 
-# NMDS:
-ord1 <- list()
-for (i in seq_along(byArea_nmds_list2)) {
-  ord1[[i]] <- metaMDS(byArea_nmds_list2[[i]], distance='bray', k=2, trymax=1000)
+# NMDS
+# Methods info:
+# transformation is Wisconsin-style double transformation (normalizes taxa to % abundance, 
+# then normalizes abundances to the maximum for each species) of sqrt-transformed data
+
+#########################
+
+# 1. nMDS for Shallow areas:
+
+ordShallow <- list()
+for (i in seq_along(shallowByArea_nmds_list2)) {
+  ordShallow[[i]] <- metaMDS(shallowByArea_nmds_list2[[i]], distance='bray', trymax=1000)
 }
 
 
 # examine Shepard's stressplots:
-# shows the relationship between real distances between samples in resulting m dimensional ordination solution, 
-# and their particular compositional dissimilarities expressed by the selected dissimilarity measure
+# goodness-of-fit test: plots ordination distances against community dissimilarities
 par (mfrow = c(3,4), pty="m") 
-stressplots <- list()
-for (i in seq_along(ord1)) {
-  stressplots[[i]] <- stressplot(ord1[[i]])
+stressplotsShallow <- list()
+for (i in seq_along(ordShallow)) {
+  stressplotsShallow[[i]] <- stressplot(ordShallow[[i]], main = paste("Area",i))
 }
-
 
 
 # examine goodness of fit plots:
 # size represents goodness of fit (bigger = worse fit)
 par (mfrow = c(3,4), pty="m") 
-goodness <- list()
-for (i in seq_along(ord1)) {
-  goodness[[i]] <- plot (ord1[[i]], display = 'sites', type = 't', main = 'Goodness of fit')
-  points (ord1[[i]], display = 'sites', cex = goodness (ord1[[i]])*200)
+goodnessShallow <- list()
+for (i in seq_along(ordShallow)) {
+  goodnessShallow[[i]] <- plot (ordShallow[[i]], display = 'sites', type = 't', main = paste("Area",i))
+  points (ordShallow[[i]], display = 'sites', cex = goodness (ordShallow[[i]])*200)
 }
 
 
+# ordination plots:
+# NB Area 10 is Total of our 9 areas
+par (mfrow = c(3,4), pty="m") 
+ordPlotsShallow <- list()
+for (i in seq_along(ordShallow)) {
+  ordPlotsShallow[[i]] <- plot(ordShallow[[i]], type = "n", main = paste("Area",i))
+  points(ordShallow[[i]], display = "spec", cex = 1, pch=21, col="red", bg="yellow")
+  text(ordShallow[[i]], display = "sites", cex=0.7, col="blue")
+}
+
+
+#########################
+
+# 2. nMDS for Deep areas:
+
+ordDeep <- list()
+for (i in seq_along(deepByArea_nmds_list2)) {
+  ordDeep[[i]] <- metaMDS(deepByArea_nmds_list2[[i]], distance='bray', trymax=1000)
+}
+
+
+# examine Shepard's stressplots:
+# goodness-of-fit test: plots ordination distances against community dissimilarities
+par (mfrow = c(2,3), pty="m") 
+stressplotsDeep <- list()
+for (i in seq_along(ordDeep)) {
+  stressplotsDeep[[i]] <- stressplot(ordDeep[[i]], main = paste("Area",i))
+}
+
+
+# examine goodness of fit plots:
+# size represents goodness of fit (bigger = worse fit)
+par (mfrow = c(2,3), pty="m") 
+goodnessDeep <- list()
+for (i in seq_along(ordDeep)) {
+  goodnessDeep[[i]] <- plot (ordDeep[[i]], display = 'sites', type = 't', main = paste("Area",i))
+  points (ordDeep[[i]], display = 'sites', cex = goodness (ordDeep[[i]])*200)
+}
+
 
 # ordination plots:
-par (mfrow = c(3,4), pty="m") 
-plots <- list()
-for (i in seq_along(ord1)) {
-  plots[[i]] <- plot(ord1[[i]], type = "n")
-  points(ord1[[i]], display = "spec", cex = 0.8, pch=21, col="red", bg="yellow")
-  text(ord1[[i]], display = "sites", cex=0.7, col="blue")
+# NB Area 6 is total of our 5 areas
+par (mfrow = c(2,3), pty="m") 
+ordPlotsDeep <- list()
+for (i in seq_along(ordDeep)) {
+  ordPlotsDeep[[i]] <- plot(ordDeep[[i]], type = "n", main = paste("Area",i))
+  points(ordDeep[[i]], display = "spec", cex = 1, pch=21, col="red", bg="yellow")
+  text(ordDeep[[i]], display = "sites", cex=1, col="blue")
 }
