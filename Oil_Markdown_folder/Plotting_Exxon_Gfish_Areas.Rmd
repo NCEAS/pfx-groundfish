@@ -38,10 +38,9 @@ discrete_areas$Area <- factor(discrete_areas$area)
 
 ```{r, echo=FALSE}
 ak_areas <- akmap2 + 
-            geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,
-                                               color=Area)) + 
-            scale_color_manual() +
-            theme(legend.key=element_blank())
+            geom_point(data=discrete_areas, aes(LONGITUDE, LATITUDE, color=Area)) #+ 
+          #  scale_color_manual() +
+          #  theme(legend.key=element_blank())
 ak_areas
 # make "Area" numeric then use scale_color_gradient
 ```
@@ -56,8 +55,8 @@ discrete_areas_deep <- read.csv("../goaTrawl/Output Data/goa_discrete_areas_deep
 
 ```{r, echo=FALSE}
 ak_areas_deep <- akmap2 +
-                 geom_point(data=discrete_areas_deep,
-                            aes(LONGITUDE,LATITUDE,color=as.factor(Area))) +
+                 geom_point(data=discrete_areas_deep, 
+                            aes(LONGITUDE,LATITUDE, color=as.factor(Area))) +
                  # scale_color_manual() +
                  theme(legend.key=element_blank())
 ak_areas_deep

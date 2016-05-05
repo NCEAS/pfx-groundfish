@@ -264,7 +264,7 @@ Plot_area_time <-function(df,y,ylabel){
 # 
 # Look up Kristin France's paper for alpha, beta, gamma diversity and how to plot it up
 
-
+# Need to add Rao's Q Taxonomic
 
 
 **Diversity Metrics (CPUE data)**
