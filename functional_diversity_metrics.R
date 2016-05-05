@@ -339,56 +339,71 @@ ft_df <- ft_df %>% select(-Species)
 ######################################################
 
 
-# load taxonomic occurrence data:
-#URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udlVNME9rQXEwZ1k"
-#SpByArea_Get <- GET(URL_SpByArea)
-#SpByArea_1 <- content(SpByArea_Get, as='text')
-#SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(SpByArea)
-
-
-# *** Need to add new data for shallow areas (combining areas 7-9) and data for our new deep areas ***
-
-
-# load taxonomic abundance data for Shallow Areas 1-11:
-# (the following is the old data for Shallow Areas 1-11)
-URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
+# load Mean annual CPUE data for Shallow Areas:
+URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
 SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-# View(SPCPUEArea)
+#View(SPCPUEArea)
 
 
-# NB  SPCPUEArea has only 53 taxa, not 57. Which ones are missing?
-#spDiffs <- setdiff(traits_wide$Species, SPCPUEArea$Species); spDiffs
+# NB  SPCPUEArea and deepCPUE both have only 53 taxa, not 57. Which ones are missing?
+# spDiffs <- setdiff(traits_wide$Species, deepCPUE$Species); spDiffs
 # "Berryteuthis.magister"   "Hydrolagus.colliei"      "Merluccius.productus"    "Sebastes.helvomaculatus"
 
 
-
-
-
-# organize abundance data for analysis in FD package:
-unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
-sp_df <- SPCPUEArea %>%
+# organize Shallow Areas CPUE data for analysis in FD package:
+# unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
+spShallow_df <- SPCPUEArea %>%
   select(area, year, Species, Mean.totalDensity) %>%
   filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
                           "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
                           "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
-  mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
+  mutate(area = revalue(area, c("Total" = "10")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
 
-
-
-A <- sp_df %>% 
+Sh <- spShallow_df %>% 
   select(Species, area, year, Mean.totalDensity) %>%
   arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
   spread(Species, Mean.totalDensity) %>%
   select(-year)
 
-byArea_list <- split(A, f = A$area) # create a list of dataframes (one for each area; NB area 12 is Total)
+shallowByArea_list <- split(Sh, f = Sh$area) # create a list of dataframes (one for each area; NB area 10 is Total)
 
-byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+shallowByArea_list1 <- lapply(shallowByArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
+
+
+#########################
+
+
+# load mean annual CPUE for Deep areas:
+URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUE_Get <- GET(URL_deepCPUE)
+deepCPUE_1 <- content(deepCPUE_Get, as='text')
+deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUE)
+
+
+# organize Deep Areas CPUE data for analysis in FD package:
+# unique(sort(setdiff(deepCPUE$Species, ft_df$Species)))
+spDeep_df <- deepCPUE %>%
+  select(area, year, Species, Mean.totalDensity) %>%
+  filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
+                          "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
+                          "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
+  mutate(area = revalue(area, c("Total" = "6")), # recode Total for looping later
+         area = as.numeric(area)) # convert to numeric class
+
+Dp <- spDeep_df %>% 
+  select(Species, area, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+deepByArea_list <- split(Dp, f = Dp$area) # create a list of dataframes (one for each area; NB area 6 is Total)
+
+deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
 
 ######################################################
@@ -396,7 +411,7 @@ byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "yea
 ######################################################
 
 
-# Calculate Rao's Q:
+# Calculate Functional Diversity (Rao's Q)
 
 # Methods info from FD package documentation:
 # "If not all traits are numeric, Gower’s (1971) standardization by the
@@ -408,31 +423,58 @@ byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "yea
 
 # "Rao’s quadratic entropy (Q) is computed from the uncorrected species-species distance matrix via divc."
 
-# gowdis computes the Gower (1971) similarity coefficient exactly as described by Podani (1999),
+# gowdis computes the Gower (1971) similarity coefficient as described by Podani (1999),
 # then converts it to a dissimilarity coefficient by using D = 1-S
 
 
-fd <- list()
-for (i in seq_along(byArea_list1)) {
-  fd[[i]] <- dbFD(ft_df, byArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+#########################
+
+# For Shallow Areas:
+fdShallow <- list()
+for (i in seq_along(shallowByArea_list1)) {
+  fdShallow[[i]] <- dbFD(ft_df, shallowByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
 }
 # when quantitative & categorical traits are used:
 # "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
 
 
-
 # Create a table of Rao's Q values for each area, by year:
-Cols <- paste("Area", 1:12, sep="")
-Rao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 12)); colnames(Rao1) <- Cols
+colsShallow <- paste("Area", 1:10, sep="")
+shallowRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 10)); colnames(shallowRao1) <- colsShallow
 
-for (i in seq_along(fd)) {
-  Rao1[,i] <- data.frame(as.data.frame(fd[[i]]$RaoQ))
+for (i in seq_along(fdShallow)) {
+  shallowRao1[,i] <- data.frame(as.data.frame(fdShallow[[i]]$RaoQ))
 }
 
 year <- as.data.frame(unique(sort(SPCPUEArea$year))); colnames(year) <- "year"
-RaoQ <- bind_cols(year, Rao1) %>%
-  rename(Total = Area12)
-#View(RaoQ)
+shallowRaoQ <- bind_cols(year, shallowRao1) %>%
+  rename(Total = Area10)
+#View(shallowRaoQ)
+
+
+#########################
+
+# For Deep Areas:
+fdDeep <- list()
+for (i in seq_along(deepByArea_list1)) {
+  fdDeep[[i]] <- dbFD(ft_df, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+}
+# when quantitative & categorical traits are used:
+# "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
+
+
+# Create a table of Rao's Q values for each area, by year:
+colsDeep <- paste("Area", 1:6, sep="")
+deepRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 6)); colnames(deepRao1) <- colsDeep
+
+for (i in seq_along(fdDeep)) {
+  deepRao1[,i] <- data.frame(as.data.frame(fdDeep[[i]]$RaoQ))
+}
+
+year2 <- as.data.frame(unique(sort(deepCPUE$year))); colnames(year) <- "year"
+deepRaoQ <- bind_cols(year, deepRao1) %>%
+  rename(Total = Area6)
+#View(deepRaoQ)
 
 
 
@@ -442,32 +484,20 @@ RaoQ <- bind_cols(year, Rao1) %>%
 
 # Plot Rao's Q
 
-year1 <- unique(sort(SPCPUEArea$year))
 
-ggplot(data=RaoQ, aes(x=year, y = value)) + 
-  geom_point(aes(y = Area1), size=2) +
-  geom_point(aes(y = Area2), size=2) +
-  geom_point(aes(y = Area3), size=2, col=2) +
-  geom_point(aes(y = Area4), size=2, col=2) +
-  geom_point(aes(y = Area5), size=2, col=2) +
-  geom_point(aes(y = Area6), size=2) +
-  geom_point(aes(y = Area7), size=2) +
-  geom_point(aes(y = Area8), size=2) +
-  geom_point(aes(y = Area9), size=2) +
-  geom_point(aes(y = Area10), size=2) +
-  geom_point(aes(y = Area11), size=2) +
-  
-  geom_line(aes(y = Area1), size=2) +
-  geom_line(aes(y = Area2), size=2) +
-  geom_line(aes(y = Area3), size=2, col=2) +
-  geom_line(aes(y = Area4), size=2, col=2) +
-  geom_line(aes(y = Area5), size=2, col=2) +
-  geom_line(aes(y = Area6), size=2) +
-  geom_line(aes(y = Area7), size=2) +
-  geom_line(aes(y = Area8), size=2) +
-  geom_line(aes(y = Area9), size=2) +
-  geom_line(aes(y = Area10), size=2) +
-  geom_line(aes(y = Area11), size=2) +
+# 1. Shallow Areas:
+year3 <- unique(sort(SPCPUEArea$year))
+
+ggplot(data=shallowRaoQ, aes(x=year3, y = value)) + 
+  geom_point(aes(y = Area1), size=2) +         geom_line(aes(y = Area1), size=2) +
+  geom_point(aes(y = Area2), size=2) +         geom_line(aes(y = Area2), size=2) +
+  geom_point(aes(y = Area3), size=2, col=2) +  geom_line(aes(y = Area3), size=2, col=2) +
+  geom_point(aes(y = Area4), size=2, col=2) +  geom_line(aes(y = Area4), size=2, col=2) +
+  geom_point(aes(y = Area5), size=2, col=2) +  geom_line(aes(y = Area5), size=2, col=2) +
+  geom_point(aes(y = Area6), size=2) +         geom_line(aes(y = Area6), size=2) +
+  geom_point(aes(y = Area7), size=2) +         geom_line(aes(y = Area7), size=2) +
+  geom_point(aes(y = Area8), size=2) +         geom_line(aes(y = Area8), size=2) +
+  geom_point(aes(y = Area9), size=2) +         geom_line(aes(y = Area9), size=2) +
   
   theme(axis.line=element_line('black'),
         panel.grid.major = element_blank(),
@@ -476,6 +506,30 @@ ggplot(data=RaoQ, aes(x=year, y = value)) +
         panel.background = element_blank())+
   theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
   theme(axis.text.y = element_text(size=22))+
-  scale_x_continuous(breaks=c(year1), labels=c(year1)) +
-  labs(title = "Rao's Q for Shallow Areas 1-11", 
+  scale_x_continuous(breaks=c(year3), labels=c(year3)) +
+  labs(title = "Rao's Q for Shallow Areas", 
+       x = "Year", y = "Rao's Q")
+
+
+#########################
+
+# 2. Deep Areas:
+year4 <- unique(sort(deepCPUE$year))
+
+ggplot(data=deepRaoQ, aes(x=year4, y = value)) + 
+  geom_point(aes(y = Area1), size=2, col=2) +  geom_line(aes(y = Area1), size=2, col=2) +
+  geom_point(aes(y = Area2), size=2, col=2) +  geom_line(aes(y = Area2), size=2, col=2) +
+  geom_point(aes(y = Area3), size=2) +         geom_line(aes(y = Area3), size=2) +
+  geom_point(aes(y = Area4), size=2) +         geom_line(aes(y = Area4), size=2) +
+  geom_point(aes(y = Area5), size=2) +         geom_line(aes(y = Area5), size=2) +
+  
+  theme(axis.line=element_line('black'),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
+  theme(axis.text.y = element_text(size=22))+
+  scale_x_continuous(breaks=c(year4), labels=c(year4)) +
+  labs(title = "Rao's Q for Deep Areas", 
        x = "Year", y = "Rao's Q")
