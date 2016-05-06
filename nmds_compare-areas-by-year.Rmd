@@ -1,0 +1,175 @@
+---
+title: "Groundfish nMDS - Comparing Areas By Year"
+author: "Colette Ward"
+date: "May 6, 2016"
+output: pdf_document
+---
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load packages
+library(httr)
+library(vegan)
+library(plyr)
+library(dplyr)
+library(tidyr)
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prepare Mean annual CPUE data for Shallow Areas:
+URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+SPCPUEArea_Get <- GET(URL_SPCPUEArea)
+SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
+SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(SPCPUEArea)
+
+
+cpue_spread1 <- SPCPUEArea %>%
+  select(Species, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  mutate(sp1 = substr(Species, 0,1), # extract the first letter of species name string
+         sp2 = gsub(".*\\.","",Species), # remove everything before and including "."
+         sp3 = paste(sp1, sp2, sep=".")) %>% # create shorter species names for ploting
+  mutate(sp3 = gsub("D.Rockfish", "Sebastes1", sp3), 
+         sp3 = gsub("R.Rockfish", "Sebastes2", sp3),
+         sp3 = gsub("L.$", "Lepidopsetta", sp3),
+         sp3 = gsub("M.Myctophidae$", "Myctophidae", sp3)) %>%
+  select(-Species, -sp1, -sp2) %>% rename(Species = sp3) %>%
+  spread(area, Mean.totalDensity) # make each area a column
+
+shallowByYear_nmds_list <- split(cpue_spread1, f = cpue_spread1$year) # create a list of dataframes (one for each year)
+
+shallowByYear_nmds_list1 <- lapply(shallowByYear_nmds_list, function(z){ row.names(z) <- z$Species; z}) # create row names from species column
+shallowByYear_nmds_list2 <- lapply(shallowByYear_nmds_list1, function(v) v[!(names(v) %in% c("Species", "year"))]) # drop Species & year
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prepare mean annual CPUE for Deep areas:
+URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUE_Get <- GET(URL_deepCPUE)
+deepCPUE_1 <- content(deepCPUE_Get, as='text')
+deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUE)
+
+deepCPUE_spread1 <- deepCPUE %>%
+  select(Species, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  mutate(sp1 = substr(Species, 0,1),
+         sp2 = gsub(".*\\.","",Species),
+         sp3 = paste(sp1, sp2, sep=".")) %>%
+  mutate(sp3 = gsub("D.Rockfish", "Sebastes1", sp3), 
+         sp3 = gsub("R.Rockfish", "Sebastes2", sp3),
+         sp3 = gsub("L.$", "Lepidopsetta", sp3),
+         sp3 = gsub("M.Myctophidae$", "Myctophidae", sp3)) %>%
+  select(-Species, -sp1, -sp2) %>% rename(Species = sp3) %>%
+  spread(area, Mean.totalDensity) # make each area a column
+
+deepByYear_nmds_list <- split(deepCPUE_spread1, f = deepCPUE_spread1$year) # create a list of dataframes (one for each year)
+
+deepByYear_nmds_list1 <- lapply(deepByYear_nmds_list, function(z){ row.names(z) <- z$Species; z}) # create row names from species column
+deepByYear_nmds_list2 <- lapply(deepByYear_nmds_list1, function(v) v[!(names(v) %in% c("Species", "year"))]) # drop Species & year
+
+```
+
+######################################################
+######################################################
+######################################################
+
+Transformation is Wisconsin-style double transformation (normalizes taxa to % abundance, then normalizes abundances to the maximum for each species) of sqrt-transformed data.
+
+**Sorry the text is so small. It's necessary for legibility because there are so many species.** 
+**Enlarge the output pdf to see species names.**
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# nMDS for Shallow Areas:
+ordShallowYears <- list()
+for (i in seq_along(shallowByYear_nmds_list2)) {
+  ordShallowYears[[i]] <- metaMDS(shallowByYear_nmds_list2[[i]], distance='bray', trymax=1000)
+}
+
+
+# examine Shepard's stressplots:
+# goodness-of-fit test: plots ordination distances against community dissimilarities
+par (mfrow = c(3,5), pty="m") 
+stressplotsShallowYears <- list()
+for (i in seq_along(ordShallowYears)) {
+  stressplotsShallowYears[[i]] <- stressplot(ordShallowYears[[i]], main = paste("Year",i))
+}
+
+
+# examine goodness of fit plots:
+# size represents goodness of fit (bigger = worse fit)
+par (mfrow = c(2,2), pty="m") 
+goodnessShallowYears <- list()
+for (i in seq_along(ordShallowYears)) {
+  goodnessShallowYears[[i]] <- plot (ordShallowYears[[i]], display = 'spec', type = 't', main = paste("Year",i))
+  points (ordShallowYears[[i]], display = 'spec', cex = goodness (ordShallowYears[[i]])*200)
+}
+
+```
+
+#Shallow areas
+Red text = our 9 areas.
+
+```{r, echo=FALSE}
+# Ordination plots:
+yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015")
+par(mfrow = c(2,2), mar=c(2,2,2,2))
+ordPlotsShallowYears <- list()
+for (i in seq_along(ordShallowYears)) {
+  ordPlotsShallowYears[[i]] <- plot(ordShallowYears[[i]], type = "n", main = paste("Shallow", yr[i]))
+  text(ordShallowYears[[i]], display = "spec", cex = 1.3, col="red")
+  text(ordShallowYears[[i]], display = "sites", cex = 0.3, col="blue")
+  }
+```
+
+***
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# nMDS for Deep Areas:
+ordDeepYears <- list()
+for (i in seq_along(deepByYear_nmds_list2)) {
+  ordDeepYears[[i]] <- metaMDS(deepByYear_nmds_list2[[i]], distance='bray', trymax=1000)
+}
+
+
+# examine Shepard's stressplots:
+# goodness-of-fit test: plots ordination distances against community dissimilarities
+par (mfrow = c(3,5), pty="m") 
+stressplotsDeepYears <- list()
+for (i in seq_along(ordDeepYears)) {
+  stressplotsDeepYears[[i]] <- stressplot(ordDeepYears[[i]], main = paste("Year",i))
+}
+
+
+# examine goodness of fit plots:
+# size represents goodness of fit (bigger = worse fit)
+par (mfrow = c(2,2), pty="m") 
+goodnessDeepYears <- list()
+for (i in seq_along(ordDeepYears)) {
+  goodnessDeepYears[[i]] <- plot (ordDeepYears[[i]], display = 'spec', type = 't', main = paste("Year",i))
+  points (ordDeepYears[[i]], display = 'spec', cex = goodness (ordDeepYears[[i]])*200)
+}
+
+```
+
+#Deep areas
+Red text = our 9 areas.
+
+```{r, echo=FALSE}
+# Ordination plots:
+yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015")
+par(mfrow = c(2,2), mar=c(2,2,2,2))
+ordPlotsDeepYears <- list()
+for (i in seq_along(ordDeepYears)) {
+  ordPlotsDeepYears[[i]] <- plot(ordDeepYears[[i]], type = "n", main = paste("Deep", yr[i]))
+  text(ordDeepYears[[i]], display = "spec", cex = 1.3, col="red")
+  text(ordDeepYears[[i]], display = "sites", cex = 0.3, col="blue")
+}
+
+```

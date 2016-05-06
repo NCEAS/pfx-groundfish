@@ -1,5 +1,5 @@
 ---
-title: "Groundfish nMDS"
+title: "Groundfish nMDS - Comparine Years by Area"
 author: "Colette Ward"
 date: "May 5, 2016"
 output: pdf_document
