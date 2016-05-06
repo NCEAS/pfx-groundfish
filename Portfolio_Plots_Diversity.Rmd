@@ -259,9 +259,7 @@ Plot_area_time <-function(df,y,ylabel){
 ```
 
 
-# Need to bootstrap the individual species means per area per year to get a variance
-# to include in the diversity calculations - then re-do the diversity calculations
-# 
+
 # Look up Kristin France's paper for alpha, beta, gamma diversity and how to plot it up
 
 # Need to add Rao's Q Taxonomic
@@ -597,6 +595,15 @@ space_plot(df=dat.2,NAME="Species Richness")
 
 ```
 
+
+```{r, echo=FALSE}
+source("./RaoQ_Taxonomic.R")
+
+str(RaoJost)
+names(RaoJost$`1984`$TD)
+names(RaoJost$`2015`$TD)
+
+```
 
 
 
