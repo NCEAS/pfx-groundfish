@@ -9,17 +9,25 @@ output:
 ---
 
 ###Introduction
-The processes underlying species co-existence remain one of the more fascinating questions of ecological study.  While numerous theories have been advanced to explain species co-existence, no single unifying construct seems adequate to explain observed patterns of co-existence (Wilson 2011). Most studies of co-existence occur in terrestrial systems where factors governing co-existence could be carefully controlled and monitored with numerous opportunities for Before-After-Control-Impact studies.  In aquatic systems identifying opportunities for comparative studies is more difficult (Smith et al. 1993).  Therefore there is a paucity of literature on co-existence in ocean settings.  
 
-The portfolio effect, which is essentially statistical averaging, is one explanation for stability in multi-species communities.  This effect occurs when species have asynchronous responses to environmental perturbations, but when summed across the community the responses average out statistically leading to increased stability with increased diversity (Cotthingham et al 2001, Doak et al 1998).  This effect can be conveyed through the mechanisms of species' intrinsic responses, the speed of those responses, and a reduction in interspecific competition (Yachi & Loreau 1999, Loreau & de Mazancourt 2013).    
+The effects of community diversity on ecosystem stability and the mechanisms structuring communities remain important topics of ecological study. The insurance hypothesis (Yachi & Loreau 1999)...led to the description of the portfolio effect.    
 
-Recent literature has suggested that redundancy within marine ecosystems can lead to improved stability within ecosystems through alternative pathways for stability (Schindler et al. 2015; Schindler et al. 2010).  The constructs of the portfolio concept intersect with species co-existence through the attributes of redundancy, structure, and the interaction terms.  If these concepts do have a stabilizing effect, we hypothesize that portfolios would be preserved across space (ecoregions) within large marine ecosystems that have similar large scale environmental forcing.  We further hypothesize that if portfolios are preserved across space within large marine ecosystems (LMEs) with similar environmental exposure, then similar suites of species would be found within ecoregions. 
+The portfolio effect, essentially statistical averaging, is one explanation for stability in multi-species communities.  This effect occurs when species have asynchronous responses to environmental perturbations, but when summed across the community the responses average out statistically leading to increased stability with increased diversity (Cotthingham et al 2001, Doak et al 1998).  This effect can be conveyed through the mechanisms of species' intrinsic responses, the speed of those responses, and a reduction in interspecific competition (Yachi & Loreau 1999, Loreau & de Mazancourt 2013).      
 
-Boreal marine systems such as the Gulf of Alaska (GOA) experience high levels of seasonal, interannual, decadal and multi-decadal variability which in turn impact marine species (Anderson and Piatt 1999; Hare and Mantua 2000; Hollowed et al. 2001; Stachura et al. 2014).  These climate driven perturbations create states of non-equilibrium at multiple spatial scales.  The Gulf of Alaska provides an excellent region to examine processes governing co-existence and the portfolio effect.  The region exhibits complex topography being punctuated by submarine troughs and canyons which act to steer currents (Lagerloef 1983).  Previous studies have utilized this complex topography to for natural experiments based on the comparison of responses of selected fish species to natural or anthropogenic disturbance (Hollowed et al. 2007; Logerwell et al. 2007; Walline et al. 2012). 
+While numerous theories have been advanced to explain patterns of community composition, no single unifying construct seems adequate to explain observed patterns species co-existence (Wilson 2011). Much of the previous work on mechanisms governing community composition occurred in terrestrial systems where factors governing species co-existence could be carefully controlled, monitored, and compared. In marine systems identifying opportunities for comparative studies is more difficult  and thus there are fewer studies comparing patterns and mechanisms of differences in community composition in the oceans (Smith et al. 1993).  
 
-Previous studies have demonstrated that food-webs in the GOA are dominated by short interaction chains with a select group of nodal species (Gaichas and Francis 2008) suggesting that shifts in environmental conditions could be detected relatively quickly. These features of frequent environmental perturbation and short interaction chains that depend on a descrete suite of nodal species makes this region particularly interesting for an investigation the emergent properties of ecosystem change in response to disturbance.  
 
-We focused our study on examining the portfolio effect on ecosystem responses to natural (e.g., regime shifts (Anderson and Piatt 1999)) and anthropogenic (e.g., the Exxon Valdez Oil Spill (Incardona et al. 2015)) environmental perturbations.  We tested species responses through time, and functional complementarity, two mechanisms of the portfolio effect (Loreau & de Mazancourt 2013).  
+
+Recent studies have suggested that response redundancy can lead to improved stability of ecosystem functions within marine ecosystems ?????through alternative pathways for stability (Schindler et al. 2015; Schindler et al. 2010)?????.  
+
+
+
+The constructs of the portfolio concept intersect with species co-existence through the attributes of redundancy, structure, and the interaction terms.  If these concepts do have a stabilizing effect, we hypothesize that portfolios would be preserved across space (ecoregions) within large marine ecosystems that have similar large scale environmental forcing.  We further hypothesize that if portfolios are preserved across space within large marine ecosystems (LMEs) with similar environmental exposure, then similar suites of species would be found within ecoregions. 
+
+Boreal marine systems such as the Gulf of Alaska (GOA) experience high levels of seasonal, interannual, decadal and multi-decadal variability which in turn impact marine species (Anderson and Piatt 1999; Hare and Mantua 2000; Hollowed et al. 2001; Stachura et al. 2014).  These climate driven perturbations create states of non-equilibrium at multiple spatial scales.  The Gulf of Alaska provides an excellent region to examine mechanisms governing community composition and the portfolio effect.  The region exhibits complex topography being punctuated by submarine troughs and canyons which act to steer currents (Lagerloef 1983).  Previous studies have utilized this complex topography for natural experiments based on the comparison of responses of selected fish species to natural or anthropogenic disturbance (Hollowed et al. 2007; Logerwell et al. 2007; Walline et al. 2012). 
+
+
+We focused our study on examining the portfolio effect on ecosystem responses to natural (e.g., regime shifts (Anderson and Piatt 1999)) and anthropogenic (e.g., the Exxon Valdez Oil Spill (Incardona et al. 2015)) environmental perturbations.  We tested species responses through time and functional complementarity, two mechanisms of the portfolio effect (Loreau & de Mazancourt 2013).  
 
 We also reviewed three of the most promising of the 12 hypotheses governing species co-existence which were reviewed by Wilson (2011):
 
@@ -40,11 +48,22 @@ Survey data were smoothed using a geostatistical model developed by (Ono et al. 
 
 The estimated range at which the spatial correlation in the spatial field falls to 0.05 after accounting for depth ranged from 10km – 500km with most species exhibiting a range of 65km.  Species with higher frequencies of occurrence tended to have lower spatial ranges with the dominant species (cod, halibut, sablefish, and pollock) being less than 60km.  Area expansions derived from the model were used to estimate abundance for each of the 9 sub-regions.  Some information is shared between regions due to the the spatial range of correlations, however in most species/region cases the distances between the 9 regions exceeded the species range.  For each of the nine regions the mean and variance of biomass by species was calculated.  It should be noted that the species exhibit different vulnerability to the survey trawl.  Thus, all results reflect the demersal shelf fish community.
 
-Alpha (within sub-region) and beta (across sub-regions) components of species diversity were estimated based on (Jost 2007).  Components of species diversity were derived from estimated mean biomass for each species within a region.  To correct for uncertainty in regional abundance we resampled the expected distribution of species within each region 1000 times using bootstrap methods. 
+Alpha (within sub-region) and beta (across sub-regions) components of species diversity were estimated based on (Jost 2007). Components of species diversity were derived from estimated mean biomass for each species within a region.  To correct for uncertainty in regional abundance we resampled the expected distribution of species within each region 1000 times using bootstrap methods. 
 
 To evaluate regional differences in ecosystem structure we partitioned the predicted mean biomass for a given species into functional groups using based on the NMFS food-habits database (xxxx).  For each ecoregion the mean density for each region was plotted and the biomass in each trophic guild was estimated (Table 2, Figure 2) for the entire time series 1984 – present.  
 
 ### Results
+
+Figures should include: 
+Map of shallow and deep study areas overlaid with EVOS slick
+Response of species through time to events, 
+      response of the community(ies) through time to events (Biomass)    
+Mean alpha diversity boxplots across years between areas  
+Mean beta diversity boxplots across year between areas 
+NMDS for community composition between areas  
+Functional complementarity figure  
+
+
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load all necessary packages
 library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ; 
@@ -605,30 +624,6 @@ Bdiv_dp <- Plot_area_time(df=Div_SpCPUEDeep, y=Div_SpCPUEDeep$Exp_B_Div,
 Bdiv_dp
 ```
 
-
-```{r, fig.cap="Time series of Gamma diversity for shallow areas (50-150m).",echo=FALSE, fig.height=4, fig.width=7}
-#Gamma diversity Shallow Areas:
-Gdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_G_Div)) + geom_line(size=1, color="blue") + 
-        geom_vline(aes(xintercept=1989), colour="black", linetype="dashed") +
-        scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
-        ylab("Gamma Diversity-Shallow Areas") +
-        theme(panel.grid=element_blank(),
-              legend.key=element_blank())
-Gdiv
-```
-
-
-```{r, fig.cap="Time series of Gamma diversity for deep areas (>150-300m).",echo=FALSE, fig.height=4, fig.width=7}
-#Gamma Diversity Deep Areas:
-Gdiv <- ggplot(Div_SpCPUEDeep, aes(Year, Exp_G_Div)) + 
-        geom_line(size=1, color="blue") + 
-        geom_vline(aes(xintercept=1989), colour="black", linetype="dashed") +
-        scale_x_continuous(breaks=pretty_breaks(n=15)) + theme_bw() +
-        ylab("Gamma Diversity-Deep Areas") +
-        theme(panel.grid=element_blank(),
-              legend.key=element_blank())
-Gdiv
-```
 
 
 ```{r, echo=FALSE}
