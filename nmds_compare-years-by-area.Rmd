@@ -1,5 +1,5 @@
 ---
-title: "Groundfish nMDS - Comparine Years by Area"
+title: "Groundfish multivariate analyses - Compare Years by Area"
 author: "Colette Ward"
 date: "May 5, 2016"
 output: pdf_document
@@ -16,67 +16,74 @@ library(tidyr)
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prep look-up table of common names
+URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
+common_Get <- GET(URL_common)
+common_1 <- content(common_Get, as='text')
+common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+
+common1 <- common %>%
+  select(database.name, common.name) %>%
+  rename(Species = database.name)
+for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
+  if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
+  if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
+}
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prepare Mean annual CPUE data for Shallow Areas:
-URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
-SPCPUEArea_Get <- GET(URL_SPCPUEArea)
-SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
-SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(SPCPUEArea)
+URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
+shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
+shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(shallowCPUEArea)
 
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
 
-cpue_spread <- SPCPUEArea %>%
-  select(Species, Mean.totalDensity, area, year) %>%
-  mutate(sp1 = substr(Species, 0,1), # extract the first letter of species name string
-         sp2 = gsub(".*\\.","",Species), # remove everything before and including "."
-         sp3 = paste(sp1, sp2, sep=".")) %>% # create shorter species names for ploting
-  mutate(sp3 = gsub("D.Rockfish", "Sebastes1", sp3), 
-         sp3 = gsub("R.Rockfish", "Sebastes2", sp3),
-         sp3 = gsub("L.$", "Lepidopsetta", sp3),
-         sp3 = gsub("M.Myctophidae$", "Myctophidae", sp3)) %>%
-  select(-Species, -sp1, -sp2) %>% rename(Species = sp3) %>%
-  spread(Species, Mean.totalDensity) %>% # make each species a column
+shallowCPUE_spread <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  spread(common.name, Mean.totalDensity) %>% # make each species a column
   mutate(area = revalue(area, c("Total" = "10")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
 
-shallowByArea_nmds_list <- split(cpue_spread, f = cpue_spread$area) # create a list of dataframes (one for each area; NB area 10 is Total)
+shallowByArea_list <- split(shallowCPUE_spread, f = shallowCPUE_spread$area) # create a list of dataframes (one for each area; NB area 10 is Total)
 
-shallowByArea_nmds_list1 <- lapply(shallowByArea_nmds_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
-shallowByArea_nmds_list2 <- lapply(shallowByArea_nmds_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+shallowByArea_list1 <- lapply(shallowByArea_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
+shallowByArea_list2 <- lapply(shallowByArea_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
 ```
+
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prepare mean annual CPUE for Deep areas:
-URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
-deepCPUE_Get <- GET(URL_deepCPUE)
-deepCPUE_1 <- content(deepCPUE_Get, as='text')
-deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
-#View(deepCPUE)
+URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUEArea_Get <- GET(URL_deepCPUEArea)
+deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
+deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUEArea)
 
-deepCPUE_spread <- deepCPUE %>%
-  select(Species, Mean.totalDensity, area, year) %>%
-  mutate(sp1 = substr(Species, 0,1),
-         sp2 = gsub(".*\\.","",Species),
-         sp3 = paste(sp1, sp2, sep=".")) %>%
-  mutate(sp3 = gsub("D.Rockfish", "Sebastes1", sp3), 
-         sp3 = gsub("R.Rockfish", "Sebastes2", sp3),
-         sp3 = gsub("L.$", "Lepidopsetta", sp3),
-         sp3 = gsub("M.Myctophidae$", "Myctophidae", sp3)) %>%
-  select(-Species, -sp1, -sp2) %>% rename(Species = sp3) %>%
-  spread(Species, Mean.totalDensity) %>% # make each species a column
-  mutate(area = revalue(area, c("Total" = "6")), # recode Total for looping later
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+
+deepCPUE_spread <- deepCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  spread(common.name, Mean.totalDensity) %>% # make each species a column
+  mutate(area = revalue(area, c("Total" = "10")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
 
-deepByArea_nmds_list <- split(deepCPUE_spread, f = deepCPUE_spread$area) # create a list of dataframes (one for each area; NB area 6 is Total)
+deepByArea_list <- split(deepCPUE_spread, f = deepCPUE_spread$area) # create a list of dataframes (one for each area; NB area 10 is Total)
 
-deepByArea_nmds_list1 <- lapply(deepByArea_nmds_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
-deepByArea_nmds_list2 <- lapply(deepByArea_nmds_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+deepByArea_list1 <- lapply(deepByArea_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
+deepByArea_list2 <- lapply(deepByArea_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
 ```
 
 ######################################################
 ######################################################
 ######################################################
+
+1. nMDS
 
 Transformation is Wisconsin-style double transformation (normalizes taxa to % abundance, then normalizes abundances to the maximum for each species) of sqrt-transformed data.
 
@@ -88,8 +95,8 @@ Enlarge the output pdf to see species names.
 
 # nMDS for Shallow Areas:
 ordShallow <- list()
-for (i in seq_along(shallowByArea_nmds_list2)) {
-  ordShallow[[i]] <- metaMDS(shallowByArea_nmds_list2[[i]], distance='bray', trymax=1000)
+for (i in seq_along(shallowByArea_list2)) {
+  ordShallow[[i]] <- metaMDS(shallowByArea_list2[[i]], distance='bray', trymax=1000)
 }
 
 
@@ -134,8 +141,8 @@ for (i in seq_along(ordShallow)) {
 
 # nMDS for Deep Areas:
 ordDeep <- list()
-for (i in seq_along(deepByArea_nmds_list2)) {
-  ordDeep[[i]] <- metaMDS(deepByArea_nmds_list2[[i]], distance='bray', trymax=1000)
+for (i in seq_along(deepByArea_list2)) {
+  ordDeep[[i]] <- metaMDS(deepByArea_list2[[i]], distance='bray', trymax=1000)
 }
 
 
@@ -156,7 +163,6 @@ for (i in seq_along(ordDeep)) {
   goodnessDeep[[i]] <- plot (ordDeep[[i]], display = 'sites', type = 't', main = paste("Area",i))
   points (ordDeep[[i]], display = 'sites', cex = goodness (ordDeep[[i]])*200)
 }
-
 ```
 
 #Deep areas
@@ -172,5 +178,58 @@ for (i in seq_along(ordDeep)) {
   text(ordDeep[[i]], display = "spec", cex = 0.25, col="red")
   text(ordDeep[[i]], display = "sites", cex=0.7, col="blue")
 }
+```
 
+
+######################################################
+######################################################
+######################################################
+
+2. PCA
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# PCA for shallow areas
+pcaShallow <- list()
+for (i in seq_along(shallowByArea_list2)) {
+  pcaShallow[[i]] <- rda(shallowByArea_list2[[i]], scale = TRUE)
+}
+
+```
+
+#Shallow areas
+Area 10 is Total
+
+```{r, echo=FALSE}
+
+# Ordination plots:
+par(mfrow = c(2,2), mar=c(2,2,2,2))
+pcaShallow1 <- list()
+for (i in seq_along(pcaShallow)) {
+  pcaShallow1[[i]] <- plot(pcaShallow[[i]], scaling = 3, main = paste("Shallow Area",i))
+}
+```
+
+***
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# PCA for deep areas
+pcaDeep <- list()
+for (i in seq_along(deepByArea_list2)) {
+  pcaDeep[[i]] <- rda(deepByArea_list2[[i]], scale = TRUE)
+}
+```
+
+#Deep areas
+Area 6 is Total
+
+```{r, echo=FALSE}
+
+# Ordination plots:
+par(mfrow = c(2,2), mar=c(2,2,2,2))
+pcaDeep1 <- list()
+for (i in seq_along(pcaDeep)) {
+  pcaDeep1[[i]] <- plot(pcaDeep[[i]], scaling = 3, main = paste("Deep Area",i))
+}
 ```
