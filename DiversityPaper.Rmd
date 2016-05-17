@@ -1,5 +1,5 @@
 ---
-title: "Diversity Paper Preliminary Results"
+title: "Diversity Paper: THIS NEEDS A CATCHY TITLE!"
 date: "May 3, 2016"
 output:
   pdf_document: 
@@ -14,7 +14,7 @@ The effects of community diversity on ecosystem stability and the mechanisms str
 
 The portfolio effect, essentially statistical averaging, is one explanation for stability in multi-species communities.  This effect occurs when species have asynchronous responses to environmental perturbations, but when summed across the community the responses average out statistically leading to increased stability with increased diversity (Cotthingham et al 2001, Doak et al 1998).  This effect can be conveyed through the mechanisms of species' intrinsic responses, the speed of those responses, and a reduction in interspecific competition (Yachi & Loreau 1999, Loreau & de Mazancourt 2013).      
 
-While numerous theories have been advanced to explain patterns of community composition, no single unifying construct seems adequate to explain observed patterns species co-existence (Wilson 2011). Much of the previous work on mechanisms governing community composition occurred in terrestrial systems where factors governing species co-existence could be carefully controlled, monitored, and compared. In marine systems identifying opportunities for comparative studies is more difficult  and thus there are fewer studies comparing patterns and mechanisms of differences in community composition in the oceans (Smith et al. 1993).  
+While numerous theories have been advanced to explain patterns of community composition, no single unifying construct seems adequate to explain observed patterns of species co-existence (Wilson 2011). Much of the previous work on mechanisms governing community composition occurred in terrestrial systems where factors governing species co-existence could be carefully controlled, monitored, and compared. In marine systems identifying opportunities for comparative studies is more difficult  and thus there are fewer studies comparing patterns and mechanisms of differences in community composition in the oceans (Smith et al. 1993).  
 
 
 
@@ -24,10 +24,9 @@ Recent studies have suggested that response redundancy can lead to improved stab
 
 The constructs of the portfolio concept intersect with species co-existence through the attributes of redundancy, structure, and the interaction terms.  If these concepts do have a stabilizing effect, we hypothesize that portfolios would be preserved across space (ecoregions) within large marine ecosystems that have similar large scale environmental forcing.  We further hypothesize that if portfolios are preserved across space within large marine ecosystems (LMEs) with similar environmental exposure, then similar suites of species would be found within ecoregions. 
 
-Boreal marine systems such as the Gulf of Alaska (GOA) experience high levels of seasonal, interannual, decadal and multi-decadal variability which in turn impact marine species (Anderson and Piatt 1999; Hare and Mantua 2000; Hollowed et al. 2001; Stachura et al. 2014).  These climate driven perturbations create states of non-equilibrium at multiple spatial scales.  The Gulf of Alaska provides an excellent region to examine mechanisms governing community composition and the portfolio effect.  The region exhibits complex topography being punctuated by submarine troughs and canyons which act to steer currents (Lagerloef 1983).  Previous studies have utilized this complex topography for natural experiments based on the comparison of responses of selected fish species to natural or anthropogenic disturbance (Hollowed et al. 2007; Logerwell et al. 2007; Walline et al. 2012). 
+Boreal marine systems such as the Gulf of Alaska (GOA) experience high levels of seasonal, interannual, decadal and multi-decadal variability which in turn impact marine species (Anderson and Piatt 1999; Hare and Mantua 2000; Hollowed et al. 2001; Stachura et al. 2014).  These climate driven perturbations create states of non-equilibrium at multiple spatial scales.  The GOA provides an excellent region to examine mechanisms governing community composition and the portfolio effect.  The region exhibits complex topography being punctuated by submarine troughs and canyons which act to steer currents (Lagerloef 1983).  Previous studies have utilized this complex topography for natural experiments based on the comparison of responses of selected fish species to natural or anthropogenic disturbance (Hollowed et al. 2007; Logerwell et al. 2007; Walline et al. 2012). 
 
-
-We focused our study on examining the portfolio effect on ecosystem responses to natural (e.g., regime shifts (Anderson and Piatt 1999)) and anthropogenic (e.g., the Exxon Valdez Oil Spill (Incardona et al. 2015)) environmental perturbations.  We tested species responses through time and functional complementarity, two mechanisms of the portfolio effect (Loreau & de Mazancourt 2013).  
+We focused our study on examining the portfolio effect on ecosystem responses to natural (e.g., regime shifts (Anderson and Piatt 1999)) and anthropogenic (e.g., the Exxon Valdez Oil Spill (EVOS) (Incardona et al. 2015)) environmental perturbations.  We tested species responses through time and functional complementarity, two mechanisms of the portfolio effect (Loreau & de Mazancourt 2013).  
 
 We also reviewed three of the most promising of the 12 hypotheses governing species co-existence which were reviewed by Wilson (2011):
 
@@ -35,33 +34,59 @@ We also reviewed three of the most promising of the 12 hypotheses governing spec
 2. Environmental fluctuation – stabilizing [ via relative non-linearity and/or the storage effect see (Chesson 2004)]
 3. Allogenic disturbance – stabilizing [intermediate disturbance; although climate variability occurs on large spatial scales, fishing occurs at intermediate scales, therefore this hypothesis is retained here]
 
-We then extended single species studies to explore the evidence for community stability and commonality in regional species portfolios as measured by common members of species complexes, trophic stability (common proportional density of foraging guilds) and stability in species diversity.  It is unclear which of the potential ecosystem disturbances: environmental variability, fishing, and predation (Gaichas et al. 2011).  We expect that explorations of these relationships on a regional basis will elucidate key processes underlying GOA ecosystems.   
+We then extended single species studies to explore the evidence for community stability and commonality in regional species portfolios as measured by common members of species complexes, and stability in species diversity.  It is unclear which of the potential ecosystem disturbances: environmental variability, fishing, and predation (Gaichas et al. 2011).  We expect that explorations of these relationships on a regional basis will elucidate key processes underlying GOA ecosystems.   
 
 ### Methods
-The shelf region of the Gulf of Alaska was divided into 9 sub-regions (Figure 1).  Each region represented an area ranging in size from xxx – yyy km2.  For reference, the states of Rhode Island and Deleware are 3,140 km2 and 6,452 km2 respectively.  The mean depth and bottom temperature of each region is shown in Table 1.  
+# Trawl Survey
+Since 1984, the Alaska Fisheries Science Center (AFSC) has conducted comprehensive bottom trawl surveys in the GOA to monitor trends in the distribution and abundance of groundfish populations. The full survey area includes the continental shelf and upper continental slope (to 1,000 m depth) in the GOA and extends from the Islands of Four Mountains (170° W) 2,300 km east to Dixon Entrance (54° N). The AFSC contracts 3 commercial trawlers during May–August and samples the standard 320,000 km2 survey area with approximately 820 survey stations. The catch data result in observations of catch-per-unit-area which are averaged and expanded by survey area to estimate the relative abundance of important groundfish species.  This multi-species survey is based upon a stratified-random design and the area-swept method of estimating abundance (von Szalay et al. 2010 ). 
 
-NMFS bottom trawl data were used in this analysis.  Since 1984, the Alaska Fisheries Science Center (AFSC) has conducted comprehensive bottom trawl surveys in the GOA to monitor trends in the distribution and abundance of groundfish populations. The full survey area includes the continental shelf and upper continental slope (to 1,000 m depth) in the GOA and extends from the Islands of Four Mountains (170° W) 2,300 km east to Dixon Entrance (54° N). The AFSC contracts 3 commercial trawlers during May–August and samples the standard 320,000 km2 survey area with approximately 820 survey stations. The catch data result in observations of catch-per-unit-area which are averaged and expanded by survey area to estimate the relative abundance of important groundfish species.  This multi-species survey is based upon a stratified-random design and the area-swept method of estimating abundance (von Szalay et al. 2010 ). The net is a four-seam, high-opening Poly Nor’Eastern trawl featuring a 27.2 m headrope and a 36.7m footrope equipped with rubber bobbin roller gear.
+The net used in this survey is a four-seam, high-opening Poly Nor’Eastern trawl featuring a 27.2 m headrope and a 36.7 m footrope equipped with rubber bobbin roller gear. The net is deployed from the vessel while the vessel steams ahead at 3 knots.  Once on the seafloor, the net is towed for 30 minutes (prior to 1992) or 15 minutes (1992 - present).  In most years the net was equipped with a bottom contact sensor on the footrope, and a Seabird SBE-39 bathythermograph on the headrope. The catch was processed by the scientific crew who identified all living organisms, weighed and counted the catch of each species, and took biological samples (lengths, otoliths, and specially requested tissues) from key groundfish species or other species of interest. 
 
-The net is deployed from the vessel while the vessel steams ahead at 3 knots.  Once on the seafloor, the net is towed for 30 minutes prior to 1992 and 15 minutes thereafter.  In most years the net was equipped with a bottom contact sensor on the footrope, a Seabird SBE-39 bathythermograph on the headrope. The catch was processed by the scientific crew who identified all living organisms, weighed and counted the catch of each species, and took biological samples (lengths, otoliths, and specially requested tissues) from key groundfish species or other species of interest. 
+# Study Areas
+We mapped the areas covered by the trawl survey data as well as the extent of the EVOS over the shelf region of the central GOA.  We then selected study areas on the shelf across a gradient of oil exposure and based on bottom depth: 9 contiguous areas of depth 50 - 150 m, 5 contiguous areas of 151 - 300 m (Figure 1).  Study areas ranged in size from xxx – yyy km2, and were located from XXXX degrees W to XXXXX degrees W.  This provided us with study areas that were East of the spill and did not receive oil, at the same longitude as the spill and likely were oiled, and areas West of the spill extent that were also likely unoiled.  
 
-Survey data were smoothed using a geostatistical model developed by (Ono et al. 2015; Shelton et al. 2014).  The model treated year and depth as fixed effects on CPUE.  Most groundfish exhibit spatial partitions related to depth ().  In addition many groundfish also exhibit notable ontogenetic shifts in depth (Figure xx).  Including depth as a fixed effect corrects for species specific affinities for a given depth range.  To correct for ontogenetic shifts in depth, the depth and temperature distributions were examined by length category for species that had continuous time series of length measurements.  In cases where marked spatial shifts due to size were observed, the data were further partitioned into young (small) and adult (larger) size groups.  
+# Modeling
+AFSC survey data were smoothed using a geostatistical model developed by (Ono et al. 2015; Shelton et al. 2014).  The model treated year and depth as fixed effects on CPUE.  Most groundfish exhibit spatial partitions related to depth (CITATION NEEDED).  In addition many groundfish also exhibit notable ontogenetic shifts in depth (CITATION).  Including depth as a fixed effect corrects for species specific affinities for a given depth range.  To correct for ontogenetic shifts in depth, the depth and temperature distributions were examined by length category for species that had continuous time series of length measurements.    
 
 The estimated range at which the spatial correlation in the spatial field falls to 0.05 after accounting for depth ranged from 10km – 500km with most species exhibiting a range of 65km.  Species with higher frequencies of occurrence tended to have lower spatial ranges with the dominant species (cod, halibut, sablefish, and pollock) being less than 60km.  Area expansions derived from the model were used to estimate abundance for each of the 9 sub-regions.  Some information is shared between regions due to the the spatial range of correlations, however in most species/region cases the distances between the 9 regions exceeded the species range.  For each of the nine regions the mean and variance of biomass by species was calculated.  It should be noted that the species exhibit different vulnerability to the survey trawl.  Thus, all results reflect the demersal shelf fish community.
 
-Alpha (within sub-region) and beta (across sub-regions) components of species diversity were estimated based on (Jost 2007). Components of species diversity were derived from estimated mean biomass for each species within a region.  To correct for uncertainty in regional abundance we resampled the expected distribution of species within each region 1000 times using bootstrap methods. 
+# Statistical Analysis
+Stability = temporal stability in this case. Stability over the 32 years of the study. 
+
+Alpha (within study area) and beta (between study areas) components of diversity were estimated based on (Jost 2007). Components of species diversity were derived from estimated mean biomass for each species within a region.  To correct for uncertainty in regional abundance we resampled the expected distribution of species within each region 1000 times using bootstrap methods. 
 
 To evaluate regional differences in ecosystem structure we partitioned the predicted mean biomass for a given species into functional groups using based on the NMFS food-habits database (xxxx).  For each ecoregion the mean density for each region was plotted and the biomass in each trophic guild was estimated (Table 2, Figure 2) for the entire time series 1984 – present.  
 
-### Results
 
-Figures should include: 
-Map of shallow and deep study areas overlaid with EVOS slick
-Response of species through time to events, 
+### Results
+# Environmental Conditions and species/community responses across study areas and through time: 
+The mean depth and bottom temperature of each region is shown in Table 1.  
+EVOS extent (cite Figure 1, the map).
+Other larger perturbations, regime shifts, etc, during the study time (1984 - 2015).
+Response of species and communities (cite Figure 2).
+
+# Diversity within and between study areas (both species and functional diversity/complementarity)
+Alpha diversity for shallow and deep (cite Figure 3).
+Beta diversity for shallow and deep (cite Figure 4).
+Functional diversity for shallow and deep (cite Figure 5).  
+
+# Community composition
+Compare composition between all shallow areas and all deep areas (over time?) (cite Figure 6).  
+
+
+
+# Figures: 
+1: Map of shallow and deep study areas overlaid with EVOS slick
+2: Response of species through time to events, 
       response of the community(ies) through time to events (Biomass)    
-Mean alpha diversity boxplots across years between areas  
-Mean beta diversity boxplots across year between areas 
-NMDS for community composition between areas  
-Functional complementarity figure  
+3: Mean alpha diversity boxplots across years between areas  
+4: Mean beta diversity boxplots across year between areas 
+5: Functional complementarity figure  
+6: NMDS for community composition between areas  
+
+
+# Tables:
+1: Bottom depths and temperatures for each area  
 
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
@@ -346,7 +371,7 @@ Plot_area_time <-function(df,y,ylabel){
 ```
 
 ```{r, echo=FALSE, include=FALSE}
-## Data for 9 deep areas
+## Data for 9 shallow areas
 Div.Metrics<-read.csv("DiversityMetrics.Shallow.Bootstrapped.csv")
 Div.Metrics<-Div.Metrics[Div.Metrics$AREA!=10,]
 Sp.Richness<-read.csv("Sp.Richness.Shallow.Bootstrapped.csv")
@@ -745,6 +770,13 @@ dat.2 <- vals
 
 space_plot(df=dat.2,NAME="Species Richness")
 ```
+
+\pagebreak
+
+### Discussion 
+1) EVOS magnitude vs. magnitude of other perturbations
+2) EVOS in the context of other perturbations (climate change, etc)
+
 
 \pagebreak
 
