@@ -8,9 +8,9 @@ output:
   fig_caption: true
 ---
 
-###Introduction
+##Introduction
 
-The effects of community diversity on ecosystem stability and the mechanisms structuring communities remain important topics of ecological study. The insurance hypothesis (Yachi & Loreau 1999)...led to the description of the portfolio effect.    
+The effects of community diversity on ecosystem stability and the mechanisms structuring communities remain important topics of ecological study. The insurance hypothesis (Yachi & Loreau 1999) states that ...must set up the diversity - stability thing here......led to the description of the portfolio effect.    
 
 The portfolio effect, essentially statistical averaging, is one explanation for stability in multi-species communities.  This effect occurs when species have asynchronous responses to environmental perturbations, but when summed across the community the responses average out statistically leading to increased stability with increased diversity (Cotthingham et al 2001, Doak et al 1998).  This effect can be conveyed through the mechanisms of species' intrinsic responses, the speed of those responses, and a reduction in interspecific competition (Yachi & Loreau 1999, Loreau & de Mazancourt 2013).      
 
@@ -18,11 +18,11 @@ While numerous theories have been advanced to explain patterns of community comp
 
 
 
-Recent studies have suggested that response redundancy can lead to improved stability of ecosystem functions within marine ecosystems ?????through alternative pathways for stability (Schindler et al. 2015; Schindler et al. 2010)?????.  
+Recent studies have suggested that response redundancy can lead to improved stability of ecosystem functions within marine ecosystems ?????through alternative pathways for stability (Schindler et al. 2015; Schindler et al. 2010)?????.
+
+The mechanisms underlying the portfolio effect intersect with community composition effects through redundancy, structure,????? and the interaction terms?????.  If these concepts do have a stabilizing effect, we hypothesize that portfolios would be preserved across space (ecoregions) within large marine ecosystems that have similar large scale environmental forcing.  We further hypothesize that if portfolios are preserved across space within large marine ecosystems (LMEs) with similar environmental exposure, then similar suites of species would be found within ecoregions.
 
 
-
-The constructs of the portfolio concept intersect with species co-existence through the attributes of redundancy, structure, and the interaction terms.  If these concepts do have a stabilizing effect, we hypothesize that portfolios would be preserved across space (ecoregions) within large marine ecosystems that have similar large scale environmental forcing.  We further hypothesize that if portfolios are preserved across space within large marine ecosystems (LMEs) with similar environmental exposure, then similar suites of species would be found within ecoregions. 
 
 Boreal marine systems such as the Gulf of Alaska (GOA) experience high levels of seasonal, interannual, decadal and multi-decadal variability which in turn impact marine species (Anderson and Piatt 1999; Hare and Mantua 2000; Hollowed et al. 2001; Stachura et al. 2014).  These climate driven perturbations create states of non-equilibrium at multiple spatial scales.  The GOA provides an excellent region to examine mechanisms governing community composition and the portfolio effect.  The region exhibits complex topography being punctuated by submarine troughs and canyons which act to steer currents (Lagerloef 1983).  Previous studies have utilized this complex topography for natural experiments based on the comparison of responses of selected fish species to natural or anthropogenic disturbance (Hollowed et al. 2007; Logerwell et al. 2007; Walline et al. 2012). 
 
@@ -36,21 +36,21 @@ We also reviewed three of the most promising of the 12 hypotheses governing spec
 
 We then extended single species studies to explore the evidence for community stability and commonality in regional species portfolios as measured by common members of species complexes, and stability in species diversity.  It is unclear which of the potential ecosystem disturbances: environmental variability, fishing, and predation (Gaichas et al. 2011).  We expect that explorations of these relationships on a regional basis will elucidate key processes underlying GOA ecosystems.   
 
-### Methods
-# Trawl Survey
-Since 1984, the Alaska Fisheries Science Center (AFSC) has conducted comprehensive bottom trawl surveys in the GOA to monitor trends in the distribution and abundance of groundfish populations. The full survey area includes the continental shelf and upper continental slope (to 1,000 m depth) in the GOA and extends from the Islands of Four Mountains (170° W) 2,300 km east to Dixon Entrance (54° N). The AFSC contracts 3 commercial trawlers during May–August and samples the standard 320,000 km2 survey area with approximately 820 survey stations. The catch data result in observations of catch-per-unit-area which are averaged and expanded by survey area to estimate the relative abundance of important groundfish species.  This multi-species survey is based upon a stratified-random design and the area-swept method of estimating abundance (von Szalay et al. 2010 ). 
+## Methods
+### Trawl Survey
+Since 1984, the Alaska Fisheries Science Center (AFSC) has conducted comprehensive bottom trawl surveys in the GOA to monitor trends in the distribution and abundance of groundfish populations. The full survey area includes the continental shelf and upper continental slope (to 1,000 m depth) in the GOA and extends from the Islands of Four Mountains (170° W) 2,300 km east to Dixon Entrance (54° N). The AFSC contracts 3 commercial trawlers during May–August and samples the standard 320,000 km2 survey area with approximately 820 survey stations. The catch data result in observations of catch-per-unit-area (CPUE) which are averaged and expanded by survey area to estimate the relative abundance of important groundfish species.  This multi-species survey is based upon a stratified-random design and the area-swept method of estimating abundance (von Szalay et al. 2010 ). 
 
 The net used in this survey is a four-seam, high-opening Poly Nor’Eastern trawl featuring a 27.2 m headrope and a 36.7 m footrope equipped with rubber bobbin roller gear. The net is deployed from the vessel while the vessel steams ahead at 3 knots.  Once on the seafloor, the net is towed for 30 minutes (prior to 1992) or 15 minutes (1992 - present).  In most years the net was equipped with a bottom contact sensor on the footrope, and a Seabird SBE-39 bathythermograph on the headrope. The catch was processed by the scientific crew who identified all living organisms, weighed and counted the catch of each species, and took biological samples (lengths, otoliths, and specially requested tissues) from key groundfish species or other species of interest. 
 
-# Study Areas
+### Study Areas
 We mapped the areas covered by the trawl survey data as well as the extent of the EVOS over the shelf region of the central GOA.  We then selected study areas on the shelf across a gradient of oil exposure and based on bottom depth: 9 contiguous areas of depth 50 - 150 m, 5 contiguous areas of 151 - 300 m (Figure 1).  Study areas ranged in size from xxx – yyy km2, and were located from XXXX degrees W to XXXXX degrees W.  This provided us with study areas that were East of the spill and did not receive oil, at the same longitude as the spill and likely were oiled, and areas West of the spill extent that were also likely unoiled.  
 
-# Modeling
+### Modeling
 AFSC survey data were smoothed using a geostatistical model developed by (Ono et al. 2015; Shelton et al. 2014).  The model treated year and depth as fixed effects on CPUE.  Most groundfish exhibit spatial partitions related to depth (CITATION NEEDED).  In addition many groundfish also exhibit notable ontogenetic shifts in depth (CITATION).  Including depth as a fixed effect corrects for species specific affinities for a given depth range.  To correct for ontogenetic shifts in depth, the depth and temperature distributions were examined by length category for species that had continuous time series of length measurements.    
 
 The estimated range at which the spatial correlation in the spatial field falls to 0.05 after accounting for depth ranged from 10km – 500km with most species exhibiting a range of 65km.  Species with higher frequencies of occurrence tended to have lower spatial ranges with the dominant species (cod, halibut, sablefish, and pollock) being less than 60km.  Area expansions derived from the model were used to estimate abundance for each of the 9 sub-regions.  Some information is shared between regions due to the the spatial range of correlations, however in most species/region cases the distances between the 9 regions exceeded the species range.  For each of the nine regions the mean and variance of biomass by species was calculated.  It should be noted that the species exhibit different vulnerability to the survey trawl.  Thus, all results reflect the demersal shelf fish community.
 
-# Statistical Analysis
+### Statistical Analysis
 Stability = temporal stability in this case. Stability over the 32 years of the study. 
 
 Alpha (within study area) and beta (between study areas) components of diversity were estimated based on (Jost 2007). Components of species diversity were derived from estimated mean biomass for each species within a region.  To correct for uncertainty in regional abundance we resampled the expected distribution of species within each region 1000 times using bootstrap methods. 
@@ -58,35 +58,27 @@ Alpha (within study area) and beta (between study areas) components of diversity
 To evaluate regional differences in ecosystem structure we partitioned the predicted mean biomass for a given species into functional groups using based on the NMFS food-habits database (xxxx).  For each ecoregion the mean density for each region was plotted and the biomass in each trophic guild was estimated (Table 2, Figure 2) for the entire time series 1984 – present.  
 
 
-### Results
-# Environmental Conditions and species/community responses across study areas and through time: 
+## Results
+### Environmental Conditions and species/community responses across study areas and through time: 
 The mean depth and bottom temperature of each region is shown in Table 1.  
 EVOS extent (cite Figure 1, the map).
 Other larger perturbations, regime shifts, etc, during the study time (1984 - 2015).
 Response of species and communities (cite Figure 2).
 
-# Diversity within and between study areas (both species and functional diversity/complementarity)
+### Diversity within and between study areas (both species and functional diversity/complementarity)
 Alpha diversity for shallow and deep (cite Figure 3).
 Beta diversity for shallow and deep (cite Figure 4).
 Functional diversity for shallow and deep (cite Figure 5).  
 
-# Community composition
+### Community composition
 Compare composition between all shallow areas and all deep areas (over time?) (cite Figure 6).  
 
 
 
-# Figures: 
-1: Map of shallow and deep study areas overlaid with EVOS slick
-2: Response of species through time to events, 
-      response of the community(ies) through time to events (Biomass)    
-3: Mean alpha diversity boxplots across years between areas  
-4: Mean beta diversity boxplots across year between areas 
-5: Functional complementarity figure  
-6: NMDS for community composition between areas  
 
 
-# Tables:
-1: Bottom depths and temperatures for each area  
+
+### Figures: 
 
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
@@ -98,32 +90,35 @@ library(vegan) ; library(scales)
 ```
 
 ```{r loadMapData, message=FALSE, echo=FALSE, warning=FALSE}
-#Map of area locations
-discrete_ShallowAreas<-read.csv("./goaTrawl/Output Data/Shallow_goa_discrete_areas_for_comparison_Combined(50_to_150m).MH.csv")
-discrete_DeepAreas<-read.csv("./goaTrawl/Output Data/Deep_goa_discrete_areas_for_comparison_150_to_300m.MH.csv")
+# Map of area locations
+discrete_ShallowAreas <- read.csv("./goaTrawl/Output Data/Shallow_goa_discrete_areas_for_comparison_Combined(50_to_150m).MH.csv")
+discrete_DeepAreas <- read.csv("./goaTrawl/Output Data/Deep_goa_discrete_areas_for_comparison_150_to_300m.MH.csv")
 ```
 
+1: Map of shallow and deep study areas overlaid with EVOS slick  
 ```{r map, cache=FALSE, echo=FALSE, warning=FALSE}
-    ak<-map_data('worldHires','USA:Alaska')
-    akmap<-ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black")+
-    theme(panel.background=element_rect(fill='aliceblue'))+
-    xlab(expression(paste(Longitude^o,~'W')))+
-    ylab(expression(paste(Latitude^o,~'N')))+
-    coord_map(xlim = c(-160, -143),ylim = c(54, 61))
+    ak <- map_data('worldHires','USA:Alaska')
+    akmap <- ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black") +
+             theme(panel.background=element_rect(fill='aliceblue')) +
+             xlab(expression(paste(Longitude^o,~'W'))) +
+             ylab(expression(paste(Latitude^o,~'N'))) +
+             coord_map(xlim = c(-160, -143),ylim = c(54, 61))
 ```
 
 ```{r, fig.cap="Locations of shallow areas (50-150 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
 #map of Shallow locations
 discrete_ShallowAreas$area <- discrete_ShallowAreas$Area
 discrete_ShallowAreas$Area <- factor(discrete_ShallowAreas$area)
-akmap+geom_point(data=discrete_ShallowAreas,aes(LONGITUDE,LATITUDE,color=Area))
+
+akmap + geom_point(data=discrete_ShallowAreas,aes(LONGITUDE,LATITUDE,color=Area))
 ```
 
 ```{r, fig.cap="Locations of deep areas (>150-300 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
 #map of Deep locations
 discrete_DeepAreas$area <- discrete_DeepAreas$Area
 discrete_DeepAreas$Area <- factor(discrete_DeepAreas$area)
-akmap+geom_point(data=discrete_DeepAreas,aes(LONGITUDE,LATITUDE,color=Area))
+
+akmap + geom_point(data=discrete_DeepAreas,aes(LONGITUDE,LATITUDE,color=Area))
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
@@ -136,22 +131,22 @@ SpByArea <- read.csv(file=textConnection(SpByArea_1), stringsAsFactors=FALSE, he
 
 meanOcc <- SpByArea %>%
   mutate(Year = ifelse((year.numb=="1"),'1984',
-                       ifelse((year.numb=="2"),'1987',
-                              ifelse((year.numb=="3"),'1990',
-                                     ifelse((year.numb=="4"),'1993',       
-                                            ifelse((year.numb=="5"),'1996',
-                                                   ifelse((year.numb=="6"),'1999',
-                                                          ifelse((year.numb=="7"),'2001',
-                                                                 ifelse((year.numb=="8"),'2003',
-                                                                        ifelse((year.numb=="9"),'2005',
-                                                                               ifelse((year.numb=="10"),'2007',
-                                                                                      ifelse((year.numb=="11"),'2009',
-                                                                                             ifelse((year.numb=="12"),'2011',
-                                                                                                    ifelse((year.numb=="13"),'2013',
-                                                                                                           ifelse((year.numb=="14"),'2015',        
-                                                                                                                  ""))))))))))))))
-  )
-head(meanOcc)
+                ifelse((year.numb=="2"),'1987',
+                ifelse((year.numb=="3"),'1990',
+                ifelse((year.numb=="4"),'1993',       
+                ifelse((year.numb=="5"),'1996',
+                ifelse((year.numb=="6"),'1999',
+                ifelse((year.numb=="7"),'2001',
+                ifelse((year.numb=="8"),'2003',
+                ifelse((year.numb=="9"),'2005',
+                ifelse((year.numb=="10"),'2007',
+                ifelse((year.numb=="11"),'2009',
+                ifelse((year.numb=="12"),'2011',
+                ifelse((year.numb=="13"),'2013',
+                ifelse((year.numb=="14"),'2015',        
+                ""))))))))))))))
+        )
+
 
 ```
 
@@ -188,22 +183,21 @@ deepOCC_2 <- read.csv(file=textConnection(deepOCC_1),stringsAsFactors=FALSE,head
 
 deepOCC <- deepOCC_2 %>%
   mutate(Year = ifelse((year.numb=="1"),'1984',
-                       ifelse((year.numb=="2"),'1987',
-                              ifelse((year.numb=="3"),'1990',
-                                     ifelse((year.numb=="4"),'1993',       
-                                            ifelse((year.numb=="5"),'1996',
-                                                   ifelse((year.numb=="6"),'1999',
-                                                          ifelse((year.numb=="7"),'2001',
-                                                                 ifelse((year.numb=="8"),'2003',
-                                                                        ifelse((year.numb=="9"),'2005',
-                                                                               ifelse((year.numb=="10"),'2007',
-                                                                                      ifelse((year.numb=="11"),'2009',
-                                                                                             ifelse((year.numb=="12"),'2011',
-                                                                                                    ifelse((year.numb=="13"),'2013',
-                                                                                                           ifelse((year.numb=="14"),'2015',        
-                                                                                                                  ""))))))))))))))
-  )
-head(deepOCC)
+                ifelse((year.numb=="2"),'1987',
+                ifelse((year.numb=="3"),'1990',
+                ifelse((year.numb=="4"),'1993',       
+                ifelse((year.numb=="5"),'1996',
+                ifelse((year.numb=="6"),'1999',
+                ifelse((year.numb=="7"),'2001',
+                ifelse((year.numb=="8"),'2003',
+                ifelse((year.numb=="9"),'2005',
+                ifelse((year.numb=="10"),'2007',
+                ifelse((year.numb=="11"),'2009',
+                ifelse((year.numb=="12"),'2011',
+                ifelse((year.numb=="13"),'2013',
+                ifelse((year.numb=="14"),'2015',        
+                ""))))))))))))))
+        )
 
 
 ```
@@ -211,28 +205,28 @@ head(deepOCC)
 ```{r, echo=FALSE}
 # Make custom theme for plotting
 theme_boxplot <- function(base_size = 12){
-  theme_bw(base_size)%+replace%
-    theme(legend.key.size=unit(12,"points"),
-          legend.text=element_text(size=11),
-          legend.key=element_blank(),
-          legend.title=element_blank(),
-          legend.background=element_rect(colour="white", fill="transparent"),
-          plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
-          panel.border=element_blank(),
-          panel.margin=unit(0,"lines"),
-          panel.background=element_rect(fill=NA, colour=NA),
-          panel.grid.major=element_blank(),
-          panel.grid.minor=element_blank(),
-          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
-          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
-          axis.ticks.length=unit(1,"mm"),
-          axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
-          axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
-          axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
-          axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
-          strip.text.x=element_text(size=12),
-          strip.background=element_rect(colour="black", fill='white'))
-}
+                 theme_bw(base_size)%+replace%
+                 theme(legend.key.size=unit(12,"points"),
+                 legend.text=element_text(size=11),
+                 legend.key=element_blank(),
+                 legend.title=element_blank(),
+                 legend.background=element_rect(colour="white", fill="transparent"),
+                 plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
+                 panel.border=element_blank(),
+                 panel.margin=unit(0,"lines"),
+                 panel.background=element_rect(fill=NA, colour=NA),
+                 panel.grid.major=element_blank(),
+                 panel.grid.minor=element_blank(),
+                 axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+                 axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
+                 axis.ticks.length=unit(1,"mm"),
+                 axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+                 axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+                 axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+                 axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+                 strip.text.x=element_text(size=12),
+                 strip.background=element_rect(colour="black", fill='white'))
+                 }
 
 
 
@@ -370,6 +364,11 @@ Plot_area_time <-function(df,y,ylabel){
 
 ```
 
+2: Response of species through time to events, 
+      response of the community(ies) through time to events (Biomass)      
+    
+
+
 ```{r, echo=FALSE, include=FALSE}
 ## Data for 9 shallow areas
 Div.Metrics<-read.csv("DiversityMetrics.Shallow.Bootstrapped.csv")
@@ -466,7 +465,7 @@ sp_box6 <- ggplot(data=deepDat, aes(AREA, y=Invsimp)) +
 sp_box6
 ```
 
-
+3: Mean alpha diversity boxplots across years between areas  
 ```{r, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Alpha diversity (exp H') estimated for shallow areas (50-150m). Based on boostrap sampling (n=1000)."}
 #{r sp_box1,fig.width=4,fig.height=3,echo=FALSE,message=FALSE,include=TRUE,fig.cap="Diversity#"}
 
@@ -479,35 +478,48 @@ sp_box1
 sp_box2
 ```
 
-```{r, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Species richness estimated for shallow areas (50-150m). Based on boostrap sampling (n=1000)."}
+
+4: Mean beta diversity boxplots across year between areas   
+5: Functional complementarity figure    
+6: NMDS for community composition between areas    
+
+
+```{r, eval=FALSE, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Species richness estimated for shallow areas (50-150m). Based on boostrap sampling (n=1000)."}
 #{r sp_box1,fig.width=4,fig.height=3,echo=FALSE,message=FALSE,include=TRUE,fig.cap="Diversity#"}
 
 sp_box3
 ```
 
-```{r, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Species richness estimated for deep areas (>150-300m). Based on boostrap sampling (n=1000)."}
+```{r, eval=FALSE, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Species richness estimated for deep areas (>150-300m). Based on boostrap sampling (n=1000)."}
 #{r sp_box1,fig.width=4,fig.height=3,echo=FALSE,message=FALSE,include=TRUE,fig.cap="Diversity#"}
 
 sp_box4
 ```
 
-```{r, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Inverse Simpson's diversity estimated for shallow areas (50-150m). Based on boostrap sampling (n=1000)."}
+```{r, eval=FALSE, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Inverse Simpson's diversity estimated for shallow areas (50-150m). Based on boostrap sampling (n=1000)."}
 #{r sp_box1,fig.width=4,fig.height=3,echo=FALSE,message=FALSE,include=TRUE,fig.cap="Diversity#"}
 
 sp_box5
 ```
 
-```{r fig6, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Inverse Simpson's diversity estimated for deep areas (>150-300m). Based on boostrap sampling (n=1000)."}
+```{r fig6, eval=FALSE, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Inverse Simpson's diversity estimated for deep areas (>150-300m). Based on boostrap sampling (n=1000)."}
 #{r sp_box1,fig.width=4,fig.height=3,echo=FALSE,message=FALSE,include=TRUE,fig.cap="Diversity#"}
 
 sp_box6
 ```
 
+
+
+### Tables:
+1: Bottom depths and temperatures for each area    
+
+
+
 \pagebreak
 
-### Time series of diversity metrics for 2nd paper?
+## Time series of diversity metrics for 2nd paper?
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval=FALSE}
 # Calculate diversity metrics for shallower areas (50-150m)
 Div_SpCPUEArea <- meanCPUE %>%
                   filter(Area!="Total") %>%
@@ -533,7 +545,7 @@ datYEAR <- sort(unique(dat$Year))
 ```
 
 
-```{r, echo=FALSE}
+```{r, eval=FALSE, echo=FALSE}
 # Calculate diversity metrics for deeper areas (151-300m)
 Div_SpCPUEDeep <- deepCPUE %>%
                   filter(Area!="Total") %>%
@@ -559,7 +571,7 @@ AREA <- sort(as.numeric(as.character(unique(datDeep$Area))))
 YEAR <- sort(unique(datDeep$Year))
 ```
 
-```{r, fig.cap="Time series of Alpha diversity for shallow areas (50-150m).", echo=FALSE, fig.height=4, fig.width=7}
+```{r, eval=FALSE, echo=FALSE, fig.cap="Time series of Alpha diversity for shallow areas (50-150m).", fig.height=4, fig.width=7}
 #Plot Alpha Diversity Shallow Areas "exp(Shannon-Wiener)" ie: effective # of species
 line_colors <- c("black","black","red","red","red","black","black","black","black")
 area_breaks <- c("1","2","3","4","5","6","7","8","9")
@@ -569,7 +581,7 @@ Eff_Sp <- Plot_area_time(df=Div_SpCPUEArea, y=Div_SpCPUEArea$Exp_A_Div,
 Eff_Sp
 ```
 
-```{r, echo=FALSE, message=FALSE, include=FALSE}
+```{r, eval=FALSE, echo=FALSE, message=FALSE, include=FALSE}
 # Alpha Diversity Shallow Areas exp(H'):
 # Calculate and plot least squares trend in each area and portfolio metrics.
 vals <- NULL
@@ -588,11 +600,11 @@ vals$CV  <- vals$SD / vals$Grand.w.mean
 dat.2 <- vals
 ```
 
-```{r, echo=FALSE, fig.height=4, fig.width=7}
+```{r, eval=FALSE, echo=FALSE, fig.height=4, fig.width=7}
 space_plot(df=dat.2,NAME='exp(H)')
 ```
 
-```{r, fig.cap="Time series of Alpha diversity for deep areas (>150-300m).",echo=FALSE, fig.height=4, fig.width=7}
+```{r, eval=FALSE, fig.cap="Time series of Alpha diversity for deep areas (>150-300m).",echo=FALSE, fig.height=4, fig.width=7}
 #Plot Alpha Diversity Deep Areas "exp(Shannon-Wiener)" ie: effective # of species
 line_colors <- c("red","red","black","black","black")
 area_breaks <- c("1","2","3","4","5")
@@ -602,7 +614,7 @@ Eff_Sp_dp <- Plot_area_time(df=Div_SpCPUEDeep, y=Div_SpCPUEDeep$Exp_A_Div,
 Eff_Sp_dp
 ```
 
-```{r, echo=FALSE, message=FALSE, include=FALSE}
+```{r, eval=FALSE, echo=FALSE, message=FALSE, include=FALSE}
 # Alpha Diversity Deep Areas exp(H'):
 # Calculate and plot least squares trend in each area and portfolio metrics.
 vals <- NULL
@@ -622,12 +634,12 @@ vals$CV  <- vals$SD / vals$Grand.w.mean
 dat.2 <- vals
 ```
 
-```{r, echo=FALSE, fig.height=4, fig.width=7}
+```{r,eval=FALSE,  echo=FALSE, fig.height=4, fig.width=7}
 space_plot(df=dat.2,NAME='exp(H)')
 ```
 
    
-```{r, fig.cap="Time series of Beta diversity for shallow areas (50-150m).",echo=FALSE, fig.height=4, fig.width=7}
+```{r, eval=FALSE, fig.cap="Time series of Beta diversity for shallow areas (50-150m).",echo=FALSE, fig.height=4, fig.width=7}
 #Beta Diversity Shallow Areas "(Exp_G_Div/Exp_A_Div)":
 line_colors <- c("black","black","red","red","red","black","black","black","black",
                  "black","black")
@@ -639,7 +651,7 @@ Bdiv
 ```
 
 
-```{r, fig.cap="Time series of Beta diversity for deep areas (>150-300m).",echo=FALSE, fig.height=4, fig.width=7}
+```{r, eval=FALSE, fig.cap="Time series of Beta diversity for deep areas (>150-300m).",echo=FALSE, fig.height=4, fig.width=7}
 #Beta Diversity Deep Areas "(Exp_G_Div/Exp_A_Div)": 
 line_colors <- c("red","red","black","black","black")
 area_breaks <- c("1","2","3","4","5")
@@ -651,7 +663,7 @@ Bdiv_dp
 
 
 
-```{r, echo=FALSE}
+```{r, eval=FALSE, echo=FALSE}
 # Calculate Species Richness for Deep Areas: 
 Div_SpOccArea <- meanOcc %>%
                  mutate_each(funs(as.numeric), Year) %>%
@@ -675,7 +687,7 @@ datAREA <- sort(as.numeric(as.character(unique(dat_occ$Area))))
 datYEAR <- sort(unique(dat_occ$Year))
 ```
 
-```{r, echo=FALSE}
+```{r, eval=FALSE, echo=FALSE}
 #Calculate Species Richness for Deep Areas:
 Div_SpOccDeep <- deepOCC %>%
                  mutate_each(funs(as.numeric), Year) %>%
@@ -698,7 +710,7 @@ AREA <- sort(as.numeric(as.character(unique(datDeep_occ$Area))))
 YEAR <- sort(unique(datDeep_occ$Year))
 ```
 
-```{r fig15, echo=FALSE, fig.height=4, fig.width=7}
+```{r fig15, eval=FALSE, echo=FALSE, fig.height=4, fig.width=7}
 #Species Richness Shallow Areas:
 # Shallow Species Richness
 line_colors <- c("black","black","black","black","red","red","red","black","black")
@@ -709,7 +721,7 @@ SpRdiv <- Plot_area_time(df=Div_SpOccArea, y=Div_SpOccArea$Sp_Rich,
 SpRdiv
 ```
 
-```{r, echo=FALSE}  
+```{r, eval=FALSE, echo=FALSE}  
 #Species richness
 # Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
@@ -735,7 +747,7 @@ space_plot(df=dat.2,NAME="Species Richness")
 ```
 
 
-```{r fig17, echo=FALSE, fig.height=4, fig.width=7}
+```{r fig17, eval=FALSE, echo=FALSE, fig.height=4, fig.width=7}
 #Species richness Deep Areas: 
 # Deep Species Richness
 line_colors <- c("red","red","black","black","black")
@@ -746,7 +758,7 @@ SpRdeep <- Plot_area_time(df=Div_SpOccDeep, y=Div_SpOccDeep$Sp_Rich,
 SpRdeep
 ```
 
-```{r fig18, echo=FALSE, fig.height=4, fig.width=7}
+```{r fig18, eval=FALSE, echo=FALSE, fig.height=4, fig.width=7}
 #Species richness
 # Calculate least squares trend in each area and portfolio metrics.
 vals <- NULL
