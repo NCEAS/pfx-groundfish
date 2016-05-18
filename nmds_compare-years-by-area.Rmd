@@ -9,6 +9,7 @@ output: pdf_document
 # Load packages
 library(httr)
 library(vegan)
+library(mvnormtest)
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -83,12 +84,12 @@ deepByArea_list2 <- lapply(deepByArea_list1, function(x) x[!(names(x) %in% c("ar
 ######################################################
 ######################################################
 
-1. nMDS
+#1. nMDS
 
 Transformation is Wisconsin-style double transformation (normalizes taxa to % abundance, then normalizes abundances to the maximum for each species) of sqrt-transformed data.
 
-Sorry the text is so small in the ordination plots, need small text for legibility because there are so many species. 
-Enlarge the output pdf to see species names.
+**Sorry the text is so small. It's necessary for legibility because there are so many species.** 
+**Enlarge the output pdf to see species names.**
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
@@ -120,12 +121,12 @@ for (i in seq_along(ordShallow)) {
 
 ```
 
-#Shallow areas
+##Shallow areas
 Area 10 is Total
 
 ```{r, echo=FALSE}
 # Ordination plots:
-par(mfrow = c(2,2), mar=c(2,2,2,2))
+par(mfrow = c(1,2), mar=c(2,2,2,2), pty = "s")
 ordPlotsShallow1 <- list()
 for (i in seq_along(ordShallow)) {
   ordPlotsShallow1[[i]] <- plot(ordShallow[[i]], type = "n", main = paste("Shallow Area",i))
@@ -165,7 +166,7 @@ for (i in seq_along(ordDeep)) {
 }
 ```
 
-#Deep areas
+##Deep areas
 Area 6 is Total
 
 ```{r, echo=FALSE}
@@ -179,15 +180,27 @@ for (i in seq_along(ordDeep)) {
   text(ordDeep[[i]], display = "sites", cex=0.7, col="blue")
 }
 ```
-
+***
 
 ######################################################
 ######################################################
 ######################################################
 
-2. PCA
+#2. PCA
+Methods: Used vegan package in R, function rda(). Raw CPUEs vary by many orders of magnitude (10^-7 to 10^2 in shallow areas, 10^-5 to 10^2 in deep areas), therefore, to prevent the most abundant species from driving the result and allow all species to contribute equally to the result, cpues were standardized prior to analysis (Legendre & Legendre 1998) - means that PCs were extracted from correlation matrices, not dispersion matrices.
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# examine the data
+cpueRangeShallow <- list(); mvnormShallow <- list()
+for (i in seq_along(shallowByArea_list2)) {
+  cpueRangeShallow[[i]] <- range(shallowByArea_list2[[i]]) # extract max & min cpue for each shallow area
+  mvnormShallow[[i]] <- mshapiro.test(as.matrix(shallowByArea_list2[[i]])) # assess multivariate normality
+}
+cpueRangeShallow; mvnormShallow
+# p-values of multivariate shapiro-wilks test are all <<<<<<< 0.05, ie for each area, raw cpues are not multivariate-normal ... further suggestion that cpues should be standarized before analysis
+
+
 
 # PCA for shallow areas
 pcaShallow <- list()
@@ -195,41 +208,105 @@ for (i in seq_along(shallowByArea_list2)) {
   pcaShallow[[i]] <- rda(shallowByArea_list2[[i]], scale = TRUE)
 }
 
+
+# calculate proportion of total variance explained by PC1 & PC2:
+pcVarShallow <- list()
+for (i in seq_along(pcaShallow)) {
+  pcVarShallow[[i]] <- pcaShallow[[i]]$CA[[1]] / pcaShallow[[i]]$CA$tot.chi
+}
+
 ```
 
-#Shallow areas
+##Shallow areas
 Area 10 is Total
 
+% of total variance explained by PC1 & PC2 (Area 10 = Total):
 ```{r, echo=FALSE}
+pcVarShallow1 <- data.frame(
+  area <- c(1:10),
+  pc1 <- do.call("rbind", lapply(pcVarShallow, "[[", 1)), # extract PC1
+  pc2 <- do.call("rbind", lapply(pcVarShallow, "[[", 2))  # extract PC2
+)
+colnames <- c("Area", "PC1", "PC2"); names(pcVarShallow1 ) <- colnames
+pcVarShallow1
 
+```
+
+
+Plots for shallow areas.
+Note that I've removed arrows for species scores and did some wonky scaling of species scores to make them legible in the plots (divided each species score by species StDev - although their relative positions are preserved in the plots, this is technically incorrect because I've already standardized data prior to analysis). This will need to be changed if used in a publication - see .Rmd file for correct code.
+
+```{r, echo=FALSE}
 # Ordination plots:
-par(mfrow = c(2,2), mar=c(2,2,2,2))
+par(mfrow = c(1,1), mar=c(2,2,2,2))
 pcaShallow1 <- list()
 for (i in seq_along(pcaShallow)) {
-  pcaShallow1[[i]] <- plot(pcaShallow[[i]], scaling = 3, main = paste("Shallow Area",i))
+  pcaShallow1[[i]] <- plot(pcaShallow[[i]], scaling = -1, main = paste("Shallow Area",i)) # to add arrows for species scores, change this to biplot(...)
+  # use of 'scaling = -1' is technically incorrect; for publication, change this to scaling = 3 or remove scaling = x 
 }
+
 ```
+
 
 ***
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+# Deep areas
+
+# examine the data
+cpueRangeDeep <- list(); mvnormDeep<- list()
+for (i in seq_along(deepByArea_list2)) {
+  cpueRangeDeep[[i]] <- range(deepByArea_list2[[i]]) # extract max & min cpue for each shallow area
+  mvnormDeep[[i]] <- mshapiro.test(as.matrix(deepByArea_list2[[i]])) # assess multivariate normality
+}
+cpueRangeDeep; mvnormDeep
+# p-values of multivariate shapiro-wilks test are all <<<<<<< 0.05, ie for each area, raw cpues are not multivariate-normal ... further suggestion that cpues should be standarized before analysis
+
 
 # PCA for deep areas
 pcaDeep <- list()
 for (i in seq_along(deepByArea_list2)) {
   pcaDeep[[i]] <- rda(deepByArea_list2[[i]], scale = TRUE)
 }
+
+
+# calculate proportion of total variance explained by PC1 & PC2:
+pcVarDeep <- list()
+for (i in seq_along(pcaDeep)) {
+  pcVarDeep[[i]] <- pcaDeep[[i]]$CA[[1]] / pcaDeep[[i]]$CA$tot.chi
+}
+
+```
+***
+##Deep areas
+Area 6 is Total
+
+% of total variance explained by PC1 & PC2 (Area 6 = Total):
+```{r, echo=FALSE}
+pcVarDeep1 <- data.frame(
+  area <- c(1:6),
+  pc1.1 <- do.call("rbind", lapply(pcVarDeep, "[[", 1)), # extract PC1
+  pc2.1 <- do.call("rbind", lapply(pcVarDeep, "[[", 2))  # extract PC2
+)
+colnames <- c("Area", "PC1", "PC2"); names(pcVarDeep1) <- colnames
+pcVarDeep1
+
 ```
 
-#Deep areas
-Area 6 is Total
+Plots for deep areas.
+See note above about scaling of species scores.
 
 ```{r, echo=FALSE}
 
 # Ordination plots:
-par(mfrow = c(2,2), mar=c(2,2,2,2))
+par(mfrow = c(1,1), mar=c(2,2,2,2))
 pcaDeep1 <- list()
 for (i in seq_along(pcaDeep)) {
-  pcaDeep1[[i]] <- plot(pcaDeep[[i]], scaling = 3, main = paste("Deep Area",i))
+  pcaDeep1[[i]] <- plot(pcaDeep[[i]], scaling = -1, main = paste("Deep Area",i))  # to add arrows for species scores, change this to biplot(...)
+  # use of 'scaling = -1' is technically incorrect; for publication, change this to scaling = 3 or remove scaling = x
 }
+
+#plot(pcaDeep[[1]], scaling = -1)
+#biplot(pcaDeep[[1]], scaling = -1)
+# scaling = -1: The negative values mean that each species score is divided by its standard deviation so that abundant and scarce species will be approximately as far away from the origin.
 ```
