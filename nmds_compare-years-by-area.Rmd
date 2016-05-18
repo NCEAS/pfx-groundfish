@@ -41,7 +41,7 @@ shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
 shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
 #View(shallowCPUEArea)
 
-shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge in common names
 
 shallowCPUE_spread <- shallowCPUEArea2 %>%
   select(common.name, Mean.totalDensity, area, year) %>%
@@ -65,7 +65,7 @@ deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
 deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
 #View(deepCPUEArea)
 
-deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in common names
 
 deepCPUE_spread <- deepCPUEArea2 %>%
   select(common.name, Mean.totalDensity, area, year) %>%
@@ -306,7 +306,4 @@ for (i in seq_along(pcaDeep)) {
   # use of 'scaling = -1' is technically incorrect; for publication, change this to scaling = 3 or remove scaling = x
 }
 
-#plot(pcaDeep[[1]], scaling = -1)
-#biplot(pcaDeep[[1]], scaling = -1)
-# scaling = -1: The negative values mean that each species score is divided by its standard deviation so that abundant and scarce species will be approximately as far away from the origin.
 ```
