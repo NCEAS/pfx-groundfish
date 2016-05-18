@@ -264,6 +264,8 @@ Plot_area_time <-function(df,y,ylabel){
 
 # Need to add Rao's Q Taxonomic
 
+# Need to add Rao's Q Functional Traits
+
 
 **Diversity Metrics (CPUE data)**
 
