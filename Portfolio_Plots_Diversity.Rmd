@@ -44,7 +44,7 @@ head(meanOcc)
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
-# Load the CPUE by Area data and merge in trawl species list
+# Load the CPUE by Area data 
 URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U"
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
@@ -105,7 +105,7 @@ theme_boxplot <- function(base_size = 12){
                        legend.key=element_blank(),
                        legend.title=element_blank(),
                        legend.background=element_rect(colour="white", fill="transparent"),
-                       plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
+                       plot.margin=unit(c(1,2,1,1), "lines"),  #top, right, bottom, left 
                        panel.border=element_blank(),
                        panel.margin=unit(0,"lines"),
                        panel.background=element_rect(fill=NA, colour=NA),
@@ -265,6 +265,80 @@ Plot_area_time <-function(df,y,ylabel){
 # Need to add Rao's Q Taxonomic
 
 # Need to add Rao's Q Functional Traits
+
+```{r, echo=FALSE, include=FALSE}
+# add total densities for plotting
+meanCPUE_indiv <- meanCPUE %>%
+                  filter(Area != "Total") #%>%
+                 # mutate(Species = )
+
+meanCPUE_tot <- meanCPUE %>%
+                filter(Area == "Total") %>%
+                group_by(Year) %>%              
+                mutate(Yearly_Mn_Density = mean(Mean.totalDensity)) %>%
+                ungroup() 
+                
+head(data.frame(meanCPUE_tot))
+
+deepCPUE_indiv <- deepCPUE %>%
+                  filter(Area != "Total") 
+
+deepCPUE_tot <- deepCPUE %>%
+                filter(Area == "Total") %>%
+                group_by(Year) %>%
+                mutate(Yearly_Mn_Density = mean(Mean.totalDensity)) %>%
+                ungroup() 
+
+```
+
+
+```{r, echo=FALSE}
+# Plot to show variation in individual species vs. the community
+# limits_horz <- factor(c("Total", "", "", "", (levels(factor(meanCPUE_indiv$Species)))))
+# breaks_horz <- factor(c("Total", (levels(factor(meanCPUE_indiv$Species)))))
+# labels_horz <- factor(c("Whole Community", (levels(factor(meanCPUE_indiv$Species)))))
+# 
+# ShlwPlot <- ggplot() +  
+#             geom_boxplot(data=meanCPUE_indiv, aes(x=Species, y=Mean.totalDensity)) +
+#             theme_boxplot() + ylab("Mean Density") + xlab("Taxon") +
+#             geom_boxplot(data=meanCPUE_tot, aes(x=Area, y=Yearly_Mn_Density), width=3) +
+#             scale_x_discrete(limits = limits_horz, breaks=breaks_horz, labels=labels_horz) +
+#             theme(axis.text.x = element_text(vjust=0.3, hjust=1, angle=90,
+#                                              size=ifelse(limits_horz=="Total",15,9),
+#                                              face=ifelse(limits_horz=="Total","bold","italic"))) 
+# ShlwPlot
+# 
+
+
+limits_vert <- factor(c("Total", "", "", "", (rev(levels(factor(meanCPUE_indiv$Species))))))
+breaks_vert <- factor(c("Total", (rev(levels(factor(meanCPUE_indiv$Species))))))
+labels_vert <- factor(c("Whole Community", rev((levels(factor(meanCPUE_indiv$Species))))))
+
+ShlwPlot2 <- ggplot() + 
+             geom_boxplot(data=meanCPUE_indiv, aes(x=Species, y=Mean.totalDensity)) +  
+             theme_boxplot() + ylab("Mean Density") + xlab("Taxon") +  
+             geom_boxplot(data=meanCPUE_tot, aes(x=Area, y=Yearly_Mn_Density), width=3) +
+             scale_x_discrete(limits = limits_vert, breaks=breaks_vert, labels=labels_vert) +
+             scale_y_continuous(expand = c(0, 0), limits = c(-2, 150)) +
+             theme(axis.text.y = element_text(vjust=0.3, hjust=1, 
+                                              size=ifelse(limits_vert=="Total",15,9),
+                                              face=ifelse(limits_vert=="Total","bold","italic")))  + 
+             coord_flip() 
+ShlwPlot2
+
+DeepPlot <- ggplot() + 
+            geom_boxplot(data=deepCPUE_indiv, aes(x=Species, y=Mean.totalDensity)) +
+            theme_boxplot() + ylab("Mean Density") + xlab("Taxon") + 
+            geom_boxplot(data=deepCPUE_tot, aes(x=Area, y=Yearly_Mn_Density), width=3) +
+            scale_x_discrete(limits = limits_vert, breaks=breaks_vert, labels=labels_vert) +
+            scale_y_continuous(expand = c(0, 0), limits = c(-2, 325)) +
+            theme(axis.text.y = element_text(vjust=0.3, hjust=1, 
+                                             size=ifelse(limits_vert=="Total",15,9),
+                                             face=ifelse(limits_vert=="Total","bold","italic"))) + 
+            coord_flip()
+DeepPlot
+
+```
 
 
 **Diversity Metrics (CPUE data)**

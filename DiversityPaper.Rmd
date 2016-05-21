@@ -367,6 +367,64 @@ Plot_area_time <-function(df,y,ylabel){
 2: Response of species through time to events, 
       response of the community(ies) through time to events (Biomass)      
     
+```{r, echo=FALSE}
+# add total densities for plotting
+meanCPUE_indiv <- meanCPUE %>%
+                  filter(Area != "Total")
+
+meanCPUE_tot <- meanCPUE %>%
+                filter(Area == "Total") %>%
+                group_by(Year) %>%              
+                mutate(Yearly_Mn_Density = mean(Mean.totalDensity)) %>%
+                ungroup()
+                
+head(data.frame(meanCPUE_tot))
+
+deepCPUE_indiv <- deepCPUE %>%
+                  filter(Area != "Total")
+
+deepCPUE_tot <- deepCPUE %>%
+                filter(Area == "Total") %>%
+                group_by(Year) %>%
+                mutate(Yearly_Mn_Density = mean(Mean.totalDensity)) %>%
+                ungroup()
+
+```
+
+```{r, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Community vs. Individual Taxon Variance for Shallow Areas"}
+
+limits_vert <- factor(c("Total", "", "", "", (rev(levels(factor(meanCPUE_indiv$Species))))))
+breaks_vert <- factor(c("Total", (rev(levels(factor(meanCPUE_indiv$Species))))))
+labels_vert <- factor(c("Whole Community", rev((levels(factor(meanCPUE_indiv$Species))))))
+
+ShlwPlot2 <- ggplot() + 
+             geom_boxplot(data=meanCPUE_indiv, aes(x=Species, y=Mean.totalDensity)) +  
+             theme_boxplot() + ylab("Mean Density") + xlab("Taxon") +  
+             geom_boxplot(data=meanCPUE_tot, aes(x=Area, y=Yearly_Mn_Density), width=3) +
+             scale_x_discrete(limits = limits_vert, breaks=breaks_vert, labels=labels_vert) +
+             scale_y_continuous(expand = c(0, 0), limits = c(-2, 150)) +
+             theme(axis.text.y = element_text(vjust=0.3, hjust=1, 
+                                              size=ifelse(limits_vert=="Total",15,9),
+                                              face=ifelse(limits_vert=="Total","bold","italic")))  + 
+             coord_flip() 
+ShlwPlot2
+
+```
+
+```{r, echo=FALSE, fig.height=4, fig.width=7,fig.cap="Community vs. Individual Taxon Variance for Deep Areas"}
+DeepPlot <- ggplot() + 
+            geom_boxplot(data=deepCPUE_indiv, aes(x=Species, y=Mean.totalDensity)) +
+            theme_boxplot() + ylab("Mean Density") + xlab("Taxon") + 
+            geom_boxplot(data=deepCPUE_tot, aes(x=Area, y=Yearly_Mn_Density), width=3) +
+            scale_x_discrete(limits = limits_vert, breaks=breaks_vert, labels=labels_vert) +
+            scale_y_continuous(expand = c(0, 0), limits = c(-2, 325)) +
+            theme(axis.text.y = element_text(vjust=0.3, hjust=1, 
+                                             size=ifelse(limits_vert=="Total",15,9),
+                                             face=ifelse(limits_vert=="Total","bold","italic"))) + 
+            coord_flip()
+DeepPlot
+
+```
 
 
 ```{r, echo=FALSE, include=FALSE}
