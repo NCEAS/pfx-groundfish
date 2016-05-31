@@ -1,7 +1,6 @@
 untitled.html
 MethodsTrawl_SurveySince_1984_the_Alaska__.html
 h1_class_ltx_title_section_id_auto__.html
-div_Other_larger_perturbations_regime__.html
 div_Response_of_species_and__.html
 h2_class_ltx_title_subsection_id_auto__1.html
 div_Alpha_diversity_for_shallow__.html
