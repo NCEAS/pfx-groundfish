@@ -1,7 +1,6 @@
 untitled.html
 MethodsTrawl_SurveySince_1984_the_Alaska__.html
 h1_class_ltx_title_section_id_auto__.html
-div_The_mean_depth_and__.html
 div_EVOS_extent_cite_Figure__.html
 div_Other_larger_perturbations_regime__.html
 div_Response_of_species_and__.html
