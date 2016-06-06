@@ -2,5 +2,5 @@ Gfish_Diversity_MS_1/AbstractThis_is_where_the_abstract__.html
 Gfish_Diversity_MS_1/untitled.html
 Gfish_Diversity_MS_1/h1_class_ltx_title_section_Methods_br__.html
 Gfish_Diversity_MS_1/ResultsEnvironmental_Conditions_and_species_community__.html
-figures/nMDS_Shallow/nMDS_Shallow.png
+figures/nMDS_Shallow/nMDS_Shallow&Deep.png
 Gfish_Diversity_MS_1/Discussion1_EVOS_magnitude_vs_magnitude__.html
