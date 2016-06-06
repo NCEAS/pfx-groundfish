@@ -1,5 +1,5 @@
 ---
-title: "Groundfish nMDS - Comparing Areas By Year"
+title: "Groundfish multivariate analyses - Comparing Areas By Year"
 author: "Colette Ward"
 date: "May 6, 2016"
 output: pdf_document
@@ -9,66 +9,52 @@ output: pdf_document
 # Load packages
 library(httr)
 library(vegan)
+library(mvnormtest)
 library(plyr)
 library(dplyr)
 library(tidyr)
 
 ```
 
+
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
-# load & prepare Mean annual CPUE data for Shallow Areas:
-URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
-SPCPUEArea_Get <- GET(URL_SPCPUEArea)
-SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
-SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(SPCPUEArea)
+# load & prep look-up table of common names
+URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
+common_Get <- GET(URL_common)
+common_1 <- content(common_Get, as='text')
+common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+
+common1 <- common %>%
+  select(database.name, common.name) %>%
+  rename(Species = database.name)
+for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
+  if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
+  if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
+}
+```
 
 
-cpue_spread1 <- SPCPUEArea %>%
-  select(Species, Mean.totalDensity, area, year) %>%
-  filter(area != "Total") %>%
-  mutate(sp1 = substr(Species, 0,1), # extract the first letter of species name string
-         sp2 = gsub(".*\\.","",Species), # remove everything before and including "."
-         sp3 = paste(sp1, sp2, sep=".")) %>% # create shorter species names for ploting
-  mutate(sp3 = gsub("D.Rockfish", "Sebastes1", sp3), 
-         sp3 = gsub("R.Rockfish", "Sebastes2", sp3),
-         sp3 = gsub("L.$", "Lepidopsetta", sp3),
-         sp3 = gsub("M.Myctophidae$", "Myctophidae", sp3)) %>%
-  select(-Species, -sp1, -sp2) %>% rename(Species = sp3) %>%
-  spread(area, Mean.totalDensity) # make each area a column
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load mean annual CPUE data for Shallow Areas:
+URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
+shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
+shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(shallowCPUEArea)
 
-shallowByYear_nmds_list <- split(cpue_spread1, f = cpue_spread1$year) # create a list of dataframes (one for each year)
-
-shallowByYear_nmds_list1 <- lapply(shallowByYear_nmds_list, function(z){ row.names(z) <- z$Species; z}) # create row names from species column
-shallowByYear_nmds_list2 <- lapply(shallowByYear_nmds_list1, function(v) v[!(names(v) %in% c("Species", "year"))]) # drop Species & year
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
 
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
-# load & prepare mean annual CPUE for Deep areas:
-URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
-deepCPUE_Get <- GET(URL_deepCPUE)
-deepCPUE_1 <- content(deepCPUE_Get, as='text')
-deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
-#View(deepCPUE)
+# load mean annual CPUE for Deep areas:
+URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUEArea_Get <- GET(URL_deepCPUEArea)
+deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
+deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUEArea)
 
-deepCPUE_spread1 <- deepCPUE %>%
-  select(Species, Mean.totalDensity, area, year) %>%
-  filter(area != "Total") %>%
-  mutate(sp1 = substr(Species, 0,1),
-         sp2 = gsub(".*\\.","",Species),
-         sp3 = paste(sp1, sp2, sep=".")) %>%
-  mutate(sp3 = gsub("D.Rockfish", "Sebastes1", sp3), 
-         sp3 = gsub("R.Rockfish", "Sebastes2", sp3),
-         sp3 = gsub("L.$", "Lepidopsetta", sp3),
-         sp3 = gsub("M.Myctophidae$", "Myctophidae", sp3)) %>%
-  select(-Species, -sp1, -sp2) %>% rename(Species = sp3) %>%
-  spread(area, Mean.totalDensity) # make each area a column
-
-deepByYear_nmds_list <- split(deepCPUE_spread1, f = deepCPUE_spread1$year) # create a list of dataframes (one for each year)
-
-deepByYear_nmds_list1 <- lapply(deepByYear_nmds_list, function(z){ row.names(z) <- z$Species; z}) # create row names from species column
-deepByYear_nmds_list2 <- lapply(deepByYear_nmds_list1, function(v) v[!(names(v) %in% c("Species", "year"))]) # drop Species & year
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in common names
 
 ```
 
@@ -76,100 +62,327 @@ deepByYear_nmds_list2 <- lapply(deepByYear_nmds_list1, function(v) v[!(names(v) 
 ######################################################
 ######################################################
 
+# nMDS
 Transformation is Wisconsin-style double transformation (normalizes taxa to % abundance, then normalizes abundances to the maximum for each species) of sqrt-transformed data.
 
-**Sorry the text is so small. It's necessary for legibility because there are so many species.** 
-**Enlarge the output pdf to see species names.**
-
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
-# nMDS for Shallow Areas:
-ordShallowYears <- list()
-for (i in seq_along(shallowByYear_nmds_list2)) {
-  ordShallowYears[[i]] <- metaMDS(shallowByYear_nmds_list2[[i]], distance='bray', trymax=1000)
-}
+# organize Shallow areas data for nMDS:
+shallowCPUE_spread3 <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  spread(common.name, Mean.totalDensity) %>% # make each species a column
+  mutate(Area = as.numeric(area)) %>% select(-area) # convert area to numeric
 
 
-# examine Shepard's stressplots:
-# goodness-of-fit test: plots ordination distances against community dissimilarities
-par (mfrow = c(3,5), pty="m") 
-stressplotsShallowYears <- list()
-for (i in seq_along(ordShallowYears)) {
-  stressplotsShallowYears[[i]] <- stressplot(ordShallowYears[[i]], main = paste("Year",i))
-}
+
+# organize Deep areas data for nMDS:
+deepCPUE_spread3 <- deepCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  spread(common.name, Mean.totalDensity) %>% # make each species a column
+  mutate(Area = as.numeric(area)) %>% select(-area) # convert area to numeric
 
 
-# examine goodness of fit plots:
-# size represents goodness of fit (bigger = worse fit)
-par (mfrow = c(2,2), pty="m") 
-goodnessShallowYears <- list()
-for (i in seq_along(ordShallowYears)) {
-  goodnessShallowYears[[i]] <- plot (ordShallowYears[[i]], display = 'spec', type = 't', main = paste("Year",i))
-  points (ordShallowYears[[i]], display = 'spec', cex = goodness (ordShallowYears[[i]])*200)
-}
+
+# run the nMDS:
+# Shallow areas:
+
+# consider instead a Hellinger transformation:
+decostand(shallowCPUE_spread3[,2:54],"hell")
+
+ordShallow <- metaMDS(shallowCPUE_spread3[2:54], distance='bray', trymax=1000)
+#ordShallow <- metaMDS(decostand(shallowCPUE_spread3[,2:54], "hell"), distance='bray', trymax=1000) # goodness of fit plots look better on data with Hellinger transformation
+# also considered method = "log" (does not converge) and "max" (results are similar to wisc(sqrt( )))
+ordShallow
+
+par(mfrow=c(1,1))
+stressplot(ordShallow) # make sure stressplots show good fits
+
+plot(ordShallow, display = 'sites', type = 't', main = "Shallow Areas") # look at goodness-of-fit plots
+points(ordShallow, display = 'sites', cex = goodness (ordShallow)*200)
+
+  
+  
+# Deep areas:
+ordDeep <- metaMDS(deepCPUE_spread3[2:54], distance='bray', trymax=1000)
+ordDeep <- metaMDS(decostand(deepCPUE_spread3[2:54],"hell"), distance='bray', trymax=1000)
+
+stressplot(ordDeep) # make sure stressplots show good fits
+
+plot(ordDeep, display = 'sites', type = 't', main = "Deep Areas") # look at goodness-of-fit plots
+points(ordDeep, display = 'sites', cex = goodness (ordDeep)*200)
 
 ```
 
-#Shallow areas
-Red text = our 9 areas.
 
 ```{r, echo=FALSE}
-# Ordination plots:
-yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015")
-par(mfrow = c(2,2), mar=c(2,2,2,2))
-ordPlotsShallowYears <- list()
-for (i in seq_along(ordShallowYears)) {
-  ordPlotsShallowYears[[i]] <- plot(ordShallowYears[[i]], type = "n", main = paste("Shallow", yr[i]))
-  text(ordShallowYears[[i]], display = "spec", cex = 1.3, col="red")
-  text(ordShallowYears[[i]], display = "sites", cex = 0.3, col="blue")
-  }
+
+# Ordination plots
+#text(ordShallow, display = "sites", cex = 1.3, col="red")
+
+par(mfrow = c(1,2))
+
+# Plot shallow areas:
+ordiplot(ordShallow, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+title(main="Shallow Areas")
+#text(ordShallow, display = "sites", cex = 0.5, col="black")
+text(ordShallow, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordShallow, display = "sites") #, groups=shallowCPUE_spread3$Area)
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=3, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=4, col="green", label=T, lwd=3, lty=1)
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=5, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=6, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=7, col="pink", label=T, lwd=3, lty=1)
+
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=8, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordShallow, groups=shallowCPUE_spread3$Area, show.groups=9, col="black", label=T, lwd=3, lty=1)
+
+
+# areas 8 & 9  are very different from the rest, and also from each other.
+# there is also an east-west gradient in areas 1-7.
+# and area 1 does not overlap with any others.
+# is area 7 similar to other areas outside the Alaska Coastal Current?
+# note that area 8 & 9 hulls look smaller than hulls for areas 1-4 & 7 ... suggests that temporal turnover in 8 & 9 was less than that in 1-4 & 7 ... use betadisper test (must use same transformation) and then anova(test) to test this. Only use betadisper on factors that permanova says are significant.
+
+
+
+# Plot deep areas:
+ordiplot(ordDeep, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#text(ordShallow, display = "sites", cex = 0.5, col="black")
+title(main="Deep Areas")
+text(ordDeep, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordShallow, display = "sites") #, groups=shallowCPUE_spread3$Area)
+ordihull(ordDeep, groups=deepCPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
+ordihull(ordDeep, groups=deepCPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordDeep, groups=deepCPUE_spread3$Area, show.groups=3, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordDeep, groups=deepCPUE_spread3$Area, show.groups=4, col="green", label=T, lwd=3, lty=1)
+ordihull(ordDeep, groups=deepCPUE_spread3$Area, show.groups=5, col="blue", label=T, lwd=3, lty=1)
+
 ```
+
+######################################################
+######################################################
+######################################################
+
+
+# PERMANOVA
+
+```{r,  include=FALSE, echo=FALSE}
+# must still add oil-exposed vs unexposed groupings
+
+# Shallow areas:
+adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area*year, data = shallowCPUE_spread3, permutations = 200, method = "bray")
+#            Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area        1    1.0514 1.05137  42.788 0.22180 0.004975 **
+# year        1    0.6248 0.62483  25.429 0.13181 0.004975 **
+# Area:year   1    0.0663 0.06629   2.698 0.01398 0.029851 * 
+# Residuals 122    2.9977 0.02457         0.63240            
+# Total     125    4.7402                 1.00000 
+
+
+adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area + year, data = shallowCPUE_spread3, permutations = 200, method = "jaccard")
+# Terms added sequentially (first to last)
+#            Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area        1    2.0236 2.02363  31.379 0.18058 0.004975 **
+# year        1    1.2502 1.25016  19.385 0.11156 0.004975 **
+# Residuals 123    7.9324 0.06449         0.70786            
+# Total     125   11.2062                 1.00000 
+
+
+
+shallowDist = vegdist(wisconsin(sqrt(shallowCPUE_spread3[,2:54])),"bray") # consider Hellinger transformation to deal with superabundant vs superrare species (see Legendre & Legendre)
+#shallowDist = vegdist(wisconsin(sqrt(shallowCPUE_spread3[,2:54])),"jaccard") 
+
+shallowTest = betadisper(shallowDist,shallowCPUE_spread3$Area) # this gives within-area variability (ie looks at temporal effects ... how different is each year from the mean across all years)
+boxplot(shallowTest) # indicates temporal turnover (beta diversity in time)
+anova(shallowTest) # p = 0.94   Shows that area of each hull in nmds is not significantly different ... ie no difference in temporal turnover between areas
+TukeyHSD(shallowTest)
+
+
+
+
+# Deep areas:
+adonis(wisconsin(sqrt(deepCPUE_spread3[,2:54])) ~ Area*year, data = deepCPUE_spread3, permutations = 200, method = "bray")
+# Terms added sequentially (first to last)
+# 
+#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area       1   0.45975 0.45975 27.3499 0.22935 0.004975 **
+# year       1   0.41073 0.41073 24.4335 0.20490 0.004975 **
+# Area:year  1   0.02462 0.02462  1.4648 0.01228 0.208955   
+# Residuals 66   1.10946 0.01681         0.55347            
+# Total     69   2.00457                 1.00000 
+
+
+
+deepDist = vegdist(wisconsin(sqrt(deepCPUE_spread3[,2:54])),"bray") # consider Hellinger transformation
+#deepDist = vegdist(wisconsin(sqrt(deepCPUE_spread3[,2:54])),"jaccard") 
+
+deepTest = betadisper(deepDist,deepCPUE_spread3$Area)
+boxplot(deepTest)
+anova(deepTest) # p = 0.89   
+TukeyHSD(deepTest)
+
+```
+
+
+
+######################################################
+######################################################
+######################################################
+
+#2. PCA
+Methods: Used vegan package in R, function rda(). Raw CPUEs vary by many orders of magnitude (10^-7 to 10^2 or 10^-6 to 10^1 in shallow areas, 10^-5 to 10^2 in deep areas), therefore, to prevent the most abundant species from driving the result and allow all species to contribute equally to the result, cpues were standardized prior to analysis (Legendre & Legendre 1998) - means that PCs were extracted from correlation matrices, not dispersion matrices.
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+
+# orgnzize the data for PCA:
+# Shallow areas:
+shallowCPUE_spread1 <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  spread(area, Mean.totalDensity) # make each area a column
+
+shallowByYear_list <- split(shallowCPUE_spread1, f = shallowCPUE_spread1$year) # create a list of dataframes (one for each year)
+shallowByYear_list1 <- lapply(shallowByYear_list, function(z){ row.names(z) <- z$common.name; z}) # create row names from common names
+shallowByYear_list2 <- lapply(shallowByYear_list1, function(v) v[!(names(v) %in% c("common.name", "year"))]) # drop common name & year
+
+
+
+# Deep areas:
+deepCPUE_spread1 <- deepCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  spread(area, Mean.totalDensity) # make each area a column
+
+deepByYear_list <- split(deepCPUE_spread1, f = deepCPUE_spread1$year) # create a list of dataframes (one for each year)
+deepByYear_list1 <- lapply(deepByYear_list, function(z){ row.names(z) <- z$common.name; z}) # create row names from common name
+deepByYear_list2 <- lapply(deepByYear_list1, function(v) v[!(names(v) %in% c("common.name", "year"))]) # drop common name & year
+
+
+
+#######################
+
+# examine the data
+cpueRangeShallow <- list(); mvnormShallow <- list()
+for (i in seq_along(shallowByYear_list2)) {
+  cpueRangeShallow[[i]] <- range(shallowByYear_list2[[i]]) # extract max & min cpue for each shallow area
+  #mvnormShallow[[i]] <- mshapiro.test(as.matrix(shallowByYear_list2[[i]])) # assess multivariate normality
+}
+cpueRangeShallow; mvnormShallow
+# p-values of multivariate shapiro-wilks test are all <<<<<<< 0.05, ie for each area, raw cpues are not multivariate-normal ... further suggestion that cpues should be standarized before analysis
+
+
+
+# PCA for shallow areas
+pcaShallow <- list()
+for (i in seq_along(shallowByYear_list2)) {
+  pcaShallow[[i]] <- rda(shallowByYear_list2[[i]], scale = TRUE)
+}
+
+
+# calculate proportion of total variance explained by PC1 & PC2:
+pcVarShallow <- list()
+for (i in seq_along(pcaShallow)) {
+  pcVarShallow[[i]] <- pcaShallow[[i]]$CA[[1]] / pcaShallow[[i]]$CA$tot.chi
+}
+
+```
+
+##Shallow areas
+Area 10 is Total
+
+% of total variance explained by PC1 & PC2:
+```{r, echo=FALSE}
+pcVarShallow1 <- data.frame(
+  yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015"),
+  pc1 <- do.call("rbind", lapply(pcVarShallow, "[[", 1)), # extract PC1
+  pc2 <- do.call("rbind", lapply(pcVarShallow, "[[", 2))  # extract PC2
+)
+colnames <- c("Year", "PC1", "PC2"); names(pcVarShallow1 ) <- colnames
+pcVarShallow1
+
+```
+
+
+Plots for shallow areas.
+Note that I've removed arrows for species scores and did some wonky scaling of species scores to make them legible in the plots (divided each species score by species StDev - although their relative positions are preserved in the plots, this is technically incorrect because I've already standardized data prior to analysis). This will need to be changed if used in a publication - see .Rmd file for correct code.
+
+```{r, echo=FALSE}
+# plots:
+yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015")
+par(mfrow = c(1,1), mar=c(2,2,2,2))
+pcaShallow1 <- list()
+for (i in seq_along(pcaShallow)) {
+  pcaShallow1[[i]] <- plot(pcaShallow[[i]], scaling = -1, main = paste("Shallow", yr[i])) # to add arrows for species scores, change this to biplot(...)
+  # use of 'scaling = -1' is technically incorrect; for publication, change this to scaling = 3 or remove scaling = x 
+}
+
+```
+
 
 ***
 
-
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+# Deep areas
 
-# nMDS for Deep Areas:
-ordDeepYears <- list()
-for (i in seq_along(deepByYear_nmds_list2)) {
-  ordDeepYears[[i]] <- metaMDS(deepByYear_nmds_list2[[i]], distance='bray', trymax=1000)
+# examine the data
+cpueRangeDeep <- list(); mvnormDeep<- list()
+for (i in seq_along(deepByYear_list2)) {
+  cpueRangeDeep[[i]] <- range(deepByYear_list2[[i]]) # extract max & min cpue for each shallow area
+  #mvnormDeep[[i]] <- mshapiro.test(as.matrix(deepByYear_list2[[i]])) # assess multivariate normality
+}
+cpueRangeDeep; mvnormDeep
+# p-values of multivariate shapiro-wilks test are all <<<<<<< 0.05, ie for each area, raw cpues are not multivariate-normal ... further suggestion that cpues should be standarized before analysis
+
+
+# PCA for deep areas
+pcaDeep <- list()
+for (i in seq_along(deepByYear_list2)) {
+  pcaDeep[[i]] <- rda(deepByYear_list2[[i]], scale = TRUE)
 }
 
 
-# examine Shepard's stressplots:
-# goodness-of-fit test: plots ordination distances against community dissimilarities
-par (mfrow = c(3,5), pty="m") 
-stressplotsDeepYears <- list()
-for (i in seq_along(ordDeepYears)) {
-  stressplotsDeepYears[[i]] <- stressplot(ordDeepYears[[i]], main = paste("Year",i))
-}
-
-
-# examine goodness of fit plots:
-# size represents goodness of fit (bigger = worse fit)
-par (mfrow = c(2,2), pty="m") 
-goodnessDeepYears <- list()
-for (i in seq_along(ordDeepYears)) {
-  goodnessDeepYears[[i]] <- plot (ordDeepYears[[i]], display = 'spec', type = 't', main = paste("Year",i))
-  points (ordDeepYears[[i]], display = 'spec', cex = goodness (ordDeepYears[[i]])*200)
+# calculate proportion of total variance explained by PC1 & PC2:
+pcVarDeep <- list()
+for (i in seq_along(pcaDeep)) {
+  pcVarDeep[[i]] <- pcaDeep[[i]]$CA[[1]] / pcaDeep[[i]]$CA$tot.chi
 }
 
 ```
+***
+##Deep areas
+Area 6 is Total
 
-#Deep areas
-Red text = our 9 areas.
+% of total variance explained by PC1 & PC2:
+```{r, echo=FALSE}
+pcVarDeep1 <- data.frame(
+  yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015"),
+  pc1.1 <- do.call("rbind", lapply(pcVarDeep, "[[", 1)), # extract PC1
+  pc2.1 <- do.call("rbind", lapply(pcVarDeep, "[[", 2))  # extract PC2
+)
+colnames <- c("Year", "PC1", "PC2"); names(pcVarDeep1) <- colnames
+pcVarDeep1
+
+```
+
+Plots for deep areas.
+See note above about scaling of species scores.
 
 ```{r, echo=FALSE}
+
 # Ordination plots:
-yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015")
-par(mfrow = c(2,2), mar=c(2,2,2,2))
-ordPlotsDeepYears <- list()
-for (i in seq_along(ordDeepYears)) {
-  ordPlotsDeepYears[[i]] <- plot(ordDeepYears[[i]], type = "n", main = paste("Deep", yr[i]))
-  text(ordDeepYears[[i]], display = "spec", cex = 1.3, col="red")
-  text(ordDeepYears[[i]], display = "sites", cex = 0.3, col="blue")
+par(mfrow = c(1,1), mar=c(2,2,2,2))
+pcaDeep1 <- list()
+for (i in seq_along(pcaDeep)) {
+  pcaDeep1[[i]] <- plot(pcaDeep[[i]], scaling = -1, main = paste("Year", yr[i]))  # to add arrows for species scores, change this to biplot(...)
+  # use of 'scaling = -1' is technically incorrect; for publication, change this to scaling = 3 or remove scaling = x
 }
 
 ```
+
+
