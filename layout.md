@@ -1,7 +1,6 @@
 Gfish_Diversity_MS_1/AbstractThis_is_where_the_abstract__.html
 Gfish_Diversity_MS_1/untitled.html
 h1_class_ltx_title_section_id_auto__.html
-h2_class_ltx_title_subsection_id_auto__.html
 div_Natural_perturbations_ref_Table__.html
 div_Anthropogenic_perturbation_EVOS_Fig__.html
 div_nbsp_br_div__.html
