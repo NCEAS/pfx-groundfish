@@ -1,7 +1,6 @@
 Gfish_Diversity_MS_1/AbstractThis_is_where_the_abstract__.html
 Gfish_Diversity_MS_1/untitled.html
 h1_class_ltx_title_section_id_auto__.html
-h2_class_ltx_title_subsection_id_auto__3.html
 div_AFSC_survey_data_were__.html
 div_The_estimated_range_at__.html
 h2_class_ltx_title_subsection_id_auto__4.html
