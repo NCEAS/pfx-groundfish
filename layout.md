@@ -2,7 +2,6 @@ Gfish_Diversity_MS_1/AbstractThis_is_where_the_abstract__.html
 Gfish_Diversity_MS_1/untitled.html
 h1_class_ltx_title_section_id_auto__.html
 div_Anthropogenic_perturbation_EVOS_Fig__.html
-h2_class_ltx_title_subsection_id_auto__1.html
 div_Since_1984_the_Alaska__.html
 div_The_net_used_in__.html
 h2_class_ltx_title_subsection_id_auto__2.html
