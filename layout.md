@@ -3,4 +3,5 @@ Gfish_Diversity_MS_1/untitled.html
 Gfish_Diversity_MS_1/MethodsTrawl_SurveySince_1984_the_Alaska__.html
 Gfish_Diversity_MS_1/ResultsEnvironmental_conditions_and_species_community__.html
 figures/nMDS_Shallow/nMDS_WiscSqrt&Hellinger.png
+figures/nMDS_groupByYears/nMDS_groupByYears.png
 Gfish_Diversity_MS_1/DiscussionMain_message_from_each_figure__.html
