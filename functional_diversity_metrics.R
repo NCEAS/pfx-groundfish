@@ -9,6 +9,7 @@ library(tidyr)
 library(psych)
 library(FD)
 library(ggplot2)
+library(gridExtra)
 
 
 # load the functional trait data from local source in our repository:
@@ -295,6 +296,7 @@ traits_wide[,categ] <- lapply(traits_wide[,categ] , factor)
 #write.csv(traits_wide, file = "traits_wide.csv")
 
 
+
 # which pairs of (log-transformed) quantitative traits are correlated?
 pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
 names(traits_wide[,quant])
@@ -323,8 +325,8 @@ names(traits_wide[,quant])
 
 # Prep functional traits df to load into functional diversity analysis
 ft_df <- traits_wide %>%
-  # select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos) %>% # select log-transformed quantitative traits
-  select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, diet) %>% # select log-transformed quantitative traits & categorical diet trait
+  select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos) %>% # select log-transformed quantitative traits
+  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, diet) %>% # select log-transformed quantitative traits & categorical diet trait
   filter(!(is.na(ageMaximum)), !(is.na(depthMax)), !is.na(depthCoefPos)) %>% # remove taxa for which trait data are missing
   arrange(Species)
 rownames(ft_df) <- ft_df$Species # create row names from Species column
@@ -364,7 +366,7 @@ spShallow_df <- SPCPUEArea %>%
 
 Sh <- spShallow_df %>% 
   select(Species, area, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df
   spread(Species, Mean.totalDensity) %>%
   select(-year)
 
@@ -397,7 +399,7 @@ spDeep_df <- deepCPUE %>%
 
 Dp <- spDeep_df %>% 
   select(Species, area, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df
   spread(Species, Mean.totalDensity) %>%
   select(-year)
 
@@ -413,6 +415,7 @@ deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("are
 
 # Calculate Functional Diversity (Rao's Q)
 
+
 # Methods info from FD package documentation:
 # "If not all traits are numeric, Gower’s (1971) standardization by the
 #  range is automatically used; see gowdis for more details."
@@ -427,34 +430,18 @@ deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("are
 # then converts it to a dissimilarity coefficient by using D = 1-S
 
 
-#########################
 
-# For Shallow Areas:
+# Rao's Q for Shallow Areas:
 fdShallow <- list()
 for (i in seq_along(shallowByArea_list1)) {
-  fdShallow[[i]] <- dbFD(ft_df, shallowByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+  fdShallow[[i]] <- dbFD(ft_df, shallowByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # nb adding stand.x = T when using only quantitative traits makes no difference becasue data were already log-transformed
 }
 # when quantitative & categorical traits are used:
 # "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
 
 
-# Create a table of Rao's Q values for each area, by year:
-colsShallow <- paste("Area", 1:10, sep="")
-shallowRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 10)); colnames(shallowRao1) <- colsShallow
 
-for (i in seq_along(fdShallow)) {
-  shallowRao1[,i] <- data.frame(as.data.frame(fdShallow[[i]]$RaoQ))
-}
-
-year <- as.data.frame(unique(sort(SPCPUEArea$year))); colnames(year) <- "year"
-shallowRaoQ <- bind_cols(year, shallowRao1) %>%
-  rename(Total = Area10)
-#View(shallowRaoQ)
-
-
-#########################
-
-# For Deep Areas:
+# Rao's Q for Deep Areas:
 fdDeep <- list()
 for (i in seq_along(deepByArea_list1)) {
   fdDeep[[i]] <- dbFD(ft_df, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
@@ -463,7 +450,26 @@ for (i in seq_along(deepByArea_list1)) {
 # "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
 
 
-# Create a table of Rao's Q values for each area, by year:
+#############################
+
+# Create dataframes of Rao's Q for plotting purposes:
+
+# Shallow areas:
+colsShallow <- paste("Area", 1:10, sep="")
+shallowRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 10)); colnames(shallowRao1) <- colsShallow
+
+for (i in seq_along(fdShallow)) {
+  shallowRao1[,i] <- data.frame(as.data.frame(fdShallow[[i]]$RaoQ))
+}
+
+year <- as.data.frame(unique(sort(SPCPUEArea$year))); colnames(year) <- "year"
+shallowRaoQ <- shallowRao1 %>% bind_cols(year) %>% 
+  select(-Area10) # remove column for total areas combined
+
+
+
+
+# Deep areas:
 colsDeep <- paste("Area", 1:6, sep="")
 deepRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 6)); colnames(deepRao1) <- colsDeep
 
@@ -472,18 +478,15 @@ for (i in seq_along(fdDeep)) {
 }
 
 year2 <- as.data.frame(unique(sort(deepCPUE$year))); colnames(year) <- "year"
-deepRaoQ <- bind_cols(year, deepRao1) %>%
-  rename(Total = Area6)
-#View(deepRaoQ)
-
-
+deepRaoQ <- bind_cols(year, deepRao1) %>% 
+  select(-Area6) # remove column for total areas combined
 
 ######################################################
 ######################################################
 ######################################################
 
-# Plot Rao's Q
 
+# Temporal plots of Rao's Q
 
 # 1. Shallow Areas:
 year3 <- unique(sort(SPCPUEArea$year))
@@ -511,6 +514,7 @@ ggplot(data=shallowRaoQ, aes(x=year3, y = value)) +
        x = "Year", y = "Rao's Q")
 
 
+
 #########################
 
 # 2. Deep Areas:
@@ -533,3 +537,80 @@ ggplot(data=deepRaoQ, aes(x=year4, y = value)) +
   scale_x_continuous(breaks=c(year4), labels=c(year4)) +
   labs(title = "Rao's Q for Deep Areas", 
        x = "Year", y = "Rao's Q")
+
+
+
+######################################################
+######################################################
+######################################################
+
+
+# Spatial boxplots of Rao's Q
+
+
+# Create long-form dataframes of Rao's Q for Spatial Plots:
+year <- as.data.frame(unique(sort(SPCPUEArea$year)))
+
+shallowRao2 <- shallowRaoQ %>% 
+  gather(key = area, value = RaosQ, Area1:Area9) %>%
+  mutate(area = gsub("Area", "", area), 
+         area = as.factor(area))
+
+deepRao2 <- deepRaoQ %>% 
+  gather(key = area, value = RaosQ, Area1:Area5) %>%
+  mutate(area = gsub("Area", "", area), 
+         area = as.factor(area))
+
+#########################
+
+
+# Load Mary & Rachael's boxplot theme:
+theme_boxplot <- function(base_size = 12){
+  theme_bw(base_size)%+replace%
+    theme(legend.key.size=unit(12,"points"),
+          legend.text=element_text(size=11),
+          legend.key=element_blank(),
+          legend.title=element_blank(),
+          legend.background=element_rect(colour="white", fill="transparent"),
+          plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
+          panel.border=element_blank(),
+          panel.margin=unit(0,"lines"),
+          panel.background=element_rect(fill=NA, colour=NA),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.ticks.length=unit(1,"mm"),
+          axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+          axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+          axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+          axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+          strip.text.x=element_text(size=12),
+          strip.background=element_rect(colour="black", fill='white'))
+}
+
+
+#########################
+
+
+shallow_FD <- ggplot(data=shallowRao2, aes(x = area, y = RaosQ)) + 
+  geom_boxplot() + theme_boxplot() +
+  xlab("Area (West <-> East)") + ylab("Rao's Q") +
+  xlim("9", "8", "7", "6", "5", "4", "3", "2", "1") + ylim(0.95, 2.6) +
+  #theme_classic() +
+  #theme(axis.text.x = element_text(size=15))
+  theme(plot.background=element_blank(),
+        axis.text.x = element_text(size=15))
+
+
+deep_FD <- ggplot(data=deepRao2, aes(x = area, y = RaosQ)) + 
+  geom_boxplot() + theme_boxplot() +
+  xlab("Area (West <-> East)") + ylab("Rao's Q") +
+  xlim("5", "4", "3", "2", "1") + ylim(0.95, 2.6) +
+  #theme_classic() +
+  #theme(axis.text.x = element_text(size=15))
+  theme(plot.background=element_blank(),
+        axis.text.x = element_text(size=15))
+
+
+grid.arrange(shallow_FD, deep_FD, ncol=2)
