@@ -289,7 +289,6 @@ quant = c("age50percentMaturity", "ageMaximum", "depthCoefPos", "depthMax", "dep
          "lengthMaximum", "Linfinity", "trophicPosition")
 traits_wide[,quant] <- apply(traits_wide[,quant], 2, function(x) as.numeric(x)) # convert columns to numeric as needed
 traits_wide[,quant] <- apply(traits_wide[,quant], 2, function(y) log(y)) # log-transform the quantitative traits (as per recommendation in Botta-Dukat 2005)
-head(traits_wide)
 
 categ = c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "diet", "guild", "migratoryStatus") # convert columns to factors as needed
 traits_wide[,categ] <- lapply(traits_wide[,categ] , factor)
@@ -309,14 +308,13 @@ names(traits_wide[,quant])
 
 # we have the most data for:
 # adultWaterColumnPosition (missing for 2 taxa)
-#ageMax (missing for 9 taxa)
 #diet (missing 0)
 #sum(is.na(traits_wide$firstMaturityLength)) # missing 23
 #sum(is.na(traits_wide$K)) # missing 16
 #sum(is.na(traits_wide$Linfinity)) # missing 16
 #guild (missing 0)
 #lengthMaximum (missing 4)
-#sum(is.na(traits_wide$ageMaximum)) # missing 10
+#sum(is.na(traits_wide$ageMaximum)) # missing 9
 #trophicPosition (missing 0)
 #depthRange (missing 6)
 #depthMax (missing 6)
@@ -325,13 +323,15 @@ names(traits_wide[,quant])
 
 # Prep functional traits df to load into functional diversity analysis
 ft_df <- traits_wide %>%
-  select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos) %>% # select log-transformed quantitative traits
-  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, diet) %>% # select log-transformed quantitative traits & categorical diet trait
+  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, depthRange, K, Linfinity) %>% # select all untransformed quantitative traits with sufficient data
+  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, depthRange, adultWaterColumnPosition, diet, guild) %>% # select all traits with sufficient data
+  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos) %>% # select uncorrelated log-transformed quantitative traits
+  select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, adultWaterColumnPosition, diet, guild) %>% # select uncorrelated log-transformed quantitative traits & categorical diet trait
   filter(!(is.na(ageMaximum)), !(is.na(depthMax)), !is.na(depthCoefPos)) %>% # remove taxa for which trait data are missing
   arrange(Species)
 rownames(ft_df) <- ft_df$Species # create row names from Species column
 ft_df <- ft_df %>% select(-Species)
-# View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
+View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
 
 #unique(sort(setdiff(ft_df$Species, SPCPUEArea$Species))) # sp in traits_df3 but not SPCPUEArea
 
@@ -432,9 +432,14 @@ deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("are
 
 
 # Rao's Q for Shallow Areas:
+ftMahalanobis <- mahaldis(as.matrix(ft_df)) # calculate Mahalanobis generalized distance for the functional trait matrix (using raw, not log-transformed, values)
+# then substitute this into dbFD() in place of ft_df
+# the above will produce a distance matrix for continuous traits. but how do I then use this with categorical traits?
+
 fdShallow <- list()
 for (i in seq_along(shallowByArea_list1)) {
-  fdShallow[[i]] <- dbFD(ft_df, shallowByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # nb adding stand.x = T when using only quantitative traits makes no difference becasue data were already log-transformed
+  #fdShallow[[i]] <- dbFD(ftMahalanobis, shallowByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using Mahalanobis distance matrix for all quantitative traits with sufficient data
+  fdShallow[[i]] <- dbFD(ft_df, shallowByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using only uncorrelated traits; note to self: adding stand.x = T when using only quantitative traits makes no difference becasue data were already log-transformed
 }
 # when quantitative & categorical traits are used:
 # "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
@@ -444,7 +449,8 @@ for (i in seq_along(shallowByArea_list1)) {
 # Rao's Q for Deep Areas:
 fdDeep <- list()
 for (i in seq_along(deepByArea_list1)) {
-  fdDeep[[i]] <- dbFD(ft_df, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+  #fdDeep[[i]] <- dbFD(ftMahalanobis, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using Mahalanobis distance matrix for all quantitative traits with sufficient data
+  fdDeep[[i]] <- dbFD(ft_df, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using only uncorrelated traits; note to self: adding stand.x = T when using only quantitative traits makes no difference becasue data were already log-transformed
 }
 # when quantitative & categorical traits are used:
 # "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
@@ -491,7 +497,7 @@ deepRaoQ <- bind_cols(year, deepRao1) %>%
 # 1. Shallow Areas:
 year3 <- unique(sort(SPCPUEArea$year))
 
-ggplot(data=shallowRaoQ, aes(x=year3, y = value)) + 
+shallowRaoQ_temporal <- ggplot(data=shallowRaoQ, aes(x=year3, y = value)) + 
   geom_point(aes(y = Area1), size=2) +         geom_line(aes(y = Area1), size=2) +
   geom_point(aes(y = Area2), size=2) +         geom_line(aes(y = Area2), size=2) +
   geom_point(aes(y = Area3), size=2, col=2) +  geom_line(aes(y = Area3), size=2, col=2) +
@@ -520,7 +526,7 @@ ggplot(data=shallowRaoQ, aes(x=year3, y = value)) +
 # 2. Deep Areas:
 year4 <- unique(sort(deepCPUE$year))
 
-ggplot(data=deepRaoQ, aes(x=year4, y = value)) + 
+deepRaoQ_temporal <- ggplot(data=deepRaoQ, aes(x=year4, y = value)) + 
   geom_point(aes(y = Area1), size=2, col=2) +  geom_line(aes(y = Area1), size=2, col=2) +
   geom_point(aes(y = Area2), size=2, col=2) +  geom_line(aes(y = Area2), size=2, col=2) +
   geom_point(aes(y = Area3), size=2) +         geom_line(aes(y = Area3), size=2) +
@@ -538,6 +544,8 @@ ggplot(data=deepRaoQ, aes(x=year4, y = value)) +
   labs(title = "Rao's Q for Deep Areas", 
        x = "Year", y = "Rao's Q")
 
+
+grid.arrange(shallowRaoQ_temporal, deepRaoQ_temporal, ncol=2)
 
 
 ######################################################
@@ -592,13 +600,16 @@ theme_boxplot <- function(base_size = 12){
 
 #########################
 
+range(shallowRao2$RaosQ); range(deepRao2$RaosQ)
 
 shallow_FD <- ggplot(data=shallowRao2, aes(x = area, y = RaosQ)) + 
   geom_boxplot() + theme_boxplot() +
   xlab("Area (West <-> East)") + ylab("Rao's Q") +
-  xlim("9", "8", "7", "6", "5", "4", "3", "2", "1") + ylim(0.95, 2.6) +
-  #theme_classic() +
-  #theme(axis.text.x = element_text(size=15))
+  xlim("9", "8", "7", "6", "5", "4", "3", "2", "1") + 
+  #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
+  ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
+  #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
+  #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
   theme(plot.background=element_blank(),
         axis.text.x = element_text(size=15))
 
@@ -606,11 +617,45 @@ shallow_FD <- ggplot(data=shallowRao2, aes(x = area, y = RaosQ)) +
 deep_FD <- ggplot(data=deepRao2, aes(x = area, y = RaosQ)) + 
   geom_boxplot() + theme_boxplot() +
   xlab("Area (West <-> East)") + ylab("Rao's Q") +
-  xlim("5", "4", "3", "2", "1") + ylim(0.95, 2.6) +
-  #theme_classic() +
-  #theme(axis.text.x = element_text(size=15))
+  xlim("5", "4", "3", "2", "1") + 
+  #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
+  ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
+  #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
+  #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
   theme(plot.background=element_blank(),
         axis.text.x = element_text(size=15))
 
 
 grid.arrange(shallow_FD, deep_FD, ncol=2)
+
+
+######################################################
+######################################################
+######################################################
+
+
+# Test for between-area differences in Rao's Q:
+# note that we are treating area as a factor, not a continuous variable
+
+shallowANOVA <- aov(RaosQ ~ area, data = shallowRao2)
+shallowANOVA <- aov(RaosQ ~ area*year, data = shallowRao2)
+shallowANOVA <- aov(RaosQ ~ area + year, data = shallowRao2)
+summary(shallowANOVA)
+
+pairwise.t.test(shallowRao2$RaosQ, shallowRao2$area, p.adjust = "bonferroni", alternative = c("two.sided")) # alt = "two.sided", "less", "greater"
+# output = table of p-values, which tells us which pairs are significantly different 
+
+TukeyHSD(shallowANOVA, conf.level = 0.95)
+
+
+
+
+deepANOVA <- aov(RaosQ ~ area, data = deepRao2)
+deepANOVA <- aov(RaosQ ~ area*year, data = deepRao2)
+deepANOVA <- aov(RaosQ ~ area + year, data = deepRao2)
+summary(deepANOVA)
+
+pairwise.t.test(deepRao2$RaosQ, deepRao2$area, p.adjust = "bonferroni", alternative = c("two.sided")) # alt = "two.sided", "less", "greater"
+# output = table of p-values, which tells us which pairs are significantly different 
+
+TukeyHSD(deepANOVA, conf.level = 0.95)
