@@ -3,4 +3,4 @@ Gfish_Diversity_MS_1/untitled.html
 Gfish_Diversity_MS_1/MethodsTrawl_Survey_Since_1984_the__.html  
 Gfish_Diversity_MS_1/ResultsEnvironmental_conditions_and_responses_The__.html  
 figures/nMDS_Shallow/nMDS_Shallow&Deep_original.png  
-Gfish_Diversity_MS_1/DiscussionFor_the_opening_paragraph_I__.html  
+Gfish_Diversity_MS_1/DiscussionA_For_the_opening_paragraph__.html  
