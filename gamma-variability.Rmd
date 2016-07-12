@@ -1,0 +1,98 @@
+---
+title: "Gamma variability"
+author: "Colette Ward"
+date: "July 12, 2016"
+output: pdf_document
+---
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load packages
+library(httr)
+library(vegan)
+library(mvnormtest)
+library(plyr)
+library(dplyr)
+library(tidyr)
+
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prep look-up table of common names
+URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
+common_Get <- GET(URL_common)
+common_1 <- content(common_Get, as='text')
+common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+
+common1 <- common %>%
+  select(database.name, common.name) %>%
+  rename(Species = database.name)
+for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
+  if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
+  if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
+}
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load mean annual CPUE data for Shallow Areas:
+URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
+shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
+shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(shallowCPUEArea)
+
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name)
+
+shallowAreas_list <- split(shallowCPUEArea2, f = shallowCPUEArea2$area) # create a list of dataframes (one df for each local area & total region)
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load mean annual CPUE for Deep areas:
+URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUEArea_Get <- GET(URL_deepCPUEArea)
+deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
+deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUEArea)
+
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in common names
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name)
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# Calculate gamma variability
+# The following calculations use formulas from Wang & Loreau 2014 Supp Mat (i.e. for varying biomass within and between local communities).
+
+str(shallowAreas_list[[1]])
+
+# i = local area (patch) i
+# j = species j
+# i_j = species j in local area (patch) i
+
+shallow_list <- list()
+for(i in seq_along(shallowAreas_list)) {
+  shallow_list[[i]] <- shallowAreas_list[[i]] %>%
+    
+    # 1. Calculate species-level stuff
+    group_by(Species) %>%
+    summarise(u_j_i = mean(Mean.totalDensity), # mean biomass (across all years) of species j in patch i
+              CV_j_i = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in patch i
+              CV_species_j_i = u_j_i / u_i * CV_j_i) %>% # CV of all species in patch i
+    ungroup() %>% 
+    
+    # 2. Calculate patch-level stuff
+    summarise(u_i = mean(Mean.totalDensity)) %>% # mean total community biomass (across all years) for local patch i
+    summarise(CV_species_i = sum(CV_species_j_i)) %>%
+    
+    # 3. Calculate species synchrony within patches
+    summarise(w_kl_i = ) # covariance between species k and l in patch i
+    
+}
+View(shallow_list[[1]])
+
+```
