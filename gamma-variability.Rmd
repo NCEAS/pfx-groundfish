@@ -12,6 +12,7 @@ library(httr)
 library(plyr)
 library(dplyr)
 library(tidyr)
+library(ggplot2)
 
 ```
 
@@ -42,10 +43,7 @@ shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFact
 #View(shallowCPUEArea)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
-  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
-  filter(area != "Total") # remove regional totals column
-
-shallowAreas_list <- split(shallowCPUEArea2, f = shallowCPUEArea2$area) # create a list of dataframes (one df for each local area & total region)
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name)
 
 ```
 
@@ -62,15 +60,46 @@ deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in
 
 ```
 
+# To address regional vs local community stability, we probably don't need Wang & Loreau's (2014) complex equations. Instead we can simply compare CVs of total CPUE between local communities and the regional metacommunity:
+
+```{r, echo=F}
+
+CV <- shallowCPUEArea2 %>% 
+  group_by(area, year) %>%
+  summarise(total = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  
+  group_by(area) %>%
+  summarise(CV = var(total) / (mean(total)^2)) %>%
+  ungroup()
+
+
+# plot on a log scale
+# if anyone wants to make this prettier, please do :)
+CV_plot <- ggplot(data=CV, aes(x=area, y = CV)) + 
+  geom_point(aes(y = CV), size=2, col=2) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black")) +
+  
+  scale_y_log10(breaks = c(0.005, 0.01, 0.05)) + # how do I put minor tick marks on the y axis?
+  
+  labs(x = "Area", y = "CV (Total CPUE)")
+
+CV_plot
+
+
+```
+
+# Although we can compare local and regional community stability using CVs alone, here we calculate metrics from Wang & Loreau (2014) to help us think about mechanisms underlying our result.
+# The following uses formulas from Wang & Loreau 2014 Supp Mat (i.e. for varying biomass within and between local communities).
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
 # Calculate gamma variability
-# The following calculations use formulas from Wang & Loreau 2014 Supp Mat (i.e. for varying biomass within and between local communities).
-
 
 # SHOULD SPECIES CPUES BE LOG-TRANSFORMED FIRST???
 
-str(shallowAreas_list[[1]])
 
 # i = local area (patch) i
 # j, k, l = species j, k, l
@@ -87,7 +116,12 @@ F_list <- list()
 rho_species_i_list <- list()
 CV_i_list <- list()
 
-for(i in seq_along(shallowAreas_list)) {
+
+shallowAreas_list <- split(shallowCPUEArea2, f = shallowCPUEArea2$area) # create a list of dataframes (one df for each local area & total region)
+shallowAreas_list[[10]] <- NULL  # remove the 10th element from the list (remove the list for the total regional metacommunity)
+
+
+for(i in seq_along(shallowAreas_list)) { # remove list for i = 10
   
   #############
   # 1. Calculate averaged species variability (C_list[[i]]$CV_species_i):
@@ -112,8 +146,6 @@ for(i in seq_along(shallowAreas_list)) {
   
   
   ###############
-  
-  
   # 2. Calculate species asynchrony WITHIN patches (rho_species_i_list[[i]]):
   
   D_list[[i]] <- shallowAreas_list[[i]] %>% # clean the data
@@ -140,8 +172,6 @@ for(i in seq_along(shallowAreas_list)) {
   
   
   ###############
-  
-  
   # 3. Calculate Variability of local community i (CV_i_list[[i]])
   CV_i_list[[i]] <- (C_list[[i]]$CV_species_i * rho_species_i_list[[i]])^2 # SHOULD THIS BE SQUARED? OR NOT? RETURNS A NEGATIVE VALUE WHEN SPECIES SYNCHRONY WITHIN PATCHES IS NEGATIVE
       
@@ -149,16 +179,12 @@ for(i in seq_along(shallowAreas_list)) {
   
   
   ###############
-  
-  
   # 4. Calculate Alpha variability (local community variability weighed for local community biomass; alpha_CV_list[[i]])
   u_m <- sum(A_list[[i]]$u_i)
   alpha_CV <- (sum(A_list[[i]]$u_i / u_m * CV_i_list[[i]] ))^2 # alpha_CV = 0.004474226
 
   
   ###############
-  
-  
   # 5. Calculate Beta variability (spatial synchrony; rho)
   #rho <- 
   
