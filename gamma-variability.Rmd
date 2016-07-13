@@ -60,9 +60,11 @@ deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in
 
 ```
 
-# To address regional vs local community stability, we probably don't need Wang & Loreau's (2014) complex equations. Instead we can simply compare CVs of total CPUE between local communities and the regional metacommunity:
+### To address regional vs local community stability, we probably don't need Wang & Loreau's (2014) complex equations. Instead we can simply compare CVs of total CPUE between local communities and the regional metacommunity.
+### The regional community does indeed show greater stability than local communities:
+(If anyone wants to make this plot prettier, please do :) )
 
-```{r, echo=F}
+```{r, echo=F, fig.height=3, fig.width=4}
 
 CV <- shallowCPUEArea2 %>% 
   group_by(area, year) %>%
@@ -75,7 +77,6 @@ CV <- shallowCPUEArea2 %>%
 
 
 # plot on a log scale
-# if anyone wants to make this prettier, please do :)
 CV_plot <- ggplot(data=CV, aes(x=area, y = CV)) + 
   geom_point(aes(y = CV), size=2, col=2) +
   
@@ -92,8 +93,8 @@ CV_plot
 
 ```
 
-# Although we can compare local and regional community stability using CVs alone, here we calculate metrics from Wang & Loreau (2014) to help us think about mechanisms underlying our result.
-# The following uses formulas from Wang & Loreau 2014 Supp Mat (i.e. for varying biomass within and between local communities).
+### Although we can compare local and regional community stability using CVs alone, here we calculate metrics from Wang & Loreau (2014) to help us think about mechanisms underlying this result.
+### The following uses formulas from Wang & Loreau's (2014) Supp Mat (i.e. for varying biomass within and between local communities).
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
 # Calculate gamma variability
