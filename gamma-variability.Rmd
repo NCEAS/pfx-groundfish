@@ -9,8 +9,6 @@ output: pdf_document
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load packages
 library(httr)
-library(vegan)
-library(mvnormtest)
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -44,7 +42,8 @@ shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFact
 #View(shallowCPUEArea)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
-  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name)
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
+  filter(area != "Total") # remove regional totals column
 
 shallowAreas_list <- split(shallowCPUEArea2, f = shallowCPUEArea2$area) # create a list of dataframes (one df for each local area & total region)
 
@@ -68,31 +67,109 @@ deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in
 # Calculate gamma variability
 # The following calculations use formulas from Wang & Loreau 2014 Supp Mat (i.e. for varying biomass within and between local communities).
 
+
+# SHOULD SPECIES CPUES BE LOG-TRANSFORMED FIRST???
+
 str(shallowAreas_list[[1]])
 
 # i = local area (patch) i
-# j = species j
+# j, k, l = species j, k, l
 # i_j = species j in local area (patch) i
 
-shallow_list <- list()
+A_list <- list()
+B_list <- list()
+C_list <- list()
+D_list <- list()
+covMatrix_i_list <- list()
+w_kk_i_list <- list()
+E_list <- list()
+F_list <- list()
+rho_species_i_list <- list()
+CV_i_list <- list()
+
 for(i in seq_along(shallowAreas_list)) {
-  shallow_list[[i]] <- shallowAreas_list[[i]] %>%
+  
+  #############
+  # 1. Calculate averaged species variability (C_list[[i]]$CV_species_i):
+  
+  # calculate patch-level stuff
+  A_list[[i]] <- shallowAreas_list[[i]] %>%
+    summarise(u_i = mean(Mean.totalDensity)) # mean total community biomass (across all years) for local patch i
     
-    # 1. Calculate species-level stuff
+  
+  # calculate species-level stuff
+  B_list[[i]] <- shallowAreas_list[[i]] %>%
     group_by(Species) %>%
     summarise(u_j_i = mean(Mean.totalDensity), # mean biomass (across all years) of species j in patch i
-              CV_j_i = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in patch i
-              CV_species_j_i = u_j_i / u_i * CV_j_i) %>% # CV of all species in patch i
-    ungroup() %>% 
+              CV_j_i = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in patch i  SHOULD THIS BE SQUARED??? OR NOT??? PROBABLY NOT?
+              CV_species_j_i = u_j_i / A_list[[i]]$u_i * CV_j_i) %>% # CV of all species in patch i
+    ungroup()
+  
+  
+  # calculate more patch-level stuff
+  C_list[[i]] <- B_list[[i]] %>%
+    summarise(CV_species_i = sum(CV_species_j_i))
+  
+  
+  ###############
+  
+  
+  # 2. Calculate species asynchrony WITHIN patches (rho_species_i_list[[i]]):
+  
+  D_list[[i]] <- shallowAreas_list[[i]] %>% # clean the data
+    select(year, Mean.totalDensity, Species) %>%
+    spread(Species, Mean.totalDensity) %>%
+    select(-year)
+  
+  
+  covMatrix_i_list[[i]] <- cov(D_list[[i]]) # create the covariance matrix
     
-    # 2. Calculate patch-level stuff
-    summarise(u_i = mean(Mean.totalDensity)) %>% # mean total community biomass (across all years) for local patch i
-    summarise(CV_species_i = sum(CV_species_j_i)) %>%
-    
-    # 3. Calculate species synchrony within patches
-    summarise(w_kl_i = ) # covariance between species k and l in patch i
-    
-}
-View(shallow_list[[1]])
+  
+  w_kk_i_list[[i]] <- diag(covMatrix_i_list[[i]]) # extract diagonals of the covariance matrix. returns a vector. note cannot use mutate on a matrix
+  
+  
+  covMatrix_i_list[[i]][upper.tri(covMatrix_i_list[[i]], diag = TRUE)] <- NA # for each patch i, keep one copy of all the non-diagonals. these are w_kl_i 
+  E_list[[i]] <- as.data.frame(covMatrix_i_list[[i]])
+  
+  
+  F_list[[i]] <- E_list[[i]] %>%
+    summarise(sum_w_kl_i = sum(E_list[[i]][,1:53], na.rm = T)) # for each local patch i, find the sum of all w_kl_i. calc has been checked
+
+  
+  rho_species_i_list[[i]] <- F_list[[i]]$sum_w_kl_i / ((sum(sqrt(w_kk_i_list[[i]][1:53])))^2)
+  
+  
+  ###############
+  
+  
+  # 3. Calculate Variability of local community i (CV_i_list[[i]])
+  CV_i_list[[i]] <- (C_list[[i]]$CV_species_i * rho_species_i_list[[i]])^2 # SHOULD THIS BE SQUARED? OR NOT? RETURNS A NEGATIVE VALUE WHEN SPECIES SYNCHRONY WITHIN PATCHES IS NEGATIVE
+      
+  # CHECK WHETHER LOCAL COMMUNITY VARIABILITY CORRELATES WITH SIZE (AREA) OF LOCAL COMMUNITY (IE DO LARGER AREAS SHOW MORE VARIABILITY?)
+  
+  
+  ###############
+  
+  
+  # 4. Calculate Alpha variability (local community variability weighed for local community biomass; alpha_CV_list[[i]])
+  u_m <- sum(A_list[[i]]$u_i)
+  alpha_CV <- (sum(A_list[[i]]$u_i / u_m * CV_i_list[[i]] ))^2 # alpha_CV = 0.004474226
+
+  
+  ###############
+  
+  
+  # 5. Calculate Beta variability (spatial synchrony; rho)
+  #rho <- 
+  
+  
+}  
+```
+
+```{r}
+alpha_CV
+
+CV_i_list
+
 
 ```
