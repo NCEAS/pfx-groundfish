@@ -1,5 +1,5 @@
 ---
-title: "Gamma variability"
+title: "Local vs Regional Stability of Gulf of Alaksa Groundfish Assemblages"
 author: "Colette Ward"
 date: "July 12, 2016"
 output: pdf_document
@@ -60,8 +60,8 @@ deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in
 
 ```
 
-### To address regional vs local community stability, we probably don't need Wang & Loreau's (2014) complex equations. Instead we can simply compare CVs of total CPUE between local communities and the regional metacommunity.
-### The regional community does indeed show greater stability than local communities:
+To address regional vs local community stability we can compare CVs of total CPUE between local communities and the regional metacommunity.
+The regional community does indeed show greater stability than local communities:
 (If anyone wants to make this plot prettier, please do :) )
 
 ```{r, echo=F, fig.height=3, fig.width=4}
@@ -72,19 +72,19 @@ CV <- shallowCPUEArea2 %>%
   ungroup() %>%
   
   group_by(area) %>%
-  summarise(CV = var(total) / (mean(total)^2)) %>%
+  summarise(CV = sd(total) / mean(total)) %>%
   ungroup()
 
 
 # plot on a log scale
 CV_plot <- ggplot(data=CV, aes(x=area, y = CV)) + 
-  geom_point(aes(y = CV), size=2, col=2) +
+  geom_point(aes(y = CV), size=3) +
   
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
         axis.line.y = element_line(color="black")) +
   
-  scale_y_log10(breaks = c(0.005, 0.01, 0.05)) + # how do I put minor tick marks on the y axis?
+  scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.2)) + # how do I put minor tick marks on the y axis?
   
   labs(x = "Area", y = "CV (Total CPUE)")
 
@@ -93,8 +93,8 @@ CV_plot
 
 ```
 
-### Although we can compare local and regional community stability using CVs alone, here we calculate metrics from Wang & Loreau (2014) to help us think about mechanisms underlying this result.
-### The following uses formulas from Wang & Loreau's (2014) Supp Mat (i.e. for varying biomass within and between local communities).
+Although we can compare local and regional community stability using CVs alone, here we calculate metrics from Wang & Loreau (2014) to help us think about mechanisms underlying this result.
+The following uses formulas from Wang & Loreau's (2014) Supp Mat (i.e. for varying biomass within and between local communities).
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
 # Calculate gamma variability
@@ -125,7 +125,7 @@ shallowAreas_list[[10]] <- NULL  # remove the 10th element from the list (remove
 for(i in seq_along(shallowAreas_list)) { # remove list for i = 10
   
   #############
-  # 1. Calculate averaged species variability (C_list[[i]]$CV_species_i):
+  # 1. Calculate averaged species variability (C_list[[i]]$CV_species_i_squared):
   
   # calculate patch-level stuff
   A_list[[i]] <- shallowAreas_list[[i]] %>%
@@ -136,14 +136,14 @@ for(i in seq_along(shallowAreas_list)) { # remove list for i = 10
   B_list[[i]] <- shallowAreas_list[[i]] %>%
     group_by(Species) %>%
     summarise(u_j_i = mean(Mean.totalDensity), # mean biomass (across all years) of species j in patch i
-              CV_j_i = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in patch i  SHOULD THIS BE SQUARED??? OR NOT??? PROBABLY NOT?
-              CV_species_j_i = u_j_i / A_list[[i]]$u_i * CV_j_i) %>% # CV of all species in patch i
+              CV_j_i_squared = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in patch i. Note that the usual formula for CV is squared here.
+              CV_species_j_i = u_j_i / A_list[[i]]$u_i * CV_j_i_squared) %>% # CV of all species in patch i
     ungroup()
   
   
-  # calculate more patch-level stuff
+  # calculate averaged species variability
   C_list[[i]] <- B_list[[i]] %>%
-    summarise(CV_species_i = sum(CV_species_j_i))
+    summarise(CV_species_i_squared = sum(CV_species_j_i))
   
   
   ###############
@@ -174,7 +174,7 @@ for(i in seq_along(shallowAreas_list)) { # remove list for i = 10
   
   ###############
   # 3. Calculate Variability of local community i (CV_i_list[[i]])
-  CV_i_list[[i]] <- (C_list[[i]]$CV_species_i * rho_species_i_list[[i]])^2 # SHOULD THIS BE SQUARED? OR NOT? RETURNS A NEGATIVE VALUE WHEN SPECIES SYNCHRONY WITHIN PATCHES IS NEGATIVE
+  CV_i_list[[i]] <- (C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]])^2 # SHOULD THIS BE SQUARED? If not squred, returns a negative value when within-patch species synchrony is negative
       
   # CHECK WHETHER LOCAL COMMUNITY VARIABILITY CORRELATES WITH SIZE (AREA) OF LOCAL COMMUNITY (IE DO LARGER AREAS SHOW MORE VARIABILITY?)
   
