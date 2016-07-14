@@ -102,7 +102,7 @@ The following uses formulas from Wang & Loreau's (2014) Supp Mat (i.e. for varyi
 # SHOULD SPECIES CPUES BE LOG-TRANSFORMED FIRST???
 
 
-# i = local area (patch) i
+# i, h = local area (patch) i (and h)
 # j, k, l = species j, k, l
 # i_j = species j in local area (patch) i
 
@@ -129,7 +129,10 @@ for(i in seq_along(shallowAreas_list)) { # remove list for i = 10
   
   # calculate patch-level stuff
   A_list[[i]] <- shallowAreas_list[[i]] %>%
-    summarise(u_i = mean(Mean.totalDensity)) # mean total community biomass (across all years) for local patch i
+    group_by(year) %>%
+    summarise(annual_total_i = sum(Mean.totalDensity)) %>%
+    ungroup() %>%
+    summarise(u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local patch i
     
   
   # calculate species-level stuff
@@ -149,7 +152,7 @@ for(i in seq_along(shallowAreas_list)) { # remove list for i = 10
   ###############
   # 2. Calculate species asynchrony WITHIN patches (rho_species_i_list[[i]]):
   
-  D_list[[i]] <- shallowAreas_list[[i]] %>% # clean the data
+  D_list[[i]] <- shallowAreas_list[[i]] %>%
     select(year, Mean.totalDensity, Species) %>%
     spread(Species, Mean.totalDensity) %>%
     select(-year)
@@ -174,7 +177,7 @@ for(i in seq_along(shallowAreas_list)) { # remove list for i = 10
   
   ###############
   # 3. Calculate Variability of local community i (CV_i_list[[i]])
-  CV_i_list[[i]] <- (C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]])^2 # SHOULD THIS BE SQUARED? If not squred, returns a negative value when within-patch species synchrony is negative
+  CV_i_list[[i]] <- (C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]])^2 # It's not clear whether this should be squared. If not squred, returns a negative value when within-patch species synchrony is negative.
       
   # CHECK WHETHER LOCAL COMMUNITY VARIABILITY CORRELATES WITH SIZE (AREA) OF LOCAL COMMUNITY (IE DO LARGER AREAS SHOW MORE VARIABILITY?)
   
@@ -184,19 +187,81 @@ for(i in seq_along(shallowAreas_list)) { # remove list for i = 10
   u_m <- sum(A_list[[i]]$u_i)
   alpha_CV <- (sum(A_list[[i]]$u_i / u_m * CV_i_list[[i]] ))^2 # alpha_CV = 0.004474226
 
+}
+
   
-  ###############
-  # 5. Calculate Beta variability (spatial synchrony; rho)
-  #rho <- 
+###############
+# 5. Calculate Beta variability (spatial synchrony; rho)
+# note I'm replacing Wang & Loreau's local patch i & j notation with i & h, to avoid confusion with species j
   
+shallowCPUEArea3 <- shallowCPUEArea2 %>%
+  filter(area != "Total") %>%
+  group_by(area, year) %>%
+  summarise(ann_tot_i = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  spread(area, ann_tot_i) %>%
+  select(-year)
+
+
+covMatrix_m <- cov(shallowCPUEArea3) # create the covariance matrix
+    
+w_ii <- diag(covMatrix_m) # extract diagonals of the covariance matrix. returns a vector.
   
-}  
+covMatrix_m[upper.tri(covMatrix_m, diag = TRUE)] <- NA # keep one copy of all the non-diagonals. These are w_ih (temporal covariance of total community biomass between local patches i & h). Note it would be nice to bring in species-level information here, to avoid dominant species from driving the result.
+w_ih <- as.data.frame(covMatrix_m)
+  
+summed_w_ih <-w_ih %>% summarise(sum_w_ih = sum(w_ih[,1:9], na.rm = T)) # find the sum of all w_ih. calc has been checked
+  
+rho <- summed_w_ih$sum_w_ih / ((sum(sqrt(w_ii[1:9])))^2)
+Beta1 = 1 / rho
+  
+
+###############
+# 6. Calculate Gamma variability
+
+gamma_CV <- alpha_CV / Beta1
+gamma_CV
+  
 ```
 
+
+###Within-patch sums of all between-species covariances:
+```{r}
+F_list
+```
+
+
+###Within-patch species asynchrony:
+```{r}
+rho_species_i_list
+```
+
+
+###Within-patch variability:
+```{r}
+CV_i_list
+```
+
+
+###Alpha variability (temporal variability at the local scale (NB weighed for local community biomass)):
 ```{r}
 alpha_CV
+```
 
-CV_i_list
+
+### Spatial synchrony:
+```{r}
+rho
+```
 
 
+###Beta variability (Multiplicative beta variability, i.e. spatial asynchrony):
+```{r}
+Beta1
+```
+
+
+###Gamma variability (temporal variability at the metacommunity scale):
+```{r}
+gamma_CV
 ```
