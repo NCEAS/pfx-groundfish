@@ -21,7 +21,8 @@ Map plotted in Lat Long (converted slick shapefile):
 ```{r, include=FALSE, echo=FALSE}
 ak <- map_data('worldHires','USA:Alaska')
 
-akmap2 <- ggplot() + geom_polygon(data=ak, aes(long,lat,group=group), fill=8, color="black") +
+akmap2 <- ggplot() + 
+          geom_polygon(data=ak, aes(long,lat,group=group), fill=8, color="black") +
           xlab(expression(paste(Longitude^o,~'W'))) +
           ylab(expression(paste(Latitude^o,~'N'))) +
           coord_map(xlim=c(-165, -142), ylim=c(54, 62)) +
@@ -89,6 +90,83 @@ ak_areas_all <- akmap2 +
 ak_areas_all
 
 ```
+
+
+
+Plotting Shoreline Surface Oil:
+
+```{r, include=FALSE, echo=FALSE}
+SOzipd <- tempfile()
+download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSurfaceOiling", SOzipd, mode="wb")
+SOzip_Unz <- unzip(SOzipd, exdir="SOzipd")
+
+slk_so <- readOGR(dsn="SOzipd",
+                  layer="EVOSShorelineSurfaceOilingLine",
+                  stringsAsFactors=FALSE)
+
+crs(slk_so)
+plot(slk_so, col='blue')
+
+slk_so@data$id = rownames(slk_so@data)
+
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+slk_so <- spTransform(slk_so, LL_proj)
+
+slk_so_pt <- fortify(slk_so, region="id")
+
+slk_so_df <- join(slk_so_pt, slk_so@data, by="id")
+
+slk_so_df <- slk_so_df[!is.na(slk_so_df$PosteriorO),]  # remove NA category
+slk_so_df <- slk_so_df[!(slk_so_df$PosteriorO %in% c("UNOBSERVED")),]# remove "UNOBSERVED" category
+
+```
+
+
+```{r, echo=FALSE}
+
+sho_shp <- readOGR(dsn="../Oil_Markdown_folder",
+                   layer="all_0689_and_0889_surveys_merged",
+                   stringsAsFactors=FALSE)
+
+crs(sho_shp)
+plot(sho_shp, col='blue')
+
+sho_shp@data$id = rownames(sho_shp@data)
+
+sho_shp_pt <- fortify(sho_shp, region="id")
+
+sho_shp_df <- join(sho_shp_pt, sho_shp@data, by="id")
+
+sho_shp_df <- sho_shp_df[!(sho_shp_df$OILING %in% c("UNOBSERVED", "NO_IMPACT")),]# remove "UNOBSERVED" and "NO_IMPACT" categories
+
+```
+
+
+```{r,  echo=FALSE}
+# "LIGHT_IMPACT"  "VLIGHT_IMPACT" "MEDIUM_IMPACT" "HEAVY_IMPACT" 
+
+sho_shp_df$OILING1 <- factor(sho_shp_df$OILING,
+                             levels=c("VLIGHT_IMPACT","LIGHT_IMPACT",
+                                      "MEDIUM_IMPACT","HEAVY_IMPACT"))
+
+ak_so <- akmap2 + 
+         geom_line(data=sho_shp_df, aes(x=long,y=lat, color=OILING1), #group=as.factor(id)),
+                                         size=1) 
+            
+ak_so           
+
+```
+
+
+
+
+
+
+
+
+
+
 
 Plotting "Spill Effected Area":
 
@@ -166,91 +244,11 @@ ak_ssso
 
 
 
-Plotting Shoreline Surface Oil:
-
-```{r, include=FALSE, echo=FALSE}
-SOzipd <- tempfile()
-download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSurfaceOiling", SOzipd, mode="wb")
-SOzip_Unz <- unzip(SOzipd, exdir="SOzipd")
-
-slk_so <- readOGR(dsn="SOzipd",
-                  layer="EVOSShorelineSurfaceOilingLine",
-                  stringsAsFactors=FALSE)
-
-crs(slk_so)
-plot(slk_so, col='blue')
-
-slk_so@data$id = rownames(slk_so@data)
-
-LL_proj <-  "+proj=longlat +datum=NAD83"
-
-slk_so <- spTransform(slk_so, LL_proj)
-
-slk_so_pt <- fortify(slk_so, region="id")
-
-slk_so_df <- join(slk_so_pt, slk_so@data, by="id")
-
-slk_so_df <- slk_so_df[!is.na(slk_so_df$PosteriorO),]  # remove NA category
-slk_so_df <- slk_so_df[!(slk_so_df$PosteriorO %in% c("UNOBSERVED")),]# remove "UNOBSERVED" category
-
-```
-
-
-```{r, echo=FALSE}
-sho_shp <- source("C://Users/rblake/Documents/NCEAS/EVOS_Oiling/Shoreline oiling shapefiles and data keys/Shoreline oiling shapefiles/all_0689_and_0889_surveys_merged.shp")
-
-sho_shp <- readOGR(dsn="SOzipd",
-                   layer="EVOSShorelineSurfaceOilingLine",
-                   stringsAsFactors=FALSE)
-
-  utah = readOGR(dsn=".", layer="eco_l3_ut")
-  utah@data$id = rownames(utah@data)
-  utah.points = fortify(utah, region="id")
-  utah.df = join(utah.points, utah@data, by="id")
-
-
-```
-
-
-
-```{r,  echo=FALSE}
-# "LIGHT_IMPACT"  "VLIGHT_IMPACT" "MEDIUM_IMPACT" "HEAVY_IMPACT" "UNOBSERVED" 
-
-slk_so_df$PosteriorO1 <- factor(slk_so_df$PosteriorO,
-                                levels=c("VLIGHT_IMPACT","LIGHT_IMPACT",
-                                         "MEDIUM_IMPACT","HEAVY_IMPACT"))
-
-ak_so <- ak_areas_all + 
-         geom_point(data=slk_so_df, aes(x=long,y=lat, color=PosteriorO1,
-                                        group=as.factor(SegmentID)), size=1) 
-            
-ak_so           
-
-```
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-```{r, include=FALSE, echo=FALSE, results='hide'}
-# another US AK base map
-USA <- getData("GADM",country="USA",level=1)
-plot(USA)
-AK <- USA[USA$NAME_1=="Alaska",]
-
-
-
-```
 
 
 
