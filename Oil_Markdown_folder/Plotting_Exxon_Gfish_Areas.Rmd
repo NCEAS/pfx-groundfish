@@ -27,7 +27,7 @@ akmap2 <- ggplot() +
           ylab(expression(paste(Latitude^o,~'N'))) +
           coord_map(xlim=c(-165, -142), ylim=c(54, 62)) +
           theme(panel.background=element_rect(fill='aliceblue')) 
-akmap2
+
 ```
 
 ```{r, include=FALSE, echo=FALSE}
@@ -78,7 +78,7 @@ Colors1 <- c(pinks, blues)
 ak_areas_all <- akmap2 +
                 geom_point(data=discrete_areas_combo, 
                            aes(LONGITUDE, LATITUDE, color=Area_Combo1,
-                               fill=Area_Combo1), shape=21) + 
+                               fill=Area_Combo1)) + 
                  scale_color_manual(values=Colors1, name="Study Area") +
                  scale_fill_manual(values=Colors1, name="Study Area") +
                  theme(legend.key.size=unit(11,"points"),
@@ -122,6 +122,25 @@ slk_so_df <- slk_so_df[!(slk_so_df$PosteriorO %in% c("UNOBSERVED")),]# remove "U
 
 ```
 
+```{r,  echo=FALSE}
+# "LIGHT_IMPACT"  "VLIGHT_IMPACT" "MEDIUM_IMPACT" "HEAVY_IMPACT" 
+
+slk_so_df$PosteriorO1 <- factor(slk_so_df$PosteriorO,
+                                levels=c("VLIGHT_IMPACT","LIGHT_IMPACT",
+                                         "MEDIUM_IMPACT","HEAVY_IMPACT"))
+#This works, but it's only on the bare map.
+ak_sobt <- akmap2 + 
+           geom_point(data=slk_so_df, aes(x=long, y=lat, color=PosteriorO1), size=1) 
+            
+ak_sobt     
+
+#Now this works also, but I don't like it.
+ak_sot <- ak_areas_all + 
+          geom_point(data=slk_so_df, aes(x=long, y=lat, size=PosteriorO1)) 
+            
+ak_sot           
+
+```
 
 ```{r, echo=FALSE}
 
@@ -134,11 +153,16 @@ plot(sho_shp, col='blue')
 
 sho_shp@data$id = rownames(sho_shp@data)
 
+LL_proj <-  "+proj=longlat +datum=NAD83"
+
+slk_so <- spTransform(sho_shp, LL_proj)
+
 sho_shp_pt <- fortify(sho_shp, region="id")
 
 sho_shp_df <- join(sho_shp_pt, sho_shp@data, by="id")
 
 sho_shp_df <- sho_shp_df[!(sho_shp_df$OILING %in% c("UNOBSERVED", "NO_IMPACT")),]# remove "UNOBSERVED" and "NO_IMPACT" categories
+plot(sho_shp_df$long, sho_shp_df$lat)
 
 ```
 
@@ -151,8 +175,7 @@ sho_shp_df$OILING1 <- factor(sho_shp_df$OILING,
                                       "MEDIUM_IMPACT","HEAVY_IMPACT"))
 
 ak_so <- akmap2 + 
-         geom_line(data=sho_shp_df, aes(x=long,y=lat, color=OILING1), #group=as.factor(id)),
-                                         size=1) 
+         geom_point(data=sho_shp_df, aes(x=long,y=lat, size=OILING1), size=1) 
             
 ak_so           
 
@@ -193,7 +216,7 @@ spill_shp_df <- join(spill_shp_pt, spill_shp@data, by="id")
 
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE, echo=FALSE}
 akslk4 <- ak_areas_all +
           geom_polygon(data=spill_shp_df, aes(x=long, y=lat, group=id),
                        color='yellow', fill='yellow', size=0.25, alpha=0.4)
@@ -232,7 +255,7 @@ slk_sss_df <- join(data.frame(slk_sss), slk_sss_pt, by="id")
 
 ```
 
-```{r,  echo=FALSE}
+```{r, include=FALSE, echo=FALSE}
 ak_ssso <- ak_areas + 
            geom_point(data=slk_sss_df,aes(x=long,y=lat, group=as.factor(SegmentID)), 
                       size=3, color="black", fill="black") 
