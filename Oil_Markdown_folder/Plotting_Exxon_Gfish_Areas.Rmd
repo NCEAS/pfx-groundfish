@@ -90,7 +90,7 @@ ak_areas_all <- akmap2 +
                        legend.justification=c(1,0), 
                        legend.position=c(1,0)) +
                  guides(color=guide_legend(ncol=2))
-ak_areas_all
+
 
 ```
 
@@ -183,9 +183,9 @@ ak_so <- ak_areas_all +
                            breaks=c("VLIGHT_IMPACT","LIGHT_IMPACT",
                                      "MEDIUM_IMPACT","HEAVY_IMPACT"),
                            labels=c("Very Light", "Light", "Medium", "Heavy")) +
-         geom_segment(aes(x=-162.9, y=61.35, xend=-164, yend=61.75), size=1,
+         geom_segment(aes(x=-163, y=61.35, xend=-163, yend=61.75), size=1,
                       arrow=arrow(length=unit(0.25, "cm"))) + 
-         annotate("text", x=61, y=-162, label="N") 
+         annotate("text", x=61, y=-163, label="N") 
             
 ak_so           
           #    geom_text(aes(7, .9, label="correct color", color="NA*")) 
