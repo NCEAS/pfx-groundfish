@@ -9,20 +9,21 @@ output: html_document
 library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ;library(rgdal) ; 
 library(sp) ; library(maptools) ; library(raster) ; library(rgeos) ; library(ggplot2) ; 
 library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ; library(scales) ;
-library(RColorBrewer)
+library(RColorBrewer) ; library(GISTools)
 
 ```
 
 
 
 
-Map plotted in Lat Long (converted slick shapefile):
+Map plotted in Lat Long:
 
 ```{r, include=FALSE, echo=FALSE}
 ak <- map_data('worldHires','USA:Alaska')
 
 akmap2 <- ggplot() + 
-          geom_polygon(data=ak, aes(long,lat,group=group), fill=8, color="black") +
+          geom_polygon(data=ak, aes(long,lat,group=group), fill=8, 
+                       color="black") +
           xlab(expression(paste(Longitude^o,~'W'))) +
           ylab(expression(paste(Latitude^o,~'N'))) +
           coord_map(xlim=c(-165, -142), ylim=c(54, 62)) +
@@ -71,7 +72,9 @@ discrete_areas_combo <- bind_rows(discrete_areas, discrete_areas_deep)
 discrete_areas_combo$Area_Combo1 <- factor(discrete_areas_combo$Area_Combo,
                                            levels=c('1','2','3','4','5','6','7',
                                                     '8','9','10','11','12','13','14'))
-pinks <- brewer.pal(n=9, "PuRd")
+# http://colorbrewer2.org/     brewer.pal(n=9, "PuRd")
+pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
+           "#DD3497", "#AE017E", "#7A0177", "#49006A")    #E3C9C6     #FDE0DD
 blues <- c("#9ECAE1", "#6BAED6", "#4292C6", "#2171B5", "#084594")
 Colors1 <- c(pinks, blues)
 
@@ -95,7 +98,7 @@ ak_areas_all
 
 Plotting Shoreline Surface Oil:
 
-```{r, include=FALSE, echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 SOzipd <- tempfile()
 download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSurfaceOiling", SOzipd, mode="wb")
 SOzip_Unz <- unzip(SOzipd, exdir="SOzipd")
@@ -122,7 +125,7 @@ slk_so_df <- slk_so_df[!(slk_so_df$PosteriorO %in% c("UNOBSERVED")),]# remove "U
 
 ```
 
-```{r,  echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # "LIGHT_IMPACT"  "VLIGHT_IMPACT" "MEDIUM_IMPACT" "HEAVY_IMPACT" 
 
 slk_so_df$PosteriorO1 <- factor(slk_so_df$PosteriorO,
@@ -149,36 +152,44 @@ sho_shp <- readOGR(dsn="../Oil_Markdown_folder",
                    stringsAsFactors=FALSE)
 
 crs(sho_shp)
-plot(sho_shp, col='blue')
+#plot(sho_shp, col='blue')
 
 sho_shp@data$id = rownames(sho_shp@data)
 
 LL_proj <-  "+proj=longlat +datum=NAD83"
 
-slk_so <- spTransform(sho_shp, LL_proj)
+sho_shp <- spTransform(sho_shp, LL_proj)
 
 sho_shp_pt <- fortify(sho_shp, region="id")
 
 sho_shp_df <- join(sho_shp_pt, sho_shp@data, by="id")
 
 sho_shp_df <- sho_shp_df[!(sho_shp_df$OILING %in% c("UNOBSERVED", "NO_IMPACT")),]# remove "UNOBSERVED" and "NO_IMPACT" categories
-plot(sho_shp_df$long, sho_shp_df$lat)
+#plot(sho_shp_df$long, sho_shp_df$lat)
 
 ```
 
 
 ```{r,  echo=FALSE}
-# "LIGHT_IMPACT"  "VLIGHT_IMPACT" "MEDIUM_IMPACT" "HEAVY_IMPACT" 
 
 sho_shp_df$OILING1 <- factor(sho_shp_df$OILING,
                              levels=c("VLIGHT_IMPACT","LIGHT_IMPACT",
                                       "MEDIUM_IMPACT","HEAVY_IMPACT"))
 
-ak_so <- akmap2 + 
-         geom_point(data=sho_shp_df, aes(x=long,y=lat, size=OILING1), size=1) 
+ak_so <- ak_areas_all + 
+         geom_path(data=sho_shp_df, aes(x=long, y=lat, group=group, size=OILING1),
+                                        color="#67001F") +
+         scale_size_manual(values=c(0.5, 1.25, 2, 2.75), name="Shoreline Oiling",
+                           breaks=c("VLIGHT_IMPACT","LIGHT_IMPACT",
+                                     "MEDIUM_IMPACT","HEAVY_IMPACT"),
+                           labels=c("Very Light", "Light", "Medium", "Heavy")) +
+         geom_segment(aes(x=-162.9, y=61.35, xend=-164, yend=61.75), size=1,
+                      arrow=arrow(length=unit(0.25, "cm"))) + 
+         annotate("text", x=61, y=-162, label="N") 
             
 ak_so           
-
+          #    geom_text(aes(7, .9, label="correct color", color="NA*")) 
+          #    annotate("text", x = 4, y = 25, label = "Some text")
 ```
 
 
@@ -187,13 +198,11 @@ ak_so
 
 
 
-
-
-
+DO NOT USE THE STUFF BELOW!
 
 Plotting "Spill Effected Area":
 
-```{r, include=FALSE, echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 SEAzipd <- tempfile()
 download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSOilSpillExtent", SEAzipd, mode="wb")
 SEAzip_Unz <- unzip(SEAzipd, exdir="SEAzipd")
@@ -216,7 +225,7 @@ spill_shp_df <- join(spill_shp_pt, spill_shp@data, by="id")
 
 ```
 
-```{r, include=FALSE, echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 akslk4 <- ak_areas_all +
           geom_polygon(data=spill_shp_df, aes(x=long, y=lat, group=id),
                        color='yellow', fill='yellow', size=0.25, alpha=0.4)
@@ -229,7 +238,7 @@ akslk4
 
 Plotting Shoreline Sub Surface Oil: 
 
-```{r, include=FALSE, echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 SSOzipd <- tempfile()
 download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSubSurfaceOiling", SSOzipd, mode="wb")
 SSOzip_Unz <- unzip(SSOzipd, exdir="SSOzipd")
@@ -255,7 +264,7 @@ slk_sss_df <- join(data.frame(slk_sss), slk_sss_pt, by="id")
 
 ```
 
-```{r, include=FALSE, echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 ak_ssso <- ak_areas + 
            geom_point(data=slk_sss_df,aes(x=long,y=lat, group=as.factor(SegmentID)), 
                       size=3, color="black", fill="black") 
