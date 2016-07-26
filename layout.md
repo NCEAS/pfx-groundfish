@@ -4,5 +4,5 @@ Gfish_Diversity_MS_1/Methods_Since_1984_the_Alaska__.html
 Gfish_Diversity_MS_1/ResultsLarge_environmental_perturbations_During_the__.html
 figures/nMDS_Shallow/nMDS_Shallow&Deep_original.png
 figures/Local-vs-Regional-CVs/Local-vs-Regional-CVs.png
-Gfish_Diversity_MS_1/DiscussionA_For_the_opening_paragraph__.html
+Gfish_Diversity_MS_1/Discussion1_Overview_of_our_main__.html
 Supplementary_MaterialsSupplement_Table_S1_table__.html
