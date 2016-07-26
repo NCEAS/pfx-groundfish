@@ -294,9 +294,20 @@ alpha diversity (<span data-equation="H\alpha" class="ltx_Math" contenteditable=
  quantifies the effective number of distinct communities and represents  differences in species composition among the shallow or deep study areas.&nbsp; 
 
 
-Diversity metrics were calculated using the vegan package (version 
-2.3-5 NEED CITE) in R (version 3.3.0 NEED CITE).&nbsp; R code for the bootstrapping analysis is 
-provided in supplementary  materials.<br></div><div><br></div><div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; We also examined the functional diversity in the 14 study areas using Rao's index of quadratic entropy (henceforth Rao's Q) (<cite class="ltx_cite" data-bib-text="
+Diversity metrics were calculated using the vegan package in R (<cite class="squire-citation ltx_cite" data-bib-text="
+@misc{oksan
+@misc{oksanen_vegan:_2016,
+	title = {vegan: {Community} {Ecology} {Package}},
+	url = {https://CRAN.R-project.org/package=vegan},
+	author = {Oksanen, J. and Blanchet, F. Guillaume and Friendly, Michael and Kindt, Roeland and Legendre, Pierre and McGlinn, Dan and Minchin, Peter R. and O'Hara, R.B. and Simpson, Gavin L. and Solymos, Peter and Henry, M. and Stevens, H. and Szoecs, Eduard and Wagner, Helene H.},
+	year = {2016}
+}en_vegan:_2016,
+	title = {vegan: {Community} {Ecology} {Package}},
+	url = {https://CRAN.R-project.org/package=vegan},
+	author = {Oksanen, J. and Blanchet, F. Guillaume and Friendly, Michael and Kindt, Roeland and Legendre, Pierre and McGlinn, Dan and Minchin, Peter R. and O'Hara, R.B. and Simpson, Gavin L. and Solymos, Peter and Henry, M. and Stevens, H. and Szoecs, Eduard and Wagner, Helene H.},
+	year = {2016}
+}" data-bib-key="oksanen_vegan:_2016" style="cursor: pointer" contenteditable="false"><a class="au-cite-link" href="#oksanen_vegan__colon___2016">Oksanen 2016</a></cite>).&nbsp; Code for the bootstrapping analysis is 
+provided in supplementary  materials (Supplementary Appendix A3).<br></div><div><br></div><div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; We also examined the functional diversity in the 14 study areas using Rao's index of quadratic entropy (henceforth Rao's Q) (<cite class="ltx_cite" data-bib-text="
 @article{rao_div
 @article{rao_diversity_1982,
 	title = {Diversity and dissimilarity coefficients - a unified approach},
@@ -460,7 +471,7 @@ species richness varied little between areas (Figure 2) (<cite class="ltx_cite" 
 	year = {2008},
 	pages = {794--800},
 	file = {Mouchet et al_2008_Oikos_Towards a consensus for calculating dendrogram-based functional diversity.pdf:C\:\\Users\\rblake\\Documents\\WORK\\Papers\\Mouchet et al_2008_Oikos_Towards a consensus for calculating dendrogram-based functional diversity.pdf:application/pdf;Snapshot:C\:\\Users\\rblake\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\jc7ah4ef.default\\zotero\\storage\\94I8J693\\abstract.html:text/html}
-}" data-bib-key="mouchet_towards_2008" contenteditable="false"><a href="#mouchet_towards_2008">Mouchet 2008</a></cite>).&nbsp; To test for  differences in Rao's Q between study areas, we used a one-way ANOVA followed by a Tukey post-hoc test.&nbsp; These tests were conducted in R (version 3.3.0) using the ???? package.&nbsp;<br></div><br></div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To understand spatial variation in community composition between study areas, we used non-metric multidimensional scaling (nMDS) with Bray-Curtis dissimilarities.&nbsp; Mean abundance (CPUE) estimates from the geospatial model of individual species varied by eight orders of magnitude between study areas and years.&nbsp; Therefore, to allow the result to be driven equally by rare and abundant species, we standardized the data using a Wisconsin-style double transformation of square-root transformed data.&nbsp; We used permutational multivariate analysis of variance (PERMANOVA) to evaluate the significance of between-area differences in community composition (<cite class="ltx_cite" data-bib-text="
+}" data-bib-key="mouchet_towards_2008" contenteditable="false"><a href="#mouchet_towards_2008">Mouchet 2008</a></cite>).&nbsp; To test for  differences in Rao's Q between study areas, we used a one-way ANOVA followed by a Tukey post-hoc test.&nbsp; These tests were conducted in R  using the ???? package.&nbsp;<br></div><br></div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To understand spatial variation in community composition between study areas, we used non-metric multidimensional scaling (NMDS) with Bray-Curtis dissimilarities.&nbsp; Mean abundance (CPUE) estimates from the geospatial model of individual species varied by eight orders of magnitude between study areas and years.&nbsp; Therefore, to allow the result to be driven equally by rare and abundant species, we standardized the data using a Wisconsin-style double transformation of square-root transformed data.&nbsp; We used permutational multivariate analysis of variance (PERMANOVA) to evaluate the significance of between-area differences in community composition (<cite class="ltx_cite" data-bib-text="
 @article{anderson_new_2
 @article{anderson_new_2001,
 	title = {A new method for non-parametric multivariate analysis of variance},
@@ -496,14 +507,26 @@ species richness varied little between areas (Figure 2) (<cite class="ltx_cite" 
 	keywords = {anova, distance measure, experimental design, linear model, multifactorial, multivariate dissimilarity, partitioning, permutation tests, statistics},
 	pages = {32--46},
 	file = {Anderson_2001_Austral Ecology_A new method for non-parametric multivariate analysis of variance.pdf:C\:\\Users\\rblake\\Documents\\WORK\\Papers\\Anderson_2001_Austral Ecology_A new method for non-parametric multivariate analysis of variance.pdf:application/pdf;Snapshot:C\:\\Users\\rblake\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\jc7ah4ef.default\\zotero\\storage\\ZS5QIGS3\\full.html:text/html}
-}" data-bib-key="anderson_new_2001" contenteditable="false"><a href="#anderson_new_2001">Anderson 2001</a></cite>).&nbsp; To evaluate whether PERMANOVA results were driven by between- or within-area differences in (temporal) replicates, and we evaluated the homogeneity of within-ecoregion dispersions NEED TO EXPLAIN THIS BETTER (Anderson 2006).  Multivariate analyses were computed using the vegan package (NEED CITE Oksanen et al. 2016) in R.
-<br></div><div><br></div><div>Spatial CV<br></div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To test the portfolio effect across this large marine ecosystem, we calculated the variation of alpha diversity (using mean abundance data) for each study area (n = 14), and then compared that to variation of the calculated gamma diversity (CITE Loreau 2014 and 2016).&nbsp; This needs to be edited and improved by Colette...............<br></div><br></div><br></div><h2 class="ltx_title_subsection" id="auto-label-subsection-530678"><div><div><br></div><div>Data and Code Availability&nbsp;&nbsp;&nbsp;<br></div><br></div></h2><div><div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Trawl data, geostatistical model code and output, and code used to 
-generate statistical results are publicly available at (insert URL).<br></div><div><br></div><div><br>TO GO IN APPENDIX: <br></div><div><i>(NB traits
+}" data-bib-key="anderson_new_2001" contenteditable="false"><a href="#anderson_new_2001">Anderson 2001</a></cite>).&nbsp; To evaluate whether PERMANOVA results were driven by between- or within-area differences in (temporal) replicates, and we evaluated the homogeneity of within-ecoregion dispersions NEED TO EXPLAIN THIS BETTER (Anderson 2006).  Multivariate analyses were computed using the vegan package in R (<cite class="squire-citation ltx_cite" data-bib-text="
+@misc{oksa
+@misc{oksanen_vegan:_2016,
+	title = {vegan: {Community} {Ecology} {Package}},
+	url = {https://CRAN.R-project.org/package=vegan},
+	author = {Oksanen, J. and Blanchet, F. Guillaume and Friendly, Michael and Kindt, Roeland and Legendre, Pierre and McGlinn, Dan and Minchin, Peter R. and O'Hara, R.B. and Simpson, Gavin L. and Solymos, Peter and Henry, M. and Stevens, H. and Szoecs, Eduard and Wagner, Helene H.},
+	year = {2016}
+}nen_vegan:_2016,
+	title = {vegan: {Community} {Ecology} {Package}},
+	url = {https://CRAN.R-project.org/package=vegan},
+	author = {Oksanen, J. and Blanchet, F. Guillaume and Friendly, Michael and Kindt, Roeland and Legendre, Pierre and McGlinn, Dan and Minchin, Peter R. and O'Hara, R.B. and Simpson, Gavin L. and Solymos, Peter and Henry, M. and Stevens, H. and Szoecs, Eduard and Wagner, Helene H.},
+	year = {2016}
+}" data-bib-key="oksanen_vegan:_2016" style="cursor: pointer" contenteditable="false"><a class="au-cite-link" href="#oksanen_vegan__colon___2016">Oksanen 2016</a></cite>).
+<br></div><div><br></div><div>Spatial CV<br></div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To test the portfolio effect across this large marine ecosystem, we calculated the variation of alpha diversity (using mean abundance data) for each study area (n = 14), and then compared that to variation of the calculated gamma diversity (CITE Loreau 2014 and 2016).&nbsp; This needs to be edited and improved by Colette...............<br></div><br></div><br></div><h2 class="ltx_title_subsection"><div><div><br></div><div>Data and Code Availability&nbsp;&nbsp;&nbsp;<br></div><br></div></h2><div><div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Trawl data, geostatistical model code and output, and code used to 
+generate statistical results are publicly available at (insert URL).<br></div><div><br></div><div><div><br></div><div>TO GO IN APPENDIX: <br></div><br></div><div><i>(NB traits
  are: max length, max age, max depth at which the species is commonly 
 found, depth of each species peak CPUE (Ole's depthCoefPos ... need to 
 write more about how this was calculated in this appendix), adult water 
 column position, diet, and feeding guild ... this info will be in the 
-appendix, not here)</i>.&nbsp; <br></div><br></div>To evaluate whether spatial turnover was driven by dominant or 
+appendix, not here)</i>.&nbsp; <br></div><br></div><div>To evaluate whether spatial turnover was driven by dominant or 
 subdominant species, we simultaneously ran nMDS using a Hellinger 
 transformation, which yields a result driven by only the most dominant 
-species). <br></div><div><br></div>
+species). <br></div><br></div><div><br></div>
