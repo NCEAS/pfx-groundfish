@@ -1,7 +1,7 @@
 Gfish_Diversity_MS_1/AbstractThis_is_where_the_abstract__.html
 Gfish_Diversity_MS_1/untitled.html
 Gfish_Diversity_MS_1/Methods_Since_1984_the_Alaska__.html
-Gfish_Diversity_MS_1/ResultsDiversity_and_stability_Knowing_the__.html
+Gfish_Diversity_MS_1/ResultsDiversity_Knowing_the_ecological_theory__.html
 figures/Rplot/Rplot.png
 figures/nMDS_Shallow/nMDS_Shallow&Deep_original.png
 figures/Local-vs-Regional-CVs/Local-vs-Regional-CVs.png
