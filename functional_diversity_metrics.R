@@ -9,6 +9,7 @@ library(tidyr)
 library(psych)
 library(FD)
 library(ggplot2)
+library(gridExtra)
 
 
 # load the functional trait data from local source in our repository:
@@ -29,7 +30,15 @@ traits_df <- read.csv("Groundfish-Functional-Diversity-Traits.csv", header=T, st
 # minor dataframe cleaning:
 
 traits_df1 <- traits_df %>%
-  select(-reference, -database, -lengthType, -comments) # drop unnecessary columns
+  select(-reference, -database, -lengthType, -comments, -common.name) %>% # drop unnecessary columns
+  mutate(genus.species = revalue(genus.species, c("Clupea pallasii" = "Clupea pallasi", # make Species names match those in CPUE file
+                                                "Sebastes group 1" = "Dusky and Dark Rockfish", 
+                                                "Sebastes group 2" = "Rougheye and Blackspotted Rockfish", 
+                                                "Lepidopsetta spp." = "Lepidopsetta sp.", 
+                                                "Myctophidae spp." = "Myctophidae",
+                                                "Theragra chalcogramma" = "Gadus chalcogrammus"))) %>%
+  mutate(genus.species = gsub(" ", ".", genus.species)) %>% # make Species names match those in CPUE file
+  rename(Species = genus.species)
 
 
 # assign location classes (GoA vs other)
@@ -80,8 +89,8 @@ for(i in 1:nrow(substrate_df)) {
         }}}}}
 # for ease of binding with other dfs, remove original estimate column and rename adultSubstrateCategory to estimate:
 substrate_df1 <- substrate_df %>%
-  select(-estimate, -region) %>% rename(estimate = adultSubstrateCategory) 
-
+  select(-estimate, -region) %>% 
+  rename(estimate = adultSubstrateCategory) 
 
 
 
@@ -111,7 +120,7 @@ max_df1 <- max_df %>%
   mutate(estimate1 = as.numeric(estimate)) %>%
   select(-estimate, -region) %>%
   mutate(gender = revalue(gender, c("f"="both", "m" = "both", "u" = "both"))) %>% # replace all values of gender with "both" (because we've calculated maximum values regardless of gender, and to facilitate binding with other dfs below)
-  group_by(genus.species, common.name, trait, location) %>%
+  group_by(Species, trait, location) %>%
   summarise_each(funs(max(., na.rm = TRUE))) %>%
   ungroup %>%
   rename(estimate = estimate1)
@@ -130,7 +139,7 @@ depth_df1 <- depth_df %>%
   ungroup() %>%
   select(-region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
   rename(estimate = estimate3) %>%
-  group_by(genus.species, common.name, trait, gender, location) %>%
+  group_by(Species, trait, gender, location) %>%
   summarise_each(funs(mean)) %>% # calculate means of depth range breadth for each taxa / gender / location combination
   ungroup 
   
@@ -155,32 +164,58 @@ maturity_df1 <- maturity_df %>%
   ungroup() %>%
   select( -region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
   rename(estimate = estimate3) %>%
-  group_by(genus.species, common.name, trait, gender, location) %>%
+  group_by(Species, trait, gender, location) %>%
   summarise_each(funs(mean(., na.rm = TRUE))) %>% # calculate means of all estimates for each taxa / gender / location combination
   ungroup 
 # warning re NAs is OK; it's just reporting that estimate2 is NA when the original cell is a single value rather than a range
 
 
 
+###############
 
 # pull in additional K & L_infinity values from Ben Williams:
 KL_df <- read.csv("linf_k.csv", header=T, stringsAsFactors = F)
 KL_df1 <- KL_df %>%
-  select(-X) %>%
-  rename(estimate = value) %>%
-  mutate(genus.species = revalue(genus.species, c("Bathyraja.aleutica" = "Bathyraja aleutica", "Pleurogrammus.monopterygius" = "Pleurogrammus monopterygius", 
-                                                  "Raja.binoculata" = "Raja binoculata", "Sebastes.polyspinis" = "Sebastes polyspinis")))
+  select(-X, -common.name) %>%
+  rename(Species = genus.species, estimate = value) %>%
+  mutate(Species = revalue(Species, c("Clupea pallasii" = "Clupea pallasi", 
+                                      "Lepidopsetta spp." = "Lepidopsetta sp.", 
+                                      "Theragra chalcogramma" = "Gadus chalcogrammus",
+                                      "Sebastes group 1" = "Dusky and Dark Rockfish"))) %>%
+  mutate(Species = gsub(" ", ".", Species))
+
 for(i in 1:nrow(KL_df1)) { # add columns for gender & location
   KL_df1$gender[[i]] <- "goodEnough"
   KL_df1$location[[i]] <- "goodEnough"
 }
 
 
+###############
 
+# load depth coefficients from Ole ("All_sp_spatial_coef.csv")
+
+URL_dCoef <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ub1gtb09uLXFwQ2M"
+dCoefGet <- GET(URL_dCoef)
+dCoef1 <- content(dCoefGet, as='text')
+dCoef_df <- read.csv(file=textConnection(dCoef1),stringsAsFactors=FALSE)
+
+dCoef1 <- dCoef_df %>% 
+  filter(Model == "pos") %>% # use positive model (vs binomial presence/absence)
+  rename(estimate = Mean) %>%
+  select(Species, estimate)
+
+for(i in 1:nrow(dCoef1)) { # add columns for trait, gender, location
+  dCoef1$trait[[i]] <- "depthCoefPos"
+  dCoef1$gender[[i]] <- "both"
+  dCoef1$location[[i]] <- "GoA"
+}
+
+
+###############
 
 # bind these dfs together 
 # This creates a dataframe of all the functional trait data we have. These are summarized values - ie means, maxima, etc
-traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1, KL_df1) #kl_df1,
+traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1, KL_df1, dCoef1) #kl_df1,
 
 
 
@@ -188,6 +223,7 @@ traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, ma
 ######################################################
 ######################################################
 ######################################################
+
 
 # This section creates a dataframe with GoA data wherever it exists; 
 # where we don't have GoA data, we use data from other locations.
@@ -201,16 +237,16 @@ other_df <- traits_df3 %>%
 
 
 
-combos <- unique(traits_df3[,c('genus.species','common.name','trait')]) # create a table of all species & trait combinations for which we have data
+combos <- unique(traits_df3[,c('Species','trait')]) # create a table of all species & trait combinations for which we have data
 # specify which gender we'll use for each trait:
 for(i in 1:nrow(combos)){
   if(combos$trait[i] %in% c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "depthMax", "depthRange", "ageMaximum", "diet", "guild",
-                            "lengthMaximum", "migratoryStatus", "trophicPosition")) {combos$gender[i] <- "both"} # for these traits, we'll use data from males & females
+                            "lengthMaximum", "migratoryStatus", "trophicPosition", "depthCoefPos")) {combos$gender[i] <- "both"} # for these traits, we'll use data from males & females
   if(combos$trait[i] %in% c("age50percentMaturity", "firstMaturityAge", "firstMaturityLength", "length50percentMaturity" #"K", "Linfinity"
                             )) {combos$gender[i] <- "f"} # for life history traits, for now we'll use only female data
   if(combos$trait[i] %in% c("K", "Linfinity")) {combos$gender[i] <- "goodEnough"} 
   }
-traitsGoA_df <- left_join(combos, GoA_df, by = c("genus.species", "common.name", "trait", "gender")) # merge GoA data onto combos
+traitsGoA_df <- left_join(combos, GoA_df, by = c("Species", "trait", "gender")) # merge GoA data onto combos
 
 
 
@@ -219,32 +255,17 @@ traitsGoA_df <- left_join(combos, GoA_df, by = c("genus.species", "common.name",
 GoA_df1 <- GoA_df %>% select(-location, -estimate) # remove location & estimate columns from GoA_df to facilitate set difference operation
 other_df1 <- other_df %>% select(-location, -estimate) # remove location & estimate columns from other_df to facilitate set difference operation
 diffs_df <- setdiff(other_df1, GoA_df1) # retrieve taxa-gender-trait combinations which exist for location == "other" but not GoA
-diffsOther_df <- left_join(diffs_df, other_df, by = c("genus.species", "common.name", "trait", "gender")) # merge in other_df, only keeping rows that are in diffs_df
+diffsOther_df <- left_join(diffs_df, other_df, by = c("Species", "trait", "gender")) # merge in other_df, only keeping rows that are in diffs_df
 
 
 
 # now merge the table with non-GoA trait data onto the table with GoA data: 
-traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("genus.species", "common.name", "trait", "gender")) %>% 
-  transmute(genus.species, common.name, trait, gender, 
+traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("Species", "trait", "gender")) %>% 
+  transmute(Species, trait, gender, 
             location = ifelse(is.na(location.x), location.y, location.x),
             estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x)) %>%
-  filter(!is.na(estimate)) %>% # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations
-  # the next 6 lines make taxonomic names match style in abundance files
-  mutate(genus.species = revalue(genus.species, c("Clupea pallasii" = "Clupea pallasi",
-                                                  "Sebastes group 1" = "Dusky and Dark Rockfish", 
-                                                  "Sebastes group 2" = "Rougheye and Blackspotted Rockfish", 
-                                                  "Lepidopsetta spp." = "Lepidopsetta sp.", 
-                                                  "Myctophidae spp." = "Myctophidae",
-                                                  "Theragra chalcogramma" = "Gadus chalcogrammus"))) %>%
-  mutate(genus.species = gsub(" ", ".", genus.species)) %>%
-  rename(Species = genus.species)
+  filter(!is.na(estimate)) # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations
 
-for(i in 1:nrow(traits_df4)) {
-  if(traits_df4$Species[i] == "Dusky.and.Dark.Rockfish") {traits_df4$common.name[i] <- "sebastes group 1"}
-  if(traits_df4$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {traits_df4$common.name[i] <- "sebastes group 2"}
-}
-
-#View(traits_df4)
 
 ######################################################
 ######################################################
@@ -258,53 +279,59 @@ traits_df4$row <- 1:nrow(traits_df4) # create column of unique identifiers to fa
 traits_wide <- traits_df4 %>%
   spread(trait, estimate) %>%
   select(-gender, -location, -row) %>%
-  group_by(Species, common.name) %>%
+  group_by(Species) %>%
   summarize_each(funs(first(., order_by = is.na(.)))) %>%
   ungroup()
 
-cols = c(6:9, 11, 12, 14:17, 19); traits_wide[,cols] <- apply(traits_wide[,cols], 2, function(x) as.numeric(x)) # convert columns to numeric as needed
-cols1 = c(3:5, 10, 13, 18); traits_wide[,cols1] <- lapply(traits_wide[,cols1] , factor) # convert columns to factor as needed
-#View(traits_wide)
+
+quant = c("age50percentMaturity", "ageMaximum", "depthCoefPos", "depthMax", "depthRange", 
+         "firstMaturityAge", "firstMaturityLength", "K", "length50percentMaturity", 
+         "lengthMaximum", "Linfinity", "trophicPosition")
+traits_wide[,quant] <- apply(traits_wide[,quant], 2, function(x) as.numeric(x)) # convert columns to numeric as needed
+traits_wide[,quant] <- apply(traits_wide[,quant], 2, function(y) log(y)) # log-transform the quantitative traits (as per recommendation in Botta-Dukat 2005)
+
+categ = c("adultSlopeShelf", "adultSubstrate", "adultWaterColumnPosition", "diet", "guild", "migratoryStatus") # convert columns to factors as needed
+traits_wide[,categ] <- lapply(traits_wide[,categ] , factor)
 #write.csv(traits_wide, file = "traits_wide.csv")
+
+
+
+# which pairs of (log-transformed) quantitative traits are correlated?
+pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
+names(traits_wide[,quant])
+# significant correlations:
+# K, firstMaturityAge, age50percentMaturity, ageMaximum
+# Linfinity, trophicPosition, firstMaturityLength, length50percentMaturity, lengthMaximum
+# depthRange & depthMax; note that depthCoefficient is not correlated with either
 
 
 
 # we have the most data for:
 # adultWaterColumnPosition (missing for 2 taxa)
-#ageMax (missing for 9 taxa)
 #diet (missing 0)
 #sum(is.na(traits_wide$firstMaturityLength)) # missing 23
 #sum(is.na(traits_wide$K)) # missing 16
 #sum(is.na(traits_wide$Linfinity)) # missing 16
 #guild (missing 0)
 #lengthMaximum (missing 4)
-#sum(is.na(traits_wide$ageMaximum)) # missing 10
+#sum(is.na(traits_wide$ageMaximum)) # missing 9
 #trophicPosition (missing 0)
 #depthRange (missing 6)
 #depthMax (missing 6)
+#depthCoefPos (missing 0)
 
 
-# which pairs of traits are correlated?
-pairs.panels(traits_wide[,c(3:19)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
-names(traits_wide)
-# significant correlations:
-# adultSlopeShelf, adultSubstrate
-# K, firstMaturityAge, age50percentMaturity, ageMaximum
-# Linfinity, trophicPosition, firstMaturityLength, length50percentMaturity, lengthMaximum
-# depthRange & depthMax
-
-
-
-
-
+# Prep functional traits df to load into functional diversity analysis
 ft_df <- traits_wide %>%
-  select(Species, lengthMaximum, ageMaximum, depthMax, trophicPosition, adultWaterColumnPosition) %>% # select traits for which we have the most data
-  filter(!(is.na(depthMax)), !(is.na(ageMaximum))) %>%
-  filter(!(Species %in% c("Hydrolagus.colliei", "Merluccius.productus", "Sebastes.helvomaculatus"))) %>% # remove taxa for which there is no abundance data; there is also no abund data for Berryteuthis.magister
+  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, depthRange, K, Linfinity) %>% # select all untransformed quantitative traits with sufficient data
+  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, depthRange, adultWaterColumnPosition, diet, guild) %>% # select all traits with sufficient data
+  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos) %>% # select uncorrelated log-transformed quantitative traits
+  select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, adultWaterColumnPosition, diet, guild) %>% # select uncorrelated log-transformed quantitative traits & categorical diet trait
+  filter(!(is.na(ageMaximum)), !(is.na(depthMax)), !is.na(depthCoefPos)) %>% # remove taxa for which trait data are missing
   arrange(Species)
 rownames(ft_df) <- ft_df$Species # create row names from Species column
 ft_df <- ft_df %>% select(-Species)
-#View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
+View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
 
 #unique(sort(setdiff(ft_df$Species, SPCPUEArea$Species))) # sp in traits_df3 but not SPCPUEArea
 
@@ -314,51 +341,71 @@ ft_df <- ft_df %>% select(-Species)
 ######################################################
 
 
-# load taxonomic occurrence data:
-#URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udlVNME9rQXEwZ1k"
-#SpByArea_Get <- GET(URL_SpByArea)
-#SpByArea_1 <- content(SpByArea_Get, as='text')
-#SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(SpByArea)
-
-# load taxonomic abundance data:
-URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
+# load Mean annual CPUE data for Shallow Areas:
+URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
 SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
 #View(SPCPUEArea)
 
-# NB  SPCPUEArea has only 53 taxa, not 57. Which ones are missing?
-#spDiffs <- setdiff(traits_wide$Species, SPCPUEArea$Species); spDiffs
+
+# NB  SPCPUEArea and deepCPUE both have only 53 taxa, not 57. Which ones are missing?
+# spDiffs <- setdiff(traits_wide$Species, deepCPUE$Species); spDiffs
 # "Berryteuthis.magister"   "Hydrolagus.colliei"      "Merluccius.productus"    "Sebastes.helvomaculatus"
 
 
-
-
-
-# organize abundance data for analysis in FD package:
-
-#unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
-sp_df <- SPCPUEArea %>%
+# organize Shallow Areas CPUE data for analysis in FD package:
+# unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
+spShallow_df <- SPCPUEArea %>%
   select(area, year, Species, Mean.totalDensity) %>%
   filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
                           "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
                           "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
-  mutate(area = revalue(area, c("Total" = "12")), # recode Total for looping later
+  mutate(area = revalue(area, c("Total" = "10")), # recode Total for looping later
          area = as.numeric(area)) # convert to numeric class
 
-
-
-A <- sp_df %>% 
+Sh <- spShallow_df %>% 
   select(Species, area, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df (required by FD package)
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df
   spread(Species, Mean.totalDensity) %>%
   select(-year)
 
-byArea_list <- split(A, f = A$area) # create a list of dataframes (one for each area; NB area 12 is Total)
+shallowByArea_list <- split(Sh, f = Sh$area) # create a list of dataframes (one for each area; NB area 10 is Total)
 
-byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+shallowByArea_list1 <- lapply(shallowByArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
+
+
+#########################
+
+
+# load mean annual CPUE for Deep areas:
+URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUE_Get <- GET(URL_deepCPUE)
+deepCPUE_1 <- content(deepCPUE_Get, as='text')
+deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUE)
+
+
+# organize Deep Areas CPUE data for analysis in FD package:
+# unique(sort(setdiff(deepCPUE$Species, ft_df$Species)))
+spDeep_df <- deepCPUE %>%
+  select(area, year, Species, Mean.totalDensity) %>%
+  filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
+                          "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
+                          "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
+  mutate(area = revalue(area, c("Total" = "6")), # recode Total for looping later
+         area = as.numeric(area)) # convert to numeric class
+
+Dp <- spDeep_df %>% 
+  select(Species, area, year, Mean.totalDensity) %>%
+  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df
+  spread(Species, Mean.totalDensity) %>%
+  select(-year)
+
+deepByArea_list <- split(Dp, f = Dp$area) # create a list of dataframes (one for each area; NB area 6 is Total)
+
+deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
 
 ######################################################
@@ -366,67 +413,100 @@ byArea_list1 <- lapply(byArea_list, function(x) x[!(names(x) %in% c("area", "yea
 ######################################################
 
 
-# Calculate Functional Diversity metrics by area:
+# Calculate Functional Diversity (Rao's Q)
 
-fd <- list()
-for (i in seq_along(byArea_list1)) {
-  fd[[i]] <- dbFD(ft_df, byArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F)
+
+# Methods info from FD package documentation:
+# "If not all traits are numeric, Gower’s (1971) standardization by the
+#  range is automatically used; see gowdis for more details."
+
+# "If x (trait df) is a matrix or a data frame that contains only continuous traits, no NAs, and no weights
+# are specified (i.e. w is missing), a species-species Euclidean distance matrix is computed via dist.
+# Otherwise, a Gower dissimilarity matrix is computed via gowdis."
+
+# "Rao’s quadratic entropy (Q) is computed from the uncorrected species-species distance matrix via divc."
+
+# gowdis computes the Gower (1971) similarity coefficient as described by Podani (1999),
+# then converts it to a dissimilarity coefficient by using D = 1-S
+
+
+
+# Rao's Q for Shallow Areas:
+ftMahalanobis <- mahaldis(as.matrix(ft_df)) # calculate Mahalanobis generalized distance for the functional trait matrix (using raw, not log-transformed, values)
+# then substitute this into dbFD() in place of ft_df
+# the above will produce a distance matrix for continuous traits. but how do I then use this with categorical traits?
+
+fdShallow <- list()
+for (i in seq_along(shallowByArea_list1)) {
+  #fdShallow[[i]] <- dbFD(ftMahalanobis, shallowByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using Mahalanobis distance matrix for all quantitative traits with sufficient data
+  fdShallow[[i]] <- dbFD(ft_df, shallowByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using only uncorrelated traits; note to self: adding stand.x = T when using only quantitative traits makes no difference becasue data were already log-transformed
 }
-# for each area:
+# when quantitative & categorical traits are used:
 # "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
 
-# get Euclidean distance matrix from traits
-#trait.dist <- dist(trait)
 
 
+# Rao's Q for Deep Areas:
+fdDeep <- list()
+for (i in seq_along(deepByArea_list1)) {
+  #fdDeep[[i]] <- dbFD(ftMahalanobis, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using Mahalanobis distance matrix for all quantitative traits with sufficient data
+  fdDeep[[i]] <- dbFD(ft_df, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using only uncorrelated traits; note to self: adding stand.x = T when using only quantitative traits makes no difference becasue data were already log-transformed
+}
+# when quantitative & categorical traits are used:
+# "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
 
-# Create a table of Rao's Q values for each area, by year:
-Cols <- paste("Area", 1:12, sep="")
-Rao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 12)); colnames(Rao1) <- Cols
 
-for (i in seq_along(fd)) {
-  Rao1[,i] <- data.frame(as.data.frame(fd[[i]]$RaoQ))
+#############################
+
+# Create dataframes of Rao's Q for plotting purposes:
+
+# Shallow areas:
+colsShallow <- paste("Area", 1:10, sep="")
+shallowRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 10)); colnames(shallowRao1) <- colsShallow
+
+for (i in seq_along(fdShallow)) {
+  shallowRao1[,i] <- data.frame(as.data.frame(fdShallow[[i]]$RaoQ))
 }
 
 year <- as.data.frame(unique(sort(SPCPUEArea$year))); colnames(year) <- "year"
-RaoQ <- bind_cols(year, Rao1) %>%
-  rename(Total = Area12)
-#View(RaoQ)
+shallowRaoQ <- shallowRao1 %>% bind_cols(year) %>% 
+  select(-Area10) # remove column for total areas combined
 
 
+
+
+# Deep areas:
+colsDeep <- paste("Area", 1:6, sep="")
+deepRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 6)); colnames(deepRao1) <- colsDeep
+
+for (i in seq_along(fdDeep)) {
+  deepRao1[,i] <- data.frame(as.data.frame(fdDeep[[i]]$RaoQ))
+}
+
+year2 <- as.data.frame(unique(sort(deepCPUE$year))); colnames(year) <- "year"
+deepRaoQ <- bind_cols(year, deepRao1) %>% 
+  select(-Area6) # remove column for total areas combined
 
 ######################################################
 ######################################################
 ######################################################
 
-# Plot Rao's Q
 
-year1 <- unique(sort(SPCPUEArea$year))
+# Temporal plots of Rao's Q
 
-ggplot(data=RaoQ, aes(x=year, y = value)) + 
-  geom_point(aes(y = Area1), size=2) +
-  geom_point(aes(y = Area2), size=2) +
-  geom_point(aes(y = Area3), size=2, col=2) +
-  geom_point(aes(y = Area4), size=2, col=2) +
-  geom_point(aes(y = Area5), size=2, col=2) +
-  geom_point(aes(y = Area6), size=2) +
-  geom_point(aes(y = Area7), size=2) +
-  geom_point(aes(y = Area8), size=2) +
-  geom_point(aes(y = Area9), size=2) +
-  geom_point(aes(y = Area10), size=2) +
-  geom_point(aes(y = Area11), size=2) +
-  
-  geom_line(aes(y = Area1), size=2) +
-  geom_line(aes(y = Area2), size=2) +
-  geom_line(aes(y = Area3), size=2, col=2) +
-  geom_line(aes(y = Area4), size=2, col=2) +
-  geom_line(aes(y = Area5), size=2, col=2) +
-  geom_line(aes(y = Area6), size=2) +
-  geom_line(aes(y = Area7), size=2) +
-  geom_line(aes(y = Area8), size=2) +
-  geom_line(aes(y = Area9), size=2) +
-  geom_line(aes(y = Area10), size=2) +
-  geom_line(aes(y = Area11), size=2) +
+# 1. Shallow Areas:
+year3 <- unique(sort(SPCPUEArea$year))
+
+shallowRaoQ_temporal <- ggplot(data=shallowRaoQ, aes(x=year3, y = value)) + 
+  geom_point(aes(y = Area1), size=2) +         geom_line(aes(y = Area1), size=2) +
+  geom_point(aes(y = Area2), size=2) +         geom_line(aes(y = Area2), size=2) +
+  geom_point(aes(y = Area3), size=2, col=2) +  geom_line(aes(y = Area3), size=2, col=2) +
+  geom_point(aes(y = Area4), size=2, col=2) +  geom_line(aes(y = Area4), size=2, col=2) +
+  geom_point(aes(y = Area5), size=2, col=2) +  geom_line(aes(y = Area5), size=2, col=2) +
+  geom_point(aes(y = Area6), size=2) +         geom_line(aes(y = Area6), size=2) +
+  geom_point(aes(y = Area7), size=2) +         geom_line(aes(y = Area7), size=2) +
+  geom_point(aes(y = Area8), size=2) +         geom_line(aes(y = Area8), size=2) +
+  geom_point(aes(y = Area9), size=2) +         geom_line(aes(y = Area9), size=2) +
   
   theme(axis.line=element_line('black'),
         panel.grid.major = element_blank(),
@@ -435,6 +515,147 @@ ggplot(data=RaoQ, aes(x=year, y = value)) +
         panel.background = element_blank())+
   theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
   theme(axis.text.y = element_text(size=22))+
-  scale_x_continuous(breaks=c(year1), labels=c(year1)) +
-  ylab("Rao's Q") +
-  xlab("Year") 
+  scale_x_continuous(breaks=c(year3), labels=c(year3)) +
+  labs(title = "Rao's Q for Shallow Areas", 
+       x = "Year", y = "Rao's Q")
+
+
+
+#########################
+
+# 2. Deep Areas:
+year4 <- unique(sort(deepCPUE$year))
+
+deepRaoQ_temporal <- ggplot(data=deepRaoQ, aes(x=year4, y = value)) + 
+  geom_point(aes(y = Area1), size=2, col=2) +  geom_line(aes(y = Area1), size=2, col=2) +
+  geom_point(aes(y = Area2), size=2, col=2) +  geom_line(aes(y = Area2), size=2, col=2) +
+  geom_point(aes(y = Area3), size=2) +         geom_line(aes(y = Area3), size=2) +
+  geom_point(aes(y = Area4), size=2) +         geom_line(aes(y = Area4), size=2) +
+  geom_point(aes(y = Area5), size=2) +         geom_line(aes(y = Area5), size=2) +
+  
+  theme(axis.line=element_line('black'),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
+  theme(axis.text.y = element_text(size=22))+
+  scale_x_continuous(breaks=c(year4), labels=c(year4)) +
+  labs(title = "Rao's Q for Deep Areas", 
+       x = "Year", y = "Rao's Q")
+
+
+grid.arrange(shallowRaoQ_temporal, deepRaoQ_temporal, ncol=2)
+
+
+######################################################
+######################################################
+######################################################
+
+
+# Spatial boxplots of Rao's Q
+
+
+# Create long-form dataframes of Rao's Q for Spatial Plots:
+year <- as.data.frame(unique(sort(SPCPUEArea$year)))
+
+shallowRao2 <- shallowRaoQ %>% 
+  gather(key = area, value = RaosQ, Area1:Area9) %>%
+  mutate(area = gsub("Area", "", area), 
+         area = as.factor(area))
+
+deepRao2 <- deepRaoQ %>% 
+  gather(key = area, value = RaosQ, Area1:Area5) %>%
+  mutate(area = gsub("Area", "", area), 
+         area = as.factor(area))
+
+#########################
+
+
+# Load Mary & Rachael's boxplot theme:
+theme_boxplot <- function(base_size = 12){
+  theme_bw(base_size)%+replace%
+    theme(legend.key.size=unit(12,"points"),
+          legend.text=element_text(size=11),
+          legend.key=element_blank(),
+          legend.title=element_blank(),
+          legend.background=element_rect(colour="white", fill="transparent"),
+          plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
+          panel.border=element_blank(),
+          panel.margin=unit(0,"lines"),
+          panel.background=element_rect(fill=NA, colour=NA),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.ticks.length=unit(1,"mm"),
+          axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+          axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+          axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+          axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+          strip.text.x=element_text(size=12),
+          strip.background=element_rect(colour="black", fill='white'))
+}
+
+
+#########################
+
+range(shallowRao2$RaosQ); range(deepRao2$RaosQ)
+
+shallow_FD <- ggplot(data=shallowRao2, aes(x = area, y = RaosQ)) + 
+  geom_boxplot() + theme_boxplot() +
+  xlab("Area (West <-> East)") + ylab("Rao's Q") +
+  xlim("9", "8", "7", "6", "5", "4", "3", "2", "1") + 
+  #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
+  ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
+  #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
+  #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
+  theme(plot.background=element_blank(),
+        axis.text.x = element_text(size=15))
+
+
+deep_FD <- ggplot(data=deepRao2, aes(x = area, y = RaosQ)) + 
+  geom_boxplot() + theme_boxplot() +
+  xlab("Area (West <-> East)") + ylab("Rao's Q") +
+  xlim("5", "4", "3", "2", "1") + 
+  #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
+  ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
+  #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
+  #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
+  theme(plot.background=element_blank(),
+        axis.text.x = element_text(size=15))
+
+
+grid.arrange(shallow_FD, deep_FD, ncol=2)
+
+
+######################################################
+######################################################
+######################################################
+
+
+# Test for between-area differences in Rao's Q:
+# note that we are treating area as a factor, not a continuous variable
+
+shallowANOVA <- aov(RaosQ ~ area, data = shallowRao2)
+shallowANOVA <- aov(RaosQ ~ area*year, data = shallowRao2)
+shallowANOVA <- aov(RaosQ ~ area + year, data = shallowRao2)
+summary(shallowANOVA)
+
+pairwise.t.test(shallowRao2$RaosQ, shallowRao2$area, p.adjust = "bonferroni", alternative = c("two.sided")) # alt = "two.sided", "less", "greater"
+# output = table of p-values, which tells us which pairs are significantly different 
+
+TukeyHSD(shallowANOVA, conf.level = 0.95)
+
+
+
+
+deepANOVA <- aov(RaosQ ~ area, data = deepRao2)
+deepANOVA <- aov(RaosQ ~ area*year, data = deepRao2)
+deepANOVA <- aov(RaosQ ~ area + year, data = deepRao2)
+summary(deepANOVA)
+
+pairwise.t.test(deepRao2$RaosQ, deepRao2$area, p.adjust = "bonferroni", alternative = c("two.sided")) # alt = "two.sided", "less", "greater"
+# output = table of p-values, which tells us which pairs are significantly different 
+
+TukeyHSD(deepANOVA, conf.level = 0.95)

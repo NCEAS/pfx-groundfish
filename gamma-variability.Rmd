@@ -1,0 +1,392 @@
+---
+title: "Local vs Regional Stability of Gulf of Alaksa Groundfish Assemblages"
+author: "Colette Ward"
+date: "July 12, 2016"
+output: pdf_document
+---
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load packages
+library(httr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(gridExtra)
+
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prep look-up table of common names
+URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
+common_Get <- GET(URL_common)
+common_1 <- content(common_Get, as='text')
+common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+
+common1 <- common %>%
+  select(database.name, common.name) %>%
+  rename(Species = database.name)
+for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
+  if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
+  if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
+}
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load mean annual CPUE data for Shallow Areas:
+URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
+shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
+shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(shallowCPUEArea)
+
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name)
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load mean annual CPUE for Deep areas:
+URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUEArea_Get <- GET(URL_deepCPUEArea)
+deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
+deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUEArea)
+
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in common names
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name)
+
+```
+
+To address local vs regional community stability we can compare CVs of total CPUE between local communities and the regional metacommunity.
+The regional community does indeed show greater stability than local communities. Note that y-axis scales differ - deep areas are generally less stable than shallow areas.  
+**The magnitude of the portfolio effect can be assessed from the ratio of mean local CV / regional CV (ie the increase in stability that arises from spatial (beta) diversity; values >1 indicate a stabilizing effect): the ratio is ~2.3 for shallow areas and ~1.4 for deep areas.** (I'm not sure the difference between effect size in shallow and deep is meaningful, it may arise because we have more local patches for shallow areas.)  
+[If anyone wants to make these plots prettier, please do :) ]
+
+```{r, echo=F, fig.height=3.5, fig.width=8}
+
+# Shallow areas:
+CV_shallow <- shallowCPUEArea2 %>% 
+  group_by(area, year) %>%
+  summarise(total = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  
+  group_by(area) %>%
+  summarise(CV = sd(total) / mean(total)) %>%
+  ungroup()
+
+# mean CV of shallow local areas
+# CV_shallow %>%
+#   filter(area != "Total") %>%
+#   summarise(mean = mean(CV), sd = sd(CV))
+# 0.171/0.073 # ratio of mean local / regional = 2.342 for shallow areas
+
+
+# plot on a log scale
+CV_shallow_plot <- ggplot(data=CV_shallow, aes(x=area, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.2)) + # how do I put minor tick marks on the y axis?
+  
+  labs(x = "Area", y = "CV (Total CPUE)", title = "Shallow Areas")
+
+
+
+##############################
+
+# Deep areas:
+CV_deep <- deepCPUEArea2 %>% 
+  group_by(area, year) %>%
+  summarise(total = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  
+  group_by(area) %>%
+  summarise(CV = sd(total) / mean(total)) %>%
+  ungroup()
+
+# mean CV of deep local areas
+# CV_deep %>%
+#   filter(area != "Total") %>%
+#   summarise(mean = mean(CV), sd = sd(CV))
+# 0.253/0.187 # ratio of mean local / regional = 1.353 for deep areas
+
+
+# plot on a log scale
+CV_deep_plot <- ggplot(data=CV_deep, aes(x=area, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_y_log10(breaks = c(0.15, 0.2, 0.25, 0.3, 0.35, 0.4)) +
+  
+  labs(x = "Area", y = "CV (Total CPUE)", title = "Deep Areas")
+
+
+
+grid.arrange(CV_shallow_plot, CV_deep_plot, ncol=2)
+
+```
+
+Although we can compare local and regional community stability using CVs alone, here we calculate metrics from Wang & Loreau (2014) to help us think about mechanisms underlying this result.
+The following uses formulas from Wang & Loreau's (2014) Supp Mat (i.e. for the case where biomass varies within and between local communities).
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+
+# SHOULD SPECIES CPUES BE LOG-TRANSFORMED FIRST???
+
+shallowAreas_list <- split(shallowCPUEArea2, f = shallowCPUEArea2$area) # create a list of dataframes (one df for each local area & total region)
+shallowAreas_list[[10]] <- NULL  # remove the 10th element from the list (remove the list for the total regional metacommunity)
+
+# nomenclature for the following calculations:
+# i, h = local community i (and h)
+# j, k, l = species j, k, l
+# j_i = species j in local community i
+# u = mean
+# w = variance or covariance
+# w_kk_i = variance of each species k within local community i
+# w_kl_i = covariance between species k and l within local community i
+# w_ii = variance (of total community CPUE) for each local community i
+# w_ih = covariance (of total community CPUE) between local communities i & h
+# rho = temporal Synchrony; inverse is Beta (temporal Asynchrony)
+
+A_list <- list(); B_list <- list(); C_list <- list(); D_list <- list(); E_list <- list(); F_list <- list()
+covMatrix_i_list <- list(); w_kk_i_list <- list(); rho_species_i_list <- list(); CV_i_list <- list()
+
+for(i in seq_along(shallowAreas_list)) {
+  
+  # 1. Calculate averaged species variability (C_list[[i]]$CV_species_i_squared):
+  
+  # calculate local community-level stuff
+  A_list[[i]] <- shallowAreas_list[[i]] %>%
+    group_by(year) %>%
+    summarise(annual_total_i = sum(Mean.totalDensity)) %>%
+    ungroup() %>%
+    summarise(u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local community i
+    
+  
+  # calculate species-level stuff
+  B_list[[i]] <- shallowAreas_list[[i]] %>%
+    group_by(Species) %>%
+    summarise(u_j_i = mean(Mean.totalDensity), # mean biomass (across all years) of species j in local community i
+              CV_j_i_squared = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in local community i. Note the usual formula for CV is squared
+              CV_species_j_i = u_j_i / A_list[[i]]$u_i * CV_j_i_squared) %>% # CV of species in local community i
+    ungroup()
+  
+  
+  # calculate averaged species variability
+  C_list[[i]] <- B_list[[i]] %>%
+    summarise(CV_species_i_squared = sum(CV_species_j_i))
+  
+  
+  ###############
+  # 2. Calculate species asynchrony WITHIN local areas (rho_species_i_list[[i]]):
+  
+  D_list[[i]] <- shallowAreas_list[[i]] %>%
+    select(year, Mean.totalDensity, Species) %>%
+    spread(Species, Mean.totalDensity) %>%
+    select(-year)
+  
+  
+  covMatrix_i_list[[i]] <- cov(D_list[[i]]) # create the covariance matrix
+    
+  
+  w_kk_i_list[[i]] <- diag(covMatrix_i_list[[i]]) # extract diagonals of the covariance matrix. these are temporal variance of each species k within local community i
+  
+  
+  covMatrix_i_list[[i]][upper.tri(covMatrix_i_list[[i]], diag = TRUE)] <- NA # for each local community i, keep one copy of all the non-diagonals. these are w_kl_i 
+  E_list[[i]] <- as.data.frame(covMatrix_i_list[[i]])
+  
+  
+  F_list[[i]] <- E_list[[i]] %>%
+    summarise(sum_w_kl_i = sum(E_list[[i]][,1:53], na.rm = T)) # for each local community i, find the sum of all w_kl_i. calc has been checked
+
+  
+  rho_species_i_list[[i]] <- F_list[[i]]$sum_w_kl_i / ((sum(sqrt(w_kk_i_list[[i]][1:53])))^2)
+  
+  
+  ###############
+  # 3. Calculate Variability of local community i (CV_i_list[[i]])
+  CV_i_list[[i]] <- C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]]
+  #CV_i_list[[i]] <- (C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]])^2 # It's not clear whether this should be squared. If not squred, returns a negative value when within-patch species synchrony is negative.
+      
+  # CHECK WHETHER LOCAL COMMUNITY VARIABILITY CORRELATES WITH SIZE (AREA) OF LOCAL COMMUNITY (IE DO LARGER AREAS SHOW MORE VARIABILITY?)
+  
+  
+  ###############
+  # 4. Calculate Alpha variability (local community variability weighed for local community biomass; alpha_CV_list[[i]])
+  u_m <- sum(A_list[[i]]$u_i)
+  alpha_CV <- (sum(A_list[[i]]$u_i / u_m * CV_i_list[[i]] ))^2 # It's not clear whether this should be squared.
+
+}
+
+  
+###############
+# 5. Calculate Beta variability (spatial synchrony; rho)
+# note I'm replacing Wang & Loreau's local patch i & j notation with i & h, to avoid confusion with species j
+  
+shallowCPUEArea3 <- shallowCPUEArea2 %>%
+  filter(area != "Total") %>%
+  group_by(area, year) %>%
+  summarise(ann_tot_i = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  spread(area, ann_tot_i) %>%
+  select(-year)
+
+
+covMatrix_m <- cov(shallowCPUEArea3) # create the covariance matrix
+    
+w_ii <- diag(covMatrix_m) # extract diagonals of the covariance matrix. returns a vector. this is temporal variance of total community CPUE, within each local community.
+  
+covMatrix_m[upper.tri(covMatrix_m, diag = TRUE)] <- NA # keep one copy of all the non-diagonals. These are w_ih (temporal covariance of total community biomass between local patches i & h). NB it would be nice to bring in species-level information here, to prevent dominant species from driving the result.
+w_ih <- as.data.frame(covMatrix_m)
+  
+summed_w_ih <-w_ih %>% summarise(sum_w_ih = sum(w_ih[,1:9], na.rm = T)) # find the sum of all w_ih. calc has been checked
+  
+rho <- summed_w_ih$sum_w_ih / ((sum(sqrt(w_ii[1:9])))^2) # Wang & Loreau (2014) claim that standardizing for within-patch covariance accounts for spatial uneveness in biomass. Not sure about this.
+Beta1 = 1 / rho
+  
+
+###############
+# 6. Calculate Gamma variability
+
+gamma_CV <- alpha_CV / Beta1
+  
+```
+
+
+###Within-patch sums of all between-species covariances. Negative values indicate asynchrony.
+```{r, echo=F, fig.height=2.75, fig.width=4}
+# F_list
+F_df <- data.frame(matrix(NA_real_, nrow = 9, ncol = 2)); 
+colsF <- c("Area", "sum_w_kl_i"); colnames(F_df) <- colsF
+areaNum <- as.vector(1:9); F_df[,1] <- as.factor(areaNum)
+
+for(i in seq_along(F_list)) {
+  F_df[i,2] <- data.frame(as.data.frame(F_list[[i]]$sum_w_kl_i))
+}
+
+
+# plot
+cov.within_shallow <- ggplot(data=F_df, aes(x=areaNum, y = sum_w_kl_i)) + 
+  geom_point(aes(y = sum_w_kl_i), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black")) +
+  
+  scale_x_continuous(breaks = c(1:9)) +
+  
+  labs(x = "Area", y = "sum_w_kl_i", title = "Shallow Areas")
+
+cov.within_shallow
+```
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Within-patch species asynchrony:
+# rho_species_i_list
+rho_sp_df <- data.frame(matrix(NA_real_, nrow = 9, ncol = 2)); 
+cols_rho_sp <- c("Area", "rho_species_i"); colnames(rho_sp_df) <- cols_rho_sp
+areaNum <- as.vector(1:9); rho_sp_df[,1] <- as.factor(areaNum)
+
+for(i in seq_along(rho_species_i_list)) {
+  rho_sp_df[i,2] <- data.frame(as.data.frame(rho_species_i_list[[i]]))
+}
+
+
+# plot
+asynch.within <- ggplot(data=rho_sp_df, aes(x=areaNum, y = rho_species_i)) + 
+  geom_point(aes(y = rho_species_i), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black")) +
+  
+  scale_x_continuous(breaks = c(1:9)) +
+  
+  labs(x = "Area", y = "rho_species_i")
+
+asynch.within
+```
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Within-patch variability (ie CVs of total community CPUE within local communities):
+# CV_i_list
+CV_i_df <- data.frame(matrix(NA_real_, nrow = 9, ncol = 2)); 
+cols_CV_i <- c("Area", "CV_i"); colnames(CV_i_df) <- cols_CV_i
+areaNum <- as.vector(1:9); CV_i_df[,1] <- as.factor(areaNum)
+
+for(i in seq_along(CV_i_list)) {
+  CV_i_df[i,2] <- data.frame(as.data.frame(CV_i_list[[i]]))
+}
+
+# plot
+CV.within <- ggplot(data=CV_i_df, aes(x=areaNum, y = CV_i)) + 
+  geom_point(aes(y = CV_i), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black")) +
+  
+  scale_x_continuous(breaks = c(1:9)) +
+  
+  labs(x = "Area", y = "CV_i")
+
+CV.within
+```
+
+
+###Alpha variability (temporal variability at the local scale (NB weighed for local community biomass)):
+```{r}
+alpha_CV
+```
+
+
+### Spatial synchrony:
+```{r}
+rho
+```
+
+
+### Within-patch variance (ie temporal variance of each local area's total community CPUE, within local communities):
+```{r}
+w_ii
+```
+
+
+### Temporal covariance of total community CPUE between all pairs of local communities. Broadly speaking, local areas 1-6 covary positively with eachother, as do areas 7-9. Areas 1-6 covary negatively with 7-9.
+```{r}
+w_ih
+```
+
+
+###Beta variability (Multiplicative beta variability, i.e. the degree of spatial asynchrony):
+```{r}
+Beta1
+```
+
+
+###Gamma variability (temporal variability at the metacommunity scale):
+```{r}
+gamma_CV
+```
