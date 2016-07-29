@@ -4,12 +4,12 @@
 library(extrafont)
 library(RColorBrewer) 
 #font_import() #only do this one time - it takes a while
-loadfonts(quiet = T)
+#loadfonts(quiet = T)
 #windowsFonts(Times=windowsFont("TT Times New Roman"))
 
 library(ggplot2)
 library(maps)
-library(mapdata)
+#library(mapdata)
 library(mapproj)
 library(dplyr)
 library(tidyr)
@@ -159,7 +159,7 @@ for(i in 1:length(DIET)){
 ### Age Lagged METRIC 
 
 AGE <- c("Short","Medium","Long") #unique(meanCPUE$guild)
-name.age <- c("Fast","Medium","Slow")
+name.age <- c("Short","Medium","Long")
 for(i in 1:length(AGE)){
   temp <- meanCPUE[meanCPUE$age_class == AGE[i],]
   dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
@@ -171,6 +171,136 @@ for(i in 1:length(AGE)){
 }
 
 dev.off()
+
+####################################################################################################
+####################################################################################################
+### Make plot standardized to mean.
+####################################################################################################
+####################################################################################################
+####
+### Merge in the guild identifiers, fish habit, and other functional categories into the meanCPUE data.frame
+temp <- trawl_species[,c("database.name","fish.invert","pelagic.benthic","total.biomass.fish","guild","diet1","diet2","age_recruit","age_class")]
+colnames(temp)[1] <- "Species"
+
+meanCPUE <- merge(meanCPUE,temp)
+
+cent_time_plot <- function(dat,NAME){
+  AREA <- as.numeric(as.character(unique(dat$Area)))
+  YEAR <- sort(unique(dat$Year))
+  y.lim <- c(min(dat$cent_density),max(dat$cent_density))
+  for(i in 1:length(AREA)){
+    if(AREA[i] !=1){par(new=T)}
+    if(AREA[i] >= 3 & AREA[i] <= 5 ){
+      plot(cent_density~Year,data=dat[dat$Area ==AREA[i],],
+           type="l",axes=F,xlab="",ylim=y.lim,col=2,lwd=1.25,ylab="")
+    }
+    if(AREA[i] < 3 | AREA[i] > 5){
+      plot(cent_density~Year,data=dat[dat$Area ==AREA[i],],
+           type="l",axes=F,xlab="",ylim=y.lim,col=1,lwd=1,ylab="")
+    }
+  }
+  axis(1,at=YEAR,las=2,hadj=0.7,tcl=-0.25)
+  axis(2,las=2,hadj=0.5,tcl=-0.25)
+  box(bty="l",lwd=2)
+  #title(ylab=expression("Biomass (kg ha"^"-1"*")"),line=2.5)
+  mtext(NAME,adj=0.05,line=-1)
+  #abline(v=1989,lty=2,lwd=2)
+  arrows(x0=1989,x1=1989,y0=y.lim[1],y1=y.lim[1]+c(y.lim[2]-y.lim[1])*0.8,length=0,lty=2,lwd=2)
+}
+
+##############################################################################################
+def.par <- par(no.readonly = TRUE)
+
+quartz(file="Centered Time-series of Biomass and Guilds (20 cm).pdf",type="pdf",dpi=300,height=7,width=7)
+
+MAR <- c(2.5,2,0.5,0.1)
+A <- layout(matrix(c(1,2,3,4,1,5,6,7,1,8,9,10,1,11,12,13),4,4,byrow=T),
+            widths=c(0.1,1,1,1))
+
+# TOTAL BIOMASS
+# Plot shared y axis first
+par(mar=c(0,0,0,0))
+plot(1,1,type="n",xlab="",ylab="",axes=F)
+#mtext(expression("Density (kg ha"^"-1"*")"),side=2,line=-2,adj=0.25)
+mtext(expression("Centered density (kg ha"^"-1"*")"),side=2,line=-2)
+
+dat   <- aggregate(meanCPUE[meanCPUE$fish.invert=="fish",c("Mean.totalDensity","vari")],
+                   by=list(Area=meanCPUE$Area[meanCPUE$fish.invert=="fish"],Year=meanCPUE$year[meanCPUE$fish.invert=="fish"]),sum)
+dat$inv.var <- dat$vari^(-1)
+dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+grand.mean <- aggregate(dat$Mean.totalDensity,by=list(Area=dat$Area),mean)
+dat$cent_density <-0
+for( j in 1:11){
+  dat$cent_density[dat$Area == j] <- dat$Mean.totalDensity[dat$Area == j] - grand.mean$x[grand.mean$Area == j] 
+}
+
+par(mar=MAR)
+cent_time_plot(dat,NAME="Total Biomass")
+abline(h=0, lty=2,lwd=1.5)
+
+for(i in 1:2){
+  plot(1:1,type="n",axes=F,xlab="",ylab="")
+}
+
+# GUILDS
+GUILD <- c("A","B","P") #unique(meanCPUE$guild)
+for(i in 1:length(GUILD)){
+  temp <- meanCPUE[meanCPUE$guild == GUILD[i],]
+  dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  grand.mean <- aggregate(dat$Mean.totalDensity,by=list(Area=dat$Area),mean)
+  dat$cent_density <-0
+  for( j in 1:11){
+    dat$cent_density[dat$Area == j] <- dat$Mean.totalDensity[dat$Area == j] - grand.mean$x[grand.mean$Area == j] 
+  }
+  
+  par(mar=MAR)
+  cent_time_plot(dat,NAME=paste("Guild",GUILD[i]))
+  abline(h=0, lty=2,lwd=1.5)
+}
+
+# Lifestyle
+DIET <- unique(meanCPUE$diet1)
+for(i in 1:length(DIET)){
+  temp <- meanCPUE[meanCPUE$diet1 == DIET[i],]
+  dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  grand.mean <- aggregate(dat$Mean.totalDensity,by=list(Area=dat$Area),mean)
+  dat$cent_density <-0
+  for( j in 1:11){
+    dat$cent_density[dat$Area == j] <- dat$Mean.totalDensity[dat$Area == j] - grand.mean$x[grand.mean$Area == j] 
+  }
+  
+  cent_time_plot(dat,NAME=paste("Diet",DIET[i]))
+  abline(h=0, lty=2,lwd=1.5)
+}
+
+### Age Lagged METRIC 
+
+AGE <- c("Short","Medium","Long") #unique(meanCPUE$guild)
+name.age <- c("Short","Medium","Long")
+for(i in 1:length(AGE)){
+  temp <- meanCPUE[meanCPUE$age_class == AGE[i],]
+  dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+  dat$inv.var <- dat$vari^(-1)
+  dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+  grand.mean <- aggregate(dat$Mean.totalDensity,by=list(Area=dat$Area),mean)
+  dat$cent_density <-0
+  for( j in 1:11){
+    dat$cent_density[dat$Area == j] <- dat$Mean.totalDensity[dat$Area == j] - grand.mean$x[grand.mean$Area == j] 
+  }
+  
+  par(mar=MAR)
+  cent_time_plot(dat,NAME=paste(name.age[i]))
+  abline(h=0, lty=2,lwd=1.5)
+  
+}
+
+dev.off()
+
+
 ####################################################################################################
 ####################################################################################################
 ###################### REPEAT FOR TREND ESTIMATTION
@@ -313,7 +443,7 @@ for(i in 1:length(DIET)){
 ### BY DIET TYPE.
 # Aggregate into groups by guild and make plots
 AGE <- unique(meanCPUE$age_class[is.na(meanCPUE$age_class)==F])
-name.age <- c("Fast","Medium","Slow")
+name.age <- c("Short","Medium","Long")
 for(i in 1:length(AGE)){
   temp <- meanCPUE[meanCPUE$age_class == AGE[i],]
   dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
