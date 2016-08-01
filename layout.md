@@ -6,6 +6,5 @@ figures/Rplot/Rplot.png
 figures/Rao_spatial_4QuantLogUncorr&3CategTraits1/Rao_spatial_4QuantLogUncorr&3CategTraits1.png
 figures/nMDS_Shallow/nMDS_Shallow&Deep_original.png
 figures/Local-vs-Regional-CVs/Local-vs-Regional-CVs.png
-figures/Rao_spatial_4QuantLogUncorr&3CategTraits/Rao_spatial_4QuantLogUncorr&3CategTraits.png
 Gfish_Diversity_MS_1/Discussion1_Overview_of_our_main__.html
 Supplementary_MaterialsSupplement_Table_S1_table__.html
