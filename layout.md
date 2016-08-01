@@ -3,6 +3,7 @@ Gfish_Diversity_MS_1/untitled.html
 Gfish_Diversity_MS_1/Methods_Since_1984_the_Alaska__.html
 Gfish_Diversity_MS_1/ResultsDiversity_Knowing_the_ecological_theory__.html
 figures/Rplot/Rplot.png
+figures/Rao_spatial_4QuantLogUncorr&3CategTraits1/Rao_spatial_4QuantLogUncorr&3CategTraits1.png
 figures/nMDS_Shallow/nMDS_Shallow&Deep_original.png
 figures/Local-vs-Regional-CVs/Local-vs-Regional-CVs.png
 figures/Rao_spatial_4QuantLogUncorr&3CategTraits/Rao_spatial_4QuantLogUncorr&3CategTraits.png
