@@ -41,10 +41,11 @@ URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulI
 shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
 shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
 shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(shallowCPUEArea)
+View(shallowCPUEArea)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
-  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name)
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
+  mutate(area = revalue(area, c("Total" = "Region")))
 
 ```
 
@@ -57,7 +58,8 @@ deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FA
 #View(deepCPUEArea)
 
 deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in common names
-  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name)
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
+  mutate(area = revalue(area, c("1"="10", "2"="11", "3"="12", "4"="13", "5"="14", "Total" = "Region")))
 
 ```
 
@@ -180,7 +182,9 @@ for(i in seq_along(shallowAreas_list)) {
     group_by(year) %>%
     summarise(annual_total_i = sum(Mean.totalDensity)) %>%
     ungroup() %>%
-    summarise(u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local community i
+    summarise(var_i = var(annual_total_i),
+              stDev_i = sqrt(var(annual_total_i)),
+              u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local community i
     
   
   # calculate species-level stuff
