@@ -372,14 +372,13 @@ areas 2 - 6, deep areas 1 - 2), and areas West of the spill extent that
 were also likely unoiled (shallow areas 7 - 9, deep areas 3 - 5) (Figure
  1).&nbsp; Study areas&nbsp;were located between 
 145° W and 159° W, were separated by canyons or areas of shallower depth, and ranged in size from 1,352 – 15,136 km (see Supplementary Table S1 for more information on study areas).&nbsp; Though study areas were discrete, an artifact of the spatio-temporal statistical model is that some information is shared between study areas due to the spatial range of correlations.&nbsp; However, in most species/study area cases, the distances between the study areas exceeded the species range (see Supplementary Appendix A1).&nbsp; <br></div><div><br></div><br></div><h2 class="ltx_title_subsection">Statistical Analysis
-<br></h2><div><div><div>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; Since diversity often confers stability (here  spatial stability), we calculated several diversity metrics for the GOA groundfish community: species richness, alpha, beta, and gamma  diversity, and functional diversity.&nbsp; In this study, alpha diversity (﻿<span data-equation="H\alpha" class="ltx_Math" contenteditable="false">\(H\alpha\)</span>) quantifies the effective number of distinct species in each shallow or deep study area, while beta diversity (﻿<span data-equation="H\beta" class="ltx_Math" contenteditable="false">\(H\beta\)</span>)
+<br></h2><div><div><div>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; Since diversity often confers stability (here  spatial stability), we calculated several diversity metrics for the GOA groundfish community: species richness, alpha, beta, and gamma  diversity, and functional diversity.&nbsp; In this study, alpha diversity (<span data-equation="H\alpha" class="ltx_Math" contenteditable="false">\(H\alpha\)</span>) quantifies the effective number of distinct species in each shallow or deep study area, while beta diversity (<span data-equation="H\beta" class="ltx_Math" contenteditable="false">\(H\beta\)</span>)
  quantifies the effective number of distinct communities and represents 
  differences in species composition among the shallow or deep study 
-areas, and gamma diversity () is the effective number of distinct species across all shallow and deep areas.&nbsp; <br></div><div><br></div><div>We corrected for uncertainty in abundance data by resampling the 
-expected distribution of all species within each study area 1000 times using 
-bootstrap methods, and calculated mean abundance and confidence intervals.&nbsp; We then estimated species richness&nbsp;for each shallow and deep study 
-area by summing the mean 
-probability of occurrence of all species, <span data-equation="\Sigma pi^0" class="ltx_Math" contenteditable="false">\(\Sigma pi^0\)</span>.&nbsp; To calculate alpha (within study area) and beta (between study area)  components of diversity, we took the exponent of the Shannon-Wiener diversity (exp(SW)) to calculate the effective number of species, and used a multiplicative relationship between alpha and beta diversity (alpha * beta = gamma) (<cite class="ltx_cite" data-bib-text="
+areas, and gamma diversity (<span data-equation="H\gamma" class="ltx_Math" contenteditable="false">\(H\gamma\)</span>) is the effective number of distinct species across all shallow and deep areas.&nbsp; We began by correcting for uncertainty in the model predictions used to estimate species diversity metrics by resampling the 
+expected distributions of species occurrence and densities within each study area 1000 times using 
+bootstrap methods, and then calculating the mean and variance of the diversity metrics.&nbsp; We then estimated species richness by summing the predicted occurrence of all species within each each shallow and deep study 
+area (Dorazio et al 2006).&nbsp; To calculate alpha (within study area) and gamma (within region) diversity, we took the exponent of the Shannon-Wiener diversity (exp<span data-equation="H" class="ltx_Math" contenteditable="false">\(H\)</span>) to calculate the effective number of species, and then used a multiplicative relationship between alpha and beta (alpha * beta = gamma) to calculate beta (between study area) diversity (﻿<cite class="ltx_cite" data-bib-text="
 @article{jost_partitioning_
 @article{jost_partitioning_2007,
 	title = {Partitioning diversity into independent alpha and beta components},
@@ -413,7 +412,7 @@ probability of occurrence of all species, <span data-equation="\Sigma pi^0" clas
 	keywords = {alpha diversity, beta diversity, gamma diversity, Horn index, Morisita-Horn index, partitioning diversity, Shannon diversity measures},
 	pages = {2427--2439},
 	file = {Jost_2007_Ecology_Partitioning diversity into independent alpha and beta components.pdf:C\:\\Users\\rblake\\Documents\\WORK\\Papers\\Jost_2007_Ecology_Partitioning diversity into independent alpha and beta components.pdf:application/pdf;Snapshot:C\:\\Users\\rblake\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\jc7ah4ef.default\\zotero\\storage\\XQZ8HQ5D\\06-1736.html:text/html}
-}" data-bib-key="jost_partitioning_2007" contenteditable="false"><a href="#jost_partitioning_2007">Jost 2007</a></cite>, <cite class="ltx_cite" data-bib-text="
+}" data-bib-key="jost_partitioning_2007" contenteditable="false"><a href="#jost_partitioning_2007">Jost 2007</a></cite>, ﻿<cite class="ltx_cite" data-bib-text="
 @article{shannon_ma
 @article{shannon_mathematical_1948,
 	title = {A mathematical theory of communication},
@@ -441,10 +440,8 @@ probability of occurrence of all species, <span data-equation="\Sigma pi^0" clas
 	year = {1948},
 	pages = {379--423},
 	file = {IEEE Xplore Abstract Record:C\:\\Users\\rblake\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\jc7ah4ef.default\\zotero\\storage\\WKUTDKTZ\\articleDetails.html:text/html;Shannon_1948_The Bell System Technical Journal_A mathematical theory of communication.pdf:C\:\\Users\\rblake\\Documents\\WORK\\Papers\\Shannon_1948_The Bell System Technical Journal_A mathematical theory of communication.pdf:application/pdf}
-}" data-bib-key="shannon_mathematical_1948" contenteditable="false"><a href="#shannon_mathematical_1948">Shannon 1948</a></cite>). &nbsp;&nbsp;&nbsp; 
-
-
-Diversity metrics were calculated using the vegan package in R (<cite class="ltx_cite" data-bib-text="
+}" data-bib-key="shannon_mathematical_1948" contenteditable="false"><a href="#shannon_mathematical_1948">Shannon 1948</a></cite>).&nbsp; Code for the bootstrapping analysis is 
+provided in Supplementary Appendix A3.&nbsp; Diversity metrics were calculated using the vegan package in R (﻿<cite class="ltx_cite" data-bib-text="
 @misc{oksan
 @misc{oksanen_vegan:_2016,
 	title = {vegan: {Community} {Ecology} {Package}},
@@ -456,8 +453,7 @@ Diversity metrics were calculated using the vegan package in R (<cite class="ltx
 	url = {https://CRAN.R-project.org/package=vegan},
 	author = {Oksanen, J. and Blanchet, F. Guillaume and Friendly, Michael and Kindt, Roeland and Legendre, Pierre and McGlinn, Dan and Minchin, Peter R. and O'Hara, R.B. and Simpson, Gavin L. and Solymos, Peter and Henry, M. and Stevens, H. and Szoecs, Eduard and Wagner, Helene H.},
 	year = {2016}
-}" data-bib-key="oksanen_vegan:_2016" contenteditable="false"><a href="#oksanen_vegan__colon___2016">Oksanen 2016</a></cite>).&nbsp; Code for the bootstrapping analysis is 
-provided in supplementary  materials (Supplementary Appendix A3).<br></div><div><br></div><div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; We also examined the functional diversity in the 14 study areas using Rao's index of quadratic entropy (henceforth Rao's Q) (<cite class="ltx_cite" data-bib-text="
+}" data-bib-key="oksanen_vegan:_2016" contenteditable="false"><a href="#oksanen_vegan__colon___2016">Oksanen 2016</a></cite>).&nbsp; <br></div><div><br></div><div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; We also examined the functional diversity in the 14 study areas using Rao's index of quadratic entropy (henceforth Rao's Q) (<cite class="ltx_cite" data-bib-text="
 @article{rao_div
 @article{rao_diversity_1982,
 	title = {Diversity and dissimilarity coefficients - a unified approach},
