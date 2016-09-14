@@ -6,7 +6,7 @@ figures/Rplot/Rplot.png
 figures/Rao_spatial_4QuantLogUncorr&3CategTraits1/Rao_spatial_4QuantLogUncorr&3CategTraits1.png
 figures/nMDS_Shallow/nMDS_Shallow&Deep_original.png
 figures/Local-vs-Regional-CVs/Local-vs-Regional-CVs.png
-Gfish_Diversity_MS_1/DiscussionPurpose_statement_from_intro_Here__.html
+Gfish_Diversity_MS_1/DiscussionOur_results_support_species_sorting__.html
 Supplementary_MaterialsSupplement_Table_S1_table__.html
 Data_and_Code_Availability_Trawl__.html
 AcknowledgementsThis_work_stems_from_a__.html
