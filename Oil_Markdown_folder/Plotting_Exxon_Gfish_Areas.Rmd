@@ -13,7 +13,7 @@ library(RColorBrewer) ; library(GISTools)
 
 ```
 
-
+NOTE: Maybe try doing this in TMAP package instead of GGPLOT package.
 
 
 Map plotted in Lat Long:
