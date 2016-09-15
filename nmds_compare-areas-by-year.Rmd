@@ -117,6 +117,13 @@ deepCPUE_spread3 <- deepCPUEArea2 %>%
 
 
 
+# alternative: do nMDS on Shallow & Deep areas combined:
+CPUE_spread3 <- rbind(shallowCPUE_spread3, deepCPUE_spread3)
+
+
+
+#####################
+
 # run the nMDS:
 # Shallow areas:
 
@@ -141,6 +148,21 @@ stressplot(ordDeep) # make sure stressplots show good fits
 
 plot(ordDeep, display = 'sites', type = 't', main = "Deep Areas") # look at goodness-of-fit plots
 points(ordDeep, display = 'sites', cex = goodness (ordDeep)*200)
+
+
+
+# Shallow & Deep areas combined:
+ordAllWiscSqrt <- metaMDS(CPUE_spread3[2:54], distance='bray', trymax=1000)
+ordAllHellinger <- metaMDS(decostand(CPUE_spread3[2:54],"hell"), distance='bray', trymax=1000) # many runs (678) before a solution was reached
+
+stressplot(ordAllWiscSqrt) # make sure stressplots show good fits
+stressplot(ordAllHellinger) # make sure stressplots show good fits
+
+plot(ordAllWiscSqrt, display = 'sites', type = 't') # look at goodness-of-fit plots
+points(ordAllWiscSqrt, display = 'sites', cex = goodness (ordAllWiscSqrt)*200)
+
+plot(ordAllHellinger, display = 'sites', type = 't') # look at goodness-of-fit plots
+points(ordAllHellinger, display = 'sites', cex = goodness (ordAllHellinger)*200)
 
 ```
 
@@ -190,12 +212,37 @@ ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=13, col="gre
 ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=14, col="blue", label=T, lwd=3, lty=1)
 
 
+par(mfrow=c(1,2))
+# Ordination plot for shallow + deep areas:
+ordiplot(ordAllWiscSqrt, type="n", choices=c(1,2), main="Wisc-Sqrt Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#title(main="Wisconsin + Sqrt Transformation")
+#text(ordAllWiscSqrt, display = "sites", cex = 0.5, col="black")
+text(ordAllWiscSqrt, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordAllWiscSqrt, display = "sites") #, groups=CPUE_spread3$Area)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=3, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=4, col="green", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=5, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=6, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=7, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=8, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=9, col="black", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=10, col="springgreen4", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=11, col="steelblue3", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=12, col="magenta", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=13, col="tomato1", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=14, col="orangered4", label=T, lwd=3, lty=1)
+
+
+
+
 #####
 
 # Create ordination plots for Hellinger transformation:
 par(mfrow = c(1,2))
 # Plot shallow areas:
-ordiplot(ordShallowHellinger, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+ordiplot(ordShallowHellinger, type="n", choices=c(1,2), main="Hellinger Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
 #title(main="Shallow Areas, Hellinger")
 #text(ordShallowHellinger, display = "sites", cex = 0.5, col="black")
 text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
@@ -226,7 +273,26 @@ ordihull(ordDeepHellinger, groups=deepCPUE_spread3$Area, show.groups=14, col="bl
 
 
 
-
+# Ordination plot for shallow + deep areas:
+ordiplot(ordAllHellinger, type="n", choices=c(1,2), main="Hellinger Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#title(main="Hellinger Transformation")
+#text(ordAllHellinger, display = "sites", cex = 0.5, col="black")
+text(ordAllHellinger, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordAllHellinger, display = "sites") #, groups=CPUE_spread3$Area)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=3, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=4, col="green", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=5, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=6, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=7, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=8, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=9, col="black", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=10, col="springgreen4", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=11, col="steelblue3", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=12, col="magenta", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=13, col="tomato1", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=14, col="orangered4", label=T, lwd=3, lty=1)
 
 
 ###############
