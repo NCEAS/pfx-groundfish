@@ -1,9 +1,9 @@
 ---
-title: Environmental heterogeneity and community structure drive spatial groundfish
-  diversity patterns in the Gulf of Alaska
+title: ENVIRONMENTAL HETEROGENEITY AND COMMUNITY STRUCTURE DRIVE SPATIAL GROUNDFISH
+  DIVERSITY PATTERNS IN THE GULF OF ALASKA
 author: "Rachael E. Blake, Colette L. Ward, Mary Hunsicker, Ole Shelton, Anne Hollowed"
 date: "September 29, 2016"
-output: word_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
