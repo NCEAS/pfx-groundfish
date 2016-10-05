@@ -1,0 +1,265 @@
+---
+title: "Synchrony"
+author: "Colette Ward"
+date: "September 26, 2016"
+output: html_document
+---
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load packages
+library(httr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ecofolio)
+library(synchrony)
+library(codyn)
+
+
+# working offline:
+setwd("~/Google Drive/GoA project/pfx-groundfish/goaTrawl/Output Data")
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prep look-up table of common names
+#URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
+#common_Get <- GET(URL_common)
+#common_1 <- content(common_Get, as='text')
+#common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+
+# offline:
+common <- read.csv(file = "trawl_species_control_file.csv", header = T, stringsAsFactors = F)
+
+common1 <- common %>%
+  select(database.name, common.name) %>%
+  rename(Species = database.name)
+for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
+  if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
+  if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
+}
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load mean annual CPUE data for Shallow Areas:
+#URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+#shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
+#shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
+#shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(shallowCPUEArea)
+
+# offline:
+shallowCPUEArea <- read.csv(file = "All_sp_index_meanCPUEByArea.Shallow.combined.MH.csv", header = T, stringsAsFactors = F)
+#View(shallowCPUEArea)
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+
+
+###########
+
+
+# load mean annual CPUE for Deep areas:
+#URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+#deepCPUEArea_Get <- GET(URL_deepCPUEArea)
+#deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
+#deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUEArea)
+
+# offline:
+deepCPUEArea <- read.csv(file = "All_sp_index_meanCPUEByArea.Deep.MH.csv", header = T, stringsAsFactors = F)
+#View(deepCPUEArea)
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in common names
+
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# calculate portfolio effect
+
+
+# are the time series stationary over time? 
+shallowCPUEArea3 <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  
+  group_by(area, year) %>%
+  summarise(annSumDensity = sum(Mean.totalDensity)) %>%
+  ungroup() 
+View(shallowCPUEArea3)
+
+# several areas appear to be not stationary (4, 5, probably 6, 8, 9, (maybe 7), 2 & 3 are dome-shaped)
+ggplot(data = shallowCPUEArea3, aes(year, annSumDensity, colour = area)) +
+  geom_line()
+area4 <- shallowCPUEArea3 %>% filter(area == 4); plot(area4$annSumDensity ~ area4$year, type = "b")
+
+
+
+# format the dataset for analysis:
+shallowCPUEArea4 <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  
+  group_by(area, year) %>%
+  summarise(annSumDensity = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  
+  mutate(area = paste("Area", area, sep = "")) %>%
+  
+  spread(area, annSumDensity) # make each species a column
+#rownames(shallowCPUEArea4) <- shallowCPUEArea4$year; shallowCPUEArea4$year <- NULL
+View(shallowCPUEArea4)
+
+
+pe_mv(shallowCPUEArea4[-1], type = "linear", ci = TRUE) # likely not accurate because some areas have non-stationary time series
+$pe
+[1] 0.8846644
+
+$ci
+[1] 0.3394559 2.3055460
+
+
+# therefore detrend the time series before looking at portfolio effect
+pe_mv(shallowCPUEArea4[-1], type = "linear_detrended", ci = TRUE)
+$pe
+[1] 1.265237
+
+$ci
+[1] 0.3105234 5.1552443
+
+
+# several time series are dome-shaped, so loess is likely a better way to detrend than linear
+pe_mv(shallowCPUEArea4[-1], type = "loess_detrended", ci = TRUE)
+$pe
+[1] 2.925785
+
+$ci
+[1] 0.9539406 8.9735319
+
+
+####################
+
+
+# another way to calculate a portfolio effect:
+pe_avg_cv(shallowCPUEArea4[-1], ci = TRUE, boot_reps = 10000)
+$pe
+[1] 2.18069
+
+$ci
+[1] 1.748466 3.145001
+
+pe_avg_cv(shallowCPUEArea4[-1], detrending = "loess_detrended", ci = TRUE)
+#Error in model.frame.default(formula = x[, i] ~ c(1:nrow(x)), drop.unused.levels = TRUE) : 
+  invalid type (list) for variable 'x[, i]'
+
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# Working with functions in the codyn package:
+
+# https://cran.r-project.org/web/packages/codyn/vignettes/Temporal_Diversity_Indices.html
+# https://cran.r-project.org/web/packages/codyn/vignettes/Community_Stability_Metrics.html
+
+
+# df must be in long format
+shallowCPUEArea5 <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") 
+#View(shallowCPUEArea5)
+
+shallow_turnover <- turnover(df = shallowCPUEArea5,
+         time.var = "year",
+         species.var = "common.name",
+         abundance.var = "Mean.totalDensity",
+         #replicate.var = "area")
+         replicate.var = NA) # or, calculate total turnover across all (shallow) areas combined ... result is still all zeros
+#View(shallow_turnover) # result is all zeros because our 53 species are all present in all years
+
+
+# mean rank shifts:
+shallow_rankshift <- rank_shift(df = shallowCPUEArea5,
+                        time.var = "year",
+                        species.var = "common.name",
+                        abundance.var = "Mean.totalDensity", 
+                        replicate.var = "area")
+                        #replicate.var = NA) # or, calculate rank shift across all (shallow) areas combined ... no trend
+shallow_rankshift$year <- as.numeric(substr(shallow_rankshift$year_pair, 6, 9)) # Create a column with the final year from the returned time.var_pair
+#View(shallow_rankshift)
+
+# Plot it
+ggplot(shallow_rankshift, aes(year, MRS, color=area)) + 
+  geom_line(size= 2) + 
+  theme_bw() 
+# note the general downward trend ... in general, more year-to-year turnover in early years, less in later years.  how does this map to species richness and alpha diversity?
+
+
+
+
+# rate of community change:
+# From the vignette:
+# "The rate_change function assesses the rate and pattern of variability within a community, which indicates whether species reordering over time is resulting in directional change. This function calculates differences in species composition between samples at increasing time intervals. Differences in species composition are characterized by Euclidean distances, which are calculated on pair-wise communities across the entire time series. For example, a data set with 6 time intervals will have distance values for five one-interval time lags (e.g., time 1 vs time 2, time 2 vs time 3 …), 4 two-interval time lags (e.g., time 1 vs time 3, time 2 vs time 4 …) and so forth. These distance values are regressed against the time lag interval. The slope of the regression line is an indication of the rate and direction of compositional change in the community (Collins, Micheli, and Hartt 2000)."
+
+shallow_rate <- rate_change(shallowCPUEArea5,  
+                    time.var= "year", 
+                    species.var= "common.name", 
+                    abundance.var= "Mean.totalDensity", 
+                    replicate.var = "area")
+View(shallow_rate)
+plot(shallow_rate$rate_change ~ shallow_rate$area, pch = 16, cex = 2.5,
+     xlab = "Area", ylab = "Rate of Community Change")
+abline(h = 0.0, col = "black", lty = 2)
+
+
+#Use the rate_change_interval function to generate the full data frame of distances by time lag intervals
+comm.res <- rate_change_interval(shallowCPUEArea5 %>% filter(year > 1989, year < 2009), 
+                              time.var = "year",
+                              species.var = "common.name",
+                              abundance.var = "Mean.totalDensity",
+                              replicate.var = "area")
+View(comm.res)
+ggplot(comm.res, aes(interval, distance, color = area)) + facet_wrap(~area) + 
+  geom_point() + theme_bw() + stat_smooth(method = "lm", se = F, size = 1)
+# From Collins et al. 2000, Fig 2: high values (regression slopes) indicates communities are unstable and undergoing directional change (divergence): species composition shows more change over time. values of zero mean stability over time. Negative values indicate community is unstable and is converging over time ... but are these statistically different from zero?
+# I think it's more informative to fit a loess regression, not a linear regression ... for some areas (shallow areas 3-5), values increase until interval of 6 or 7, then decline ...
+# See Collins et al. 2000, Fig 7: they see a dome-shaped relationship at perturbed sites: directional change (divergence) during perturbation followed by convergence during recovery
+ggplot(comm.res, aes(interval, distance, color = area)) + 
+  facet_wrap(~area) + 
+  geom_point() + 
+  theme_bw() + 
+  stat_smooth(method = "loess", se = F, size = 1) +
+  xlab("Time Interval") + ylab("Euclidean Distance")
+
+```
+
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# Calculate Loreau & de Mazancourt (2008) synchrony index
+
+
+# calculate synchrony of total community abundance, between shallow areas 1-9:
+
+
+
+# ecofolio::synchrony
+synchrony(shallowCPUEArea4) # 0.2274903
+synchrony(shallowCPUEArea4) 
+
+
+# synchrony::community.synch (better documentation)
+
+# calculate synchrony between each pair of communities
+# by indexing columns
+
+for(i in 1:ncol(shallowCPUEArea4)) {
+  
+}
+
+
+# codyn::synchrony ... does Loreau & de Mazancout 2008, and Gross et al. 2014
+# vignette("codyn_overview")
+
+```
