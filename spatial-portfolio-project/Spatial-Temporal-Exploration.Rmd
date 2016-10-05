@@ -55,7 +55,7 @@ URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-
 deepCPUEArea_Get <- GET(URL_deepCPUEArea)
 deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
 deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-View(deepCPUEArea)
+#View(deepCPUEArea)
 
 deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in common names
 
@@ -63,37 +63,33 @@ deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in com
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
-
 # prep data for analysis
 
 # add depth column
 # renumber deep areas
 
-
 shallowCPUEArea2$area<-as.factor(shallowCPUEArea2$area)
 deepCPUEArea2$area<-as.factor(deepCPUEArea2$area)
 
-deepCPUEArea3 <- deepCPUEArea2 %>%
-  mutate(area = fct_recode(area, c("10" = "1", "11" = "2", "12" = "5", "13" = "3", "14" = "4")))
+deepCPUEArea3 <- deepCPUEArea2 %>%   # renumber deep areas
+                 mutate(area = fct_recode(area, c("10" = "1", "11" = "2", "12" = "5", 
+                                                  "13" = "3", "14" = "4")))
 
-
-shallowCPUEArea2$depth <- "shallow"
-deepCPUEArea3$depth <- "deep"
-
-
+shallowCPUEArea2$depth <- "shallow"    # add depth column
+deepCPUEArea3$depth <- "deep"          # add depth column
 
 cpue <- shallowCPUEArea2 %>% 
-  bind_rows(deepCPUEArea3) %>%
-  filter(area != "Total") %>%
+        bind_rows(deepCPUEArea3) %>%
+        filter(area != "Total") %>%
   
-  group_by(year, area, depth) %>%
-  dplyr::summarize(ann.Mean.totalDensity = sum(Mean.totalDensity)) %>%
-  ungroup() %>%
+        group_by(year, area, depth) %>%
+        dplyr::summarize(ann.Mean.totalDensity = sum(Mean.totalDensity)) %>%
+        ungroup() %>%
   
-  group_by(area) %>%
-  dplyr::summarize(annMean = mean(ann.Mean.totalDensity), 
-            annCV = annMean/var(ann.Mean.totalDensity)) %>%
-  ungroup()
+        group_by(area) %>%
+        dplyr::summarize(annMean = mean(ann.Mean.totalDensity), 
+                         annCV = sd(ann.Mean.totalDensity)/annMean) %>%
+        ungroup()
   
 #View(cpue)
 
@@ -103,56 +99,72 @@ cpue <- shallowCPUEArea2 %>%
 # copied from Mary's code DiversityPaperPlots
 
 # load Mary's bootstrapped diversity data:
-setwd("~/Google Drive/GoA project/pfx-groundfish")
+#setwd("~/Google Drive/GoA project/pfx-groundfish")
 
 ## Data for 9 deep areas
-Div.Metrics<-read.csv("DiversityMetrics.Shallow.Bootstrapped2.csv")
-Div.Metrics<-Div.Metrics[Div.Metrics$AREA!=10,]
-Sp.Richness<-read.csv("Sp.Richness.Shallow.Bootstrapped.csv")
-Sp.Richness<-Sp.Richness[Sp.Richness$AREA!=10,]
-shallowDat<-cbind(Div.Metrics,Sp.Richness)
-shallowDat<-shallowDat[,c(2:3,7:10,14)]
+Div.Metrics <- read.csv("DiversityMetrics.Shallow.Bootstrapped2.csv")
+Div.Metrics <- Div.Metrics[Div.Metrics$AREA!=10,]
+Sp.Richness <- read.csv("Sp.Richness.Shallow.Bootstrapped.csv")
+Sp.Richness <- Sp.Richness[Sp.Richness$AREA!=10,]
+shallowDat <- cbind(Div.Metrics,Sp.Richness)
+shallowDat <- shallowDat[,c(2:3,7:10,14)]
 
 ## Data for 5 deep areas
-Div.Metrics<-read.csv("DiversityMetrics.Deep.Bootstrapped2.csv")
-Div.Metrics<-Div.Metrics[Div.Metrics$AREA!=6,]
-Sp.Richness<-read.csv("Sp.Richness.Deep.Bootstrapped.csv")
-Sp.Richness<-Sp.Richness[Sp.Richness$AREA!=6,]
-deepDat<-cbind(Div.Metrics,Sp.Richness)
-deepDat<-deepDat[,c(2:3,7:10,14)]
+Div.Metrics <- read.csv("DiversityMetrics.Deep.Bootstrapped2.csv")
+Div.Metrics <- Div.Metrics[Div.Metrics$AREA!=6,]
+Sp.Richness <- read.csv("Sp.Richness.Deep.Bootstrapped.csv")
+Sp.Richness <- Sp.Richness[Sp.Richness$AREA!=6,]
+deepDat <- cbind(Div.Metrics,Sp.Richness)
+deepDat <- deepDat[,c(2:3,7:10,14)]
 
 
-shallowDat$AREA<-as.factor(shallowDat$AREA)
+shallowDat$AREA<-as.factor(shallowDat$AREA)  # make AREA column a factor
 deepDat$AREA<-as.factor(deepDat$AREA)
 
-deepDat1 <- deepDat %>%
-  mutate(AREA = fct_recode(AREA, c("10" = "1", "11" = "2", "12" = "5", "13" = "3", "14" = "4")))
+deepDat1 <- deepDat %>%    # renumber deep areas
+            mutate(AREA = fct_recode(AREA, c("10" = "1", "11" = "2", "12" = "5", 
+                                             "13" = "3", "14" = "4")))
 
-shallowDat$depth <- "shallow"
-deepDat$depth <- "deep"
+shallowDat$depth <- "shallow"        # add depth column
+deepDat1$depth <- "deep"
 
 
 # prep the df's for analysis:
 BootMean <- shallowDat %>%
-  bind_rows(deepDat1) %>%
-  dplyr::rename(year = YEAR, area = AREA) %>%
-  select(-year) %>%
+            bind_rows(deepDat1) %>%
+            dplyr::rename(year = YEAR, area = AREA) %>%
+            select(-year) %>%
   
-  group_by(area, depth) %>%
-  mutate(var_alpha = var(Eff_Num_Sp), var_spRichness = var(Sp_rich), var_beta = var(Exp_B_Div)) %>%
-  summarize_each(funs(mean)) %>%
-  ungroup()
+            group_by(area, depth) %>%
+            mutate(sd_alpha = sd(Eff_Num_Sp), 
+                   sd_spRich = sd(Sp_rich), 
+                   sd_beta = sd(Exp_B_Div)) %>%
+            ungroup() %>%
+            
+            group_by(area, depth) %>%
+            dplyr::summarize_each(funs(mean)) %>%
+            ungroup() %>%
+   
+            group_by(area, depth) %>%
+            dplyr::summarise(CV_alpha = sd_alpha/Eff_Num_Sp,
+                             CV_spRich = sd_spRich/Sp_rich,
+                             CV_beta = sd_beta/Exp_B_Div) %>%
+            ungroup()
 
-View(BootMean)
-str(BootMean)
+#View(BootMean)
+#str(BootMean)
 
 
 ```
 
-```{r}
+```{r, echo=FALSE}
+# Bind the Bootstrapped Diversity metrics with the CPUE abundance data
 cpueBootDiv <- bind_cols(cpue, BootMean)
 
+```
 
+
+```{r, echo=FALSE}
 # CV cpue vs Mean Diversity
 names(cpueBootDiv)
 ggplot(data = cpueBootDiv, aes(x = Sp_rich, y = annCV, colour = depth)) +
@@ -169,10 +181,9 @@ ggplot(data = cpueBootDiv, aes(x = Exp_B_Div, y = annCV, colour = depth)) +
   geom_point(size = 4) +
   theme_bw()
 
+```
 
-
-############
-
+```{r, echo=FALSE}
 # Mean cpue vs Mean Diversity
 
 ggplot(data = cpueBootDiv, aes(x = Sp_rich, y = annMean, colour = depth)) +
@@ -192,7 +203,45 @@ ggplot(data = cpueBootDiv, aes(x = Exp_B_Div, y = annMean, colour = depth)) +
 
 ```
 
+```{r, echo=FALSE}
+# CV cpue vs CV Diversity
 
+ggplot(data = cpueBootDiv, aes(x = CV_spRich, y = annCV, colour = depth)) +
+  geom_point(size = 4) +
+  theme_bw()
+
+
+ggplot(data = cpueBootDiv, aes(x = CV_alpha, y = annCV, colour = depth)) +
+  geom_point(size = 4) +
+  theme_bw()
+
+
+ggplot(data = cpueBootDiv, aes(x = CV_beta, y = annCV, colour = depth)) +
+  geom_point(size = 4) +
+  theme_bw()
+
+
+```
+
+```{r, echo=FALSE}
+# Mean cpue vs CV Diversity
+
+ggplot(data = cpueBootDiv, aes(x = CV_spRich, y = annMean, colour = depth)) +
+  geom_point(size = 4) +
+  theme_bw()
+
+
+ggplot(data = cpueBootDiv, aes(x = CV_alpha, y = annMean, colour = depth)) +
+  geom_point(size = 4) +
+  theme_bw()
+
+
+ggplot(data = cpueBootDiv, aes(x = CV_beta, y = annMean, colour = depth)) +
+  geom_point(size = 4) +
+  theme_bw()
+
+
+```
 
 
 
