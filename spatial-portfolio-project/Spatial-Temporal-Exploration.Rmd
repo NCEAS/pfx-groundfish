@@ -2,7 +2,10 @@
 title: "Spatial-Temporal-Stuff"
 author: "Colette Ward"
 date: "October 4, 2016"
-output: html_document
+output:
+  pdf_document:
+    fig_caption: yes
+  html_document: default
 ---
 
 
@@ -14,6 +17,7 @@ library(mvnormtest)
 library(plyr)
 library(tidyverse)
 library(forcats)
+library(gridExtra)
 
 
 ```
@@ -102,17 +106,17 @@ cpue <- shallowCPUEArea2 %>%
 #setwd("~/Google Drive/GoA project/pfx-groundfish")
 
 ## Data for 9 deep areas
-Div.Metrics <- read.csv("DiversityMetrics.Shallow.Bootstrapped2.csv")
+Div.Metrics <- read.csv("../DiversityMetrics.Shallow.Bootstrapped2.csv")
 Div.Metrics <- Div.Metrics[Div.Metrics$AREA!=10,]
-Sp.Richness <- read.csv("Sp.Richness.Shallow.Bootstrapped.csv")
+Sp.Richness <- read.csv("../Sp.Richness.Shallow.Bootstrapped.csv")
 Sp.Richness <- Sp.Richness[Sp.Richness$AREA!=10,]
 shallowDat <- cbind(Div.Metrics,Sp.Richness)
 shallowDat <- shallowDat[,c(2:3,7:10,14)]
 
 ## Data for 5 deep areas
-Div.Metrics <- read.csv("DiversityMetrics.Deep.Bootstrapped2.csv")
+Div.Metrics <- read.csv("../DiversityMetrics.Deep.Bootstrapped2.csv")
 Div.Metrics <- Div.Metrics[Div.Metrics$AREA!=6,]
-Sp.Richness <- read.csv("Sp.Richness.Deep.Bootstrapped.csv")
+Sp.Richness <- read.csv("../Sp.Richness.Deep.Bootstrapped.csv")
 Sp.Richness <- Sp.Richness[Sp.Richness$AREA!=6,]
 deepDat <- cbind(Div.Metrics,Sp.Richness)
 deepDat <- deepDat[,c(2:3,7:10,14)]
@@ -146,9 +150,9 @@ BootMean <- shallowDat %>%
             ungroup() %>%
    
             group_by(area, depth) %>%
-            dplyr::summarise(CV_alpha = sd_alpha/Eff_Num_Sp,
-                             CV_spRich = sd_spRich/Sp_rich,
-                             CV_beta = sd_beta/Exp_B_Div) %>%
+            dplyr::mutate(CV_alpha = sd_alpha/Eff_Num_Sp,
+                          CV_spRich = sd_spRich/Sp_rich,
+                          CV_beta = sd_beta/Exp_B_Div) %>%
             ungroup()
 
 #View(BootMean)
@@ -164,84 +168,93 @@ cpueBootDiv <- bind_cols(cpue, BootMean)
 ```
 
 
-```{r, echo=FALSE}
-# CV cpue vs Mean Diversity
-names(cpueBootDiv)
-ggplot(data = cpueBootDiv, aes(x = Sp_rich, y = annCV, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
 
-
-ggplot(data = cpueBootDiv, aes(x = Eff_Num_Sp, y = annCV, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
-
-
-ggplot(data = cpueBootDiv, aes(x = Exp_B_Div, y = annCV, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
-
-```
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap="Mean cpue vs Mean Diversity"}
 # Mean cpue vs Mean Diversity
 
-ggplot(data = cpueBootDiv, aes(x = Sp_rich, y = annMean, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
+sr2 <- ggplot(data = cpueBootDiv, aes(x = Sp_rich, y = annMean, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("annual density") + xlab("species richness")
 
 
-ggplot(data = cpueBootDiv, aes(x = Eff_Num_Sp, y = annMean, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
+ad2 <- ggplot(data = cpueBootDiv, aes(x = Eff_Num_Sp, y = annMean, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("annual density") + xlab("alpha diversity")
 
 
-ggplot(data = cpueBootDiv, aes(x = Exp_B_Div, y = annMean, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
+bd2 <- ggplot(data = cpueBootDiv, aes(x = Exp_B_Div, y = annMean, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("annual density") + xlab("beta diversity")
 
-
-```
-
-```{r, echo=FALSE}
-# CV cpue vs CV Diversity
-
-ggplot(data = cpueBootDiv, aes(x = CV_spRich, y = annCV, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
-
-
-ggplot(data = cpueBootDiv, aes(x = CV_alpha, y = annCV, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
-
-
-ggplot(data = cpueBootDiv, aes(x = CV_beta, y = annCV, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
-
+grid.arrange(sr2, ad2, bd2, ncol=2, nrow=2)
 
 ```
 
-```{r, echo=FALSE}
+
+
+```{r, echo=FALSE, fig.cap="CV cpue vs Mean Diversity"}
+# CV cpue vs Mean Diversity
+#names(cpueBootDiv)
+
+sr1 <- ggplot(data = cpueBootDiv, aes(x = Sp_rich, y = annCV, colour = depth)) +
+       geom_point(size = 4) + theme_bw() + 
+       ylab("CV annual density") + xlab("species richness")
+
+ad1 <- ggplot(data = cpueBootDiv, aes(x = Eff_Num_Sp, y = annCV, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("CV annual density") + xlab("alpha diversity")
+
+bd1 <- ggplot(data = cpueBootDiv, aes(x = Exp_B_Div, y = annCV, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("CV annual density") + xlab("beta diversity")
+
+grid.arrange(sr1, ad1, bd1, ncol=2, nrow=2)
+
+```
+
+
+
+```{r, echo=FALSE, fig.cap="Mean cpue vs CV Diversity"}
 # Mean cpue vs CV Diversity
 
-ggplot(data = cpueBootDiv, aes(x = CV_spRich, y = annMean, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
+sr3 <- ggplot(data = cpueBootDiv, aes(x = CV_spRich, y = annMean, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("annual density") + xlab("CV species richness")
 
 
-ggplot(data = cpueBootDiv, aes(x = CV_alpha, y = annMean, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
+ad3 <- ggplot(data = cpueBootDiv, aes(x = CV_alpha, y = annMean, colour = depth)) +
+       geom_point(size = 4) + theme_bw()  +
+       ylab("annual density") + xlab("CV alpha diversity")
 
 
-ggplot(data = cpueBootDiv, aes(x = CV_beta, y = annMean, colour = depth)) +
-  geom_point(size = 4) +
-  theme_bw()
+bd3 <- ggplot(data = cpueBootDiv, aes(x = CV_beta, y = annMean, colour = depth)) +
+       geom_point(size = 4) + theme_bw()  +
+       ylab("annual density") + xlab("CV beta diversity")
 
+grid.arrange(sr3, ad3, bd3, ncol=2, nrow=2)
 
 ```
 
 
+
+```{r, echo=FALSE, fig.cap="CV cpue vs CV Diversity"}
+# CV cpue vs CV Diversity
+
+sr4 <- ggplot(data = cpueBootDiv, aes(x = CV_spRich, y = annCV, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("CV annual density") + xlab("CV species richness")
+
+
+ad4 <- ggplot(data = cpueBootDiv, aes(x = CV_alpha, y = annCV, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("CV annual density") + xlab("CV alpha diversity")
+
+
+bd4 <- ggplot(data = cpueBootDiv, aes(x = CV_beta, y = annCV, colour = depth)) +
+       geom_point(size = 4) + theme_bw() +
+       ylab("CV annual density") + xlab("CV beta diversity")
+
+grid.arrange(sr4, ad4, bd4, ncol=2, nrow=2)
+
+```
 
