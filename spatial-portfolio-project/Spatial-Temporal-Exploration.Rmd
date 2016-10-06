@@ -122,8 +122,8 @@ deepDat <- cbind(Div.Metrics,Sp.Richness)
 deepDat <- deepDat[,c(2:3,7:10,14)]
 
 
-shallowDat$AREA<-as.factor(shallowDat$AREA)  # make AREA column a factor
-deepDat$AREA<-as.factor(deepDat$AREA)
+shallowDat$AREA <- as.factor(shallowDat$AREA)  # make AREA column a factor
+deepDat$AREA <- as.factor(deepDat$AREA)
 
 deepDat1 <- deepDat %>%    # renumber deep areas
             mutate(AREA = fct_recode(AREA, c("10" = "1", "11" = "2", "12" = "5", 
