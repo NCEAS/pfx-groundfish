@@ -1,0 +1,670 @@
+---
+title: "Groundfish multivariate analyses - Comparing Areas By Year"
+author: "Colette Ward"
+date: "May 6, 2016"
+output: pdf_document
+---
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load packages
+library(httr)
+library(vegan)
+library(mvnormtest)
+library(plyr)
+library(dplyr)
+library(tidyr)
+
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prep look-up table of common names
+URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
+common_Get <- GET(URL_common)
+common_1 <- content(common_Get, as='text')
+common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+
+common1 <- common %>%
+  select(database.name, common.name) %>%
+  rename(Species = database.name)
+for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
+  if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
+  if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
+}
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load mean annual CPUE data for Shallow Areas:
+URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
+shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
+shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(shallowCPUEArea)
+
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load mean annual CPUE for Deep areas:
+URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUEArea_Get <- GET(URL_deepCPUEArea)
+deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
+deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUEArea)
+
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in common names
+
+```
+
+```{r, echo=FALSE}
+#which are the most dominant species?
+s <- shallowCPUEArea2 %>%
+  group_by(common.name) %>%
+  summarize(sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  arrange(desc(`sum(Mean.totalDensity)`))
+print(head(s))
+# 1. arrowtooth flounder  8.999190e+03
+# 2. Pacific halibut      3.490331e+03
+# 3. walleye pollock      2.711245e+03
+# 4. Pacific cod          2.493113e+03
+
+
+
+d <- deepCPUEArea2 %>%
+  group_by(common.name) %>%
+  summarize(sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  arrange(desc(`sum(Mean.totalDensity)`))
+print(head(d))
+# 1. arrowtooth flounder   7.970195e+03
+# 2  Pacific ocean perch   3.884439e+03
+# 3. walleye pollock       2.177911e+03
+# 4. sablefish             1.283377e+03
+
+```
+
+######################################################
+######################################################
+######################################################
+
+# nMDS
+Transformation is Wisconsin-style double transformation (normalizes taxa to % abundance, then normalizes abundances to the maximum for each species) of sqrt-transformed data.
+
+We do not use a Hellinger transformation because it reduces the influence of very rare species and inflates the influence of very abundant species (renders the result driven by Arrowtooth).
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# organize Shallow areas data for nMDS:
+shallowCPUE_spread3 <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  spread(common.name, Mean.totalDensity) %>% # make each species a column
+  mutate(Area = as.numeric(area)) %>% select(-area) # convert area to numeric
+
+
+
+# organize Deep areas data for nMDS:
+deepCPUE_spread3 <- deepCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  mutate(area = revalue(area, c("1"="10", "2"="11", "3"="13", "4"="14", "5"="12"))) %>%
+  filter(area != "Total") %>%
+  spread(common.name, Mean.totalDensity) %>% # make each species a column
+  mutate(Area = as.numeric(area)) %>% select(-area) # convert area to numeric
+
+
+
+# alternative: do nMDS on Shallow & Deep areas combined:
+CPUE_spread3 <- rbind(shallowCPUE_spread3, deepCPUE_spread3)
+
+
+
+#####################
+
+# run the nMDS:
+# Shallow areas:
+
+ordShallowWiscSqrt <- metaMDS(shallowCPUE_spread3[2:54], distance='bray', trymax=1000)
+ordShallowHellinger <- metaMDS(decostand(shallowCPUE_spread3[,2:54], "hell"), distance='bray', trymax=1000) # goodness of fit plots look better on data with Hellinger transformation
+# also considered method = "log" (does not converge) and "max" (results are similar to wisc(sqrt( )))
+
+par(mfrow=c(1,1))
+stressplot(ordShallowWiscSqrt) # make sure stressplots show good fits
+
+plot(ordShallowWiscSqrt, display = 'sites', type = 't', main = "Shallow Areas") # look at goodness-of-fit plots
+points(ordShallowWiscSqrt, display = 'sites', cex = goodness (ordShallowWiscSqrt)*200)
+
+  
+  
+# Deep areas:
+ordDeepWiscSqrt <- metaMDS(deepCPUE_spread3[2:54], distance='bray', trymax=1000)
+ordDeepHellinger <- metaMDS(decostand(deepCPUE_spread3[2:54],"hell"), distance='bray', trymax=1000)
+
+stressplot(ordDeepWiscSqrt) # make sure stressplots show good fits
+
+plot(ordDeepWiscSqrt, display = 'sites', type = 't', main = "Deep Areas") # look at goodness-of-fit plots
+points(ordDeepWiscSqrt, display = 'sites', cex = goodness (ordDeepWiscSqrt)*200)
+
+
+
+# Shallow & Deep areas combined:
+ordAllWiscSqrt <- metaMDS(CPUE_spread3[2:54], distance='bray', trymax=1000)
+ordAllHellinger <- metaMDS(decostand(CPUE_spread3[2:54],"hell"), distance='bray', trymax=1000) # many runs (678) before a solution was reached
+
+stressplot(ordAllWiscSqrt) # make sure stressplots show good fits
+stressplot(ordAllHellinger) # make sure stressplots show good fits
+
+plot(ordAllWiscSqrt, display = 'sites', type = 't') # look at goodness-of-fit plots
+points(ordAllWiscSqrt, display = 'sites', cex = goodness (ordAllWiscSqrt)*200)
+
+plot(ordAllHellinger, display = 'sites', type = 't') # look at goodness-of-fit plots
+points(ordAllHellinger, display = 'sites', cex = goodness (ordAllHellinger)*200)
+
+```
+
+
+```{r, echo=FALSE}
+
+# Ordination plots with grouping by areas:
+
+
+# Create ordination plots for Wisconsin double standardization + Square root transformation:
+par(mfrow = c(1,2))
+
+# Plot shallow areas:
+ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#title(main="Shallow Areas, Wisconsin + Sqrt")
+#text(ordShallowWiscSqrt, display = "sites", cex = 0.5, col="black")
+text(ordShallowWiscSqrt, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordShallowWiscSqrt, display = "sites") #, groups=shallowCPUE_spread3$Area)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=3, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=4, col="green", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=5, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=6, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=7, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=8, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=9, col="black", label=T, lwd=3, lty=1)
+
+
+# areas 8 & 9  are very different from the rest, and also from each other.
+# there is also an east-west gradient in areas 1-7.
+# and area 1 does not overlap with any others.
+# is area 7 similar to other areas outside the Alaska Coastal Current?
+# note that area 8 & 9 hulls look smaller than hulls for areas 1-4 & 7 ... suggests that temporal turnover in 8 & 9 was less than that in 1-4 & 7 ... use betadisper test (must use same transformation) and then anova(test) to test this. Only use betadisper on factors that permanova says are significant.
+
+
+# Plot deep areas:
+ordiplot(ordDeepWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#text(ordDeepWiscSqrt, display = "sites", cex = 0.5, col="black")
+#title(main="Deep Areas, Wisconsin + Sqrt")
+text(ordDeepWiscSqrt, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordDeepWiscSqrt, display = "sites") #, groups=deepCPUE_spread3$Area)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=10, col="red", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=11, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=12, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=13, col="green", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=14, col="blue", label=T, lwd=3, lty=1)
+
+
+par(mfrow=c(1,2))
+# Ordination plot for shallow + deep areas:
+ordiplot(ordAllWiscSqrt, type="n", choices=c(1,2), main="Wisc-Sqrt Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#title(main="Wisconsin + Sqrt Transformation")
+#text(ordAllWiscSqrt, display = "sites", cex = 0.5, col="black")
+text(ordAllWiscSqrt, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordAllWiscSqrt, display = "sites") #, groups=CPUE_spread3$Area)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=3, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=4, col="green", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=5, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=6, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=7, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=8, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=9, col="black", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=10, col="springgreen4", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=11, col="steelblue3", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=12, col="magenta", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=13, col="tomato1", label=T, lwd=3, lty=1)
+ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=14, col="orangered4", label=T, lwd=3, lty=1)
+
+
+
+
+#####
+
+# Create ordination plots for Hellinger transformation:
+par(mfrow = c(1,2))
+# Plot shallow areas:
+ordiplot(ordShallowHellinger, type="n", choices=c(1,2), main="Hellinger Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#title(main="Shallow Areas, Hellinger")
+#text(ordShallowHellinger, display = "sites", cex = 0.5, col="black")
+text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordShallowHellinger, display = "sites") #, groups=shallowCPUE_spread3$Area)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=3, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=4, col="green", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=5, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=6, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=7, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=8, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=9, col="black", label=T, lwd=3, lty=1)
+
+
+
+# Plot deep areas:
+ordiplot(ordDeepHellinger, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#text(ordShallowHellinger, display = "sites", cex = 0.5, col="black")
+#title(main="Deep Areas, Hellinger")
+text(ordDeepHellinger, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordDeepHellinger, display = "sites") #, groups=deepCPUE_spread3$Area)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$Area, show.groups=10, col="red", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$Area, show.groups=11, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$Area, show.groups=12, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$Area, show.groups=13, col="green", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$Area, show.groups=14, col="blue", label=T, lwd=3, lty=1)
+
+
+
+# Ordination plot for shallow + deep areas:
+ordiplot(ordAllHellinger, type="n", choices=c(1,2), main="Hellinger Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#title(main="Hellinger Transformation")
+#text(ordAllHellinger, display = "sites", cex = 0.5, col="black")
+text(ordAllHellinger, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordAllHellinger, display = "sites") #, groups=CPUE_spread3$Area)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=3, col="brown", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=4, col="green", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=5, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=6, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=7, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=8, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=9, col="black", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=10, col="springgreen4", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=11, col="steelblue3", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=12, col="magenta", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=13, col="tomato1", label=T, lwd=3, lty=1)
+ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=14, col="orangered4", label=T, lwd=3, lty=1)
+
+```
+
+
+
+``` {r}
+# Ordination plots with grouping by years:
+
+# Wisconsin transformation:
+par(mfrow=c(1,2))
+ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+title(main="Shallow Areas")
+#text(ordShallowWiscSqrt, display = "sites", cex = 0.5, col="black")
+text(ordShallowWiscSqrt, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordShallowWiscSqrt, display = "sites") #, groups=shallowCPUE_spread3$Area)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=1984, col="red", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=1987, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=1990, col="yellow", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=1993, col="green", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=1996, col="dark green", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=1999, col="turquoise", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=2001, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=2003, col="dark blue", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=2005, col="lavender", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=2007, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=2009, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=2011, col="light grey", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=2013, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$year, show.groups=2015, col="black", label=T, lwd=3, lty=1)
+
+
+
+
+ordiplot(ordDeepWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#text((ordDeepWiscSqrt,, display = "sites", cex = 0.5, col="black")
+title(main="Deep Areas")
+text(ordDeepWiscSqrt, display = "spec", cex = 0.5, col="black")
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=1984, col="red", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=1987, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=1990, col="yellow", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=1993, col="green", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=1996, col="dark green", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=1999, col="turquoise", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2001, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2003, col="dark blue", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2005, col="lavender", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2007, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2009, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2011, col="light grey", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2013, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2015, col="black", label=T, lwd=3, lty=1)
+
+
+
+
+
+# Hellinger Transformation:
+par(mfrow=c(1,2))
+ordiplot(ordShallowHellinger, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+title(main="Shallow Areas")
+#text(ordShallowHellinger, display = "sites", cex = 0.5, col="black")
+text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordShallowHellinger, display = "sites") #, groups=shallowCPUE_spread3$Area)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1984, col="red", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1987, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1990, col="yellow", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1993, col="green", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1996, col="dark green", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1999, col="turquoise", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2001, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2003, col="dark blue", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2005, col="lavender", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2007, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2009, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2011, col="light grey", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2013, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2015, col="black", label=T, lwd=3, lty=1)
+
+
+
+
+ordiplot(ordDeepHellinger, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#text(ordDeepHellinger, display = "sites", cex = 0.5, col="black")
+title(main="Deep Areas")
+text(ordDeepHellinger, display = "spec", cex = 0.5, col="black")
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1984, col="red", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1987, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1990, col="yellow", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1993, col="green", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1996, col="dark green", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1999, col="turquoise", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2001, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2003, col="dark blue", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2005, col="lavender", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2007, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2009, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2011, col="light grey", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2013, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2015, col="black", label=T, lwd=3, lty=1)
+
+```
+
+######################################################
+######################################################
+######################################################
+
+
+# PERMANOVA
+
+```{r,  include=FALSE, echo=FALSE}
+# must still add oil-exposed vs unexposed groupings
+
+# Shallow areas:
+adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area*year, data = shallowCPUE_spread3, permutations = 200, method = "bray")
+#            Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area        1    1.0514 1.05137  42.788 0.22180 0.004975 **
+# year        1    0.6248 0.62483  25.429 0.13181 0.004975 **
+# Area:year   1    0.0663 0.06629   2.698 0.01398 0.029851 * 
+# Residuals 122    2.9977 0.02457         0.63240            
+# Total     125    4.7402                 1.00000 
+
+
+adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area, data = shallowCPUE_spread3, permutations = 200, method = "bray")
+#            Df SumsOfSqs MeanSqs F.Model     R2   Pr(>F)   
+# Area        1    1.0514 1.05137  35.342 0.2218 0.004975 **
+# Residuals 124    3.6888 0.02975         0.7782            
+# Total     125    4.7402                 1.0000  
+
+
+adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area + year, data = shallowCPUE_spread3, permutations = 200, method = "jaccard")
+# Terms added sequentially (first to last)
+#            Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area        1    2.0236 2.02363  31.379 0.18058 0.004975 **
+# year        1    1.2502 1.25016  19.385 0.11156 0.004975 **
+# Residuals 123    7.9324 0.06449         0.70786            
+# Total     125   11.2062                 1.00000 
+
+
+######################################################
+
+# Using Hellinger transformation:
+adonis(decostand(shallowCPUE_spread3[2:54],"hell") ~ Area*year, data = shallowCPUE_spread3, permutations = 200, method = "bray")
+# Note this significance is likely driven by differences between 8 & 9 vs all other sites, not sites 1-6
+#            Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area        1    0.7363 0.73635  35.198 0.20271 0.004975 **
+# year        1    0.2871 0.28707  13.722 0.07903 0.004975 **
+# Area:year   1    0.0569 0.05689   2.719 0.01566 0.009950 **
+# Residuals 122    2.5523 0.02092         0.70261            
+# Total     125    3.6326                 1.00000 
+
+
+adonis(decostand(deepCPUE_spread3[2:54],"hell") ~ Area*year, data = deepCPUE_spread3, permutations = 200, method = "bray")
+# Note this significance is likely driven by differences between 5 vs all other sites, not sites 1-4
+#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area       1   0.25909 0.25909 19.4659 0.17013 0.004975 **
+# year       1   0.35357 0.35357 26.5645 0.23217 0.004975 **
+# Area:year  1   0.03181 0.03181  2.3896 0.02088 0.034826 * 
+# Residuals 66   0.87845 0.01331         0.57682            
+# Total     69   1.52292                 1.00000 
+
+######################################################
+######################################################
+######################################################
+
+
+# Homogeneity of multivariate dispersion:
+
+shallowDist = vegdist(wisconsin(sqrt(shallowCPUE_spread3[,2:54])),"bray") # consider Hellinger transformation to deal with superabundant vs super rare species (see Legendre & Legendre)
+#shallowDist = vegdist(wisconsin(sqrt(shallowCPUE_spread3[,2:54])),"jaccard") 
+
+
+shallowTest_areas = betadisper(shallowDist,shallowCPUE_spread3$Area) # this gives within-area variability (ie looks at temporal effects ... how different is each year from the mean across all years)
+boxplot(shallowTest_areas) # indicates temporal turnover (beta diversity in time)
+anova(shallowTest_areas) # p = 0.94   Shows that area of each hull in nmds is not significantly different ... ie no difference in temporal turnover between areas
+# TukeyHSD(shallowTest_areas) # irrelevant
+
+
+shallowTest_years = betadisper(shallowDist,shallowCPUE_spread3$year) # within-year variability ... how different is each area from the mean across all areas?
+boxplot(shallowTest_years)
+anova(shallowTest_years) # p = 1 ... how does this add up with our signifant betwen-region result???
+# TukeyHSD(shallowTest_years) # irrelevant
+
+
+# Deep areas:
+adonis(wisconsin(sqrt(deepCPUE_spread3[,2:54])) ~ Area*year, data = deepCPUE_spread3, permutations = 200, method = "bray")
+# Terms added sequentially (first to last)
+# 
+#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area       1   0.45975 0.45975 27.3499 0.22935 0.004975 **
+# year       1   0.41073 0.41073 24.4335 0.20490 0.004975 **
+# Area:year  1   0.02462 0.02462  1.4648 0.01228 0.208955   
+# Residuals 66   1.10946 0.01681         0.55347            
+# Total     69   2.00457                 1.00000 
+
+adonis(wisconsin(sqrt(deepCPUE_spread3[,2:54])) ~ Area, data = deepCPUE_spread3, permutations = 200, method = "bray")
+#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+# Area       1   0.45975 0.45975  20.238 0.22935 0.004975 **
+# Residuals 68   1.54482 0.02272         0.77065            
+# Total     69   2.00457                 1.00000
+
+
+
+deepDist = vegdist(wisconsin(sqrt(deepCPUE_spread3[,2:54])),"bray") # consider Hellinger transformation
+#deepDist = vegdist(wisconsin(sqrt(deepCPUE_spread3[,2:54])),"jaccard") 
+
+deepTest = betadisper(deepDist,deepCPUE_spread3$Area)
+boxplot(deepTest)
+anova(deepTest) # p = 0.89   
+# TukeyHSD(deepTest) # irrelevant
+
+
+deepTest_years = betadisper(deepDist,deepCPUE_spread3$year)
+boxplot(deepTest_years)
+anova(deepTest_years) # p = 0.95 ... how does this add up with our signifant betwen-region result???
+# TukeyHSD(deepTest_years) # irrelevant
+
+```
+
+
+
+######################################################
+######################################################
+######################################################
+
+#2. PCA
+Methods: Used vegan package in R, function rda(). Raw CPUEs vary by many orders of magnitude (10^-7 to 10^2 or 10^-6 to 10^1 in shallow areas, 10^-5 to 10^2 in deep areas), therefore, to prevent the most abundant species from driving the result and allow all species to contribute equally to the result, cpues were standardized prior to analysis (Legendre & Legendre 1998) - means that PCs were extracted from correlation matrices, not dispersion matrices.
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+
+# orgnzize the data for PCA:
+# Shallow areas:
+shallowCPUE_spread1 <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  spread(area, Mean.totalDensity) # make each area a column
+
+shallowByYear_list <- split(shallowCPUE_spread1, f = shallowCPUE_spread1$year) # create a list of dataframes (one for each year)
+shallowByYear_list1 <- lapply(shallowByYear_list, function(z){ row.names(z) <- z$common.name; z}) # create row names from common names
+shallowByYear_list2 <- lapply(shallowByYear_list1, function(v) v[!(names(v) %in% c("common.name", "year"))]) # drop common name & year
+
+
+
+# Deep areas:
+deepCPUE_spread1 <- deepCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  filter(area != "Total") %>%
+  spread(area, Mean.totalDensity) # make each area a column
+
+deepByYear_list <- split(deepCPUE_spread1, f = deepCPUE_spread1$year) # create a list of dataframes (one for each year)
+deepByYear_list1 <- lapply(deepByYear_list, function(z){ row.names(z) <- z$common.name; z}) # create row names from common name
+deepByYear_list2 <- lapply(deepByYear_list1, function(v) v[!(names(v) %in% c("common.name", "year"))]) # drop common name & year
+
+
+
+#######################
+
+# examine the data
+cpueRangeShallow <- list(); mvnormShallow <- list()
+for (i in seq_along(shallowByYear_list2)) {
+  cpueRangeShallow[[i]] <- range(shallowByYear_list2[[i]]) # extract max & min cpue for each shallow area
+  #mvnormShallow[[i]] <- mshapiro.test(as.matrix(shallowByYear_list2[[i]])) # assess multivariate normality
+}
+cpueRangeShallow; mvnormShallow
+# p-values of multivariate shapiro-wilks test are all <<<<<<< 0.05, ie for each area, raw cpues are not multivariate-normal ... further suggestion that cpues should be standarized before analysis
+
+
+
+# PCA for shallow areas
+pcaShallow <- list()
+for (i in seq_along(shallowByYear_list2)) {
+  pcaShallow[[i]] <- rda(shallowByYear_list2[[i]], scale = TRUE)
+}
+
+
+# calculate proportion of total variance explained by PC1 & PC2:
+pcVarShallow <- list()
+for (i in seq_along(pcaShallow)) {
+  pcVarShallow[[i]] <- pcaShallow[[i]]$CA[[1]] / pcaShallow[[i]]$CA$tot.chi
+}
+
+```
+
+##Shallow areas
+Area 10 is Total
+
+% of total variance explained by PC1 & PC2:
+```{r, echo=FALSE}
+pcVarShallow1 <- data.frame(
+  yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015"),
+  pc1 <- do.call("rbind", lapply(pcVarShallow, "[[", 1)), # extract PC1
+  pc2 <- do.call("rbind", lapply(pcVarShallow, "[[", 2))  # extract PC2
+)
+colnames <- c("Year", "PC1", "PC2"); names(pcVarShallow1 ) <- colnames
+pcVarShallow1
+
+```
+
+
+Plots for shallow areas.
+Note that I've removed arrows for species scores and did some wonky scaling of species scores to make them legible in the plots (divided each species score by species StDev - although their relative positions are preserved in the plots, this is technically incorrect because I've already standardized data prior to analysis). This will need to be changed if used in a publication - see .Rmd file for correct code.
+
+```{r, echo=FALSE}
+# plots:
+yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015")
+par(mfrow = c(1,1), mar=c(2,2,2,2))
+pcaShallow1 <- list()
+for (i in seq_along(pcaShallow)) {
+  pcaShallow1[[i]] <- plot(pcaShallow[[i]], scaling = -1, main = paste("Shallow", yr[i])) # to add arrows for species scores, change this to biplot(...)
+  # use of 'scaling = -1' is technically incorrect; for publication, change this to scaling = 3 or remove scaling = x 
+}
+
+```
+
+
+***
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# Deep areas
+
+# examine the data
+cpueRangeDeep <- list(); mvnormDeep<- list()
+for (i in seq_along(deepByYear_list2)) {
+  cpueRangeDeep[[i]] <- range(deepByYear_list2[[i]]) # extract max & min cpue for each shallow area
+  #mvnormDeep[[i]] <- mshapiro.test(as.matrix(deepByYear_list2[[i]])) # assess multivariate normality
+}
+cpueRangeDeep; mvnormDeep
+# p-values of multivariate shapiro-wilks test are all <<<<<<< 0.05, ie for each area, raw cpues are not multivariate-normal ... further suggestion that cpues should be standarized before analysis
+
+
+# PCA for deep areas
+pcaDeep <- list()
+for (i in seq_along(deepByYear_list2)) {
+  pcaDeep[[i]] <- rda(deepByYear_list2[[i]], scale = TRUE)
+}
+
+
+# calculate proportion of total variance explained by PC1 & PC2:
+pcVarDeep <- list()
+for (i in seq_along(pcaDeep)) {
+  pcVarDeep[[i]] <- pcaDeep[[i]]$CA[[1]] / pcaDeep[[i]]$CA$tot.chi
+}
+
+```
+***
+##Deep areas
+Area 6 is Total
+
+% of total variance explained by PC1 & PC2:
+```{r, echo=FALSE}
+pcVarDeep1 <- data.frame(
+  yr = c("1984", "1987", "1990", "1993", "1996", "1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015"),
+  pc1.1 <- do.call("rbind", lapply(pcVarDeep, "[[", 1)), # extract PC1
+  pc2.1 <- do.call("rbind", lapply(pcVarDeep, "[[", 2))  # extract PC2
+)
+colnames <- c("Year", "PC1", "PC2"); names(pcVarDeep1) <- colnames
+pcVarDeep1
+
+```
+
+Plots for deep areas.
+See note above about scaling of species scores.
+
+```{r, echo=FALSE}
+
+# Ordination plots:
+par(mfrow = c(1,1), mar=c(2,2,2,2))
+pcaDeep1 <- list()
+for (i in seq_along(pcaDeep)) {
+  pcaDeep1[[i]] <- plot(pcaDeep[[i]], scaling = -1, main = paste("Year", yr[i]))  # to add arrows for species scores, change this to biplot(...)
+  # use of 'scaling = -1' is technically incorrect; for publication, change this to scaling = 3 or remove scaling = x
+}
+
+```
+
+

@@ -1,0 +1,14 @@
+---
+title: ENVIRONMENTAL HETEROGENEITY AND COMMUNITY STRUCTURE DRIVE SPATIAL GROUNDFISH
+  DIVERSITY PATTERNS IN THE GULF OF ALASKA
+author: "Rachael E. Blake, Colette L. Ward, Mary Hunsicker, Ole Shelton, Anne Hollowed"
+date: "September 29, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+```
+
+
+The mechanisms structuring patterns of diversity and community composition can be difficult to identify, and much of our knowledge stems from study of local ecological systems.  Two candidate mechanisms include dispersal and environmental heterogeneity, which structure communities at local and larger scales by fostering species coexistence and niche partitioning, respectively.  It is important to understand these patterns and their drivers at larger scales, especially in the face of climate and other perturbations.  The Gulf of Alaska (GOA) has complex topography, climate-driven variability, and a well-studied groundfish community, making it an ideal study system.  We examined patterns of diversity and community composition in the groundfish community across 14 sites in the GOA using geostatistically modeled groundfish abundance and biomass from the Alaska Fisheries Science Center trawl survey data (1984 – 2015).  We found that species richness, and alpha, beta, and functional diversity varied little both within and between study areas, and were conserved across the central GOA.  Conversely, community composition varied significantly along a longitudinal gradient, with distinct groups of species in individual study areas.  These differences in community composition were driven by rare and lower-density species, while high-density species remained the same.  Thus, community structure was conserved despite variation in species identities.  Overall, environmental heterogeneity and community structure control groundfish diversity across the GOA large marine ecosystem.

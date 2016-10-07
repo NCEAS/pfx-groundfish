@@ -76,7 +76,7 @@ trawl_species$age_class[trawl_species$age_recruit > 4] <- "Long"
 
 ####
 ### Merge in the guild identifiers, fish habit, and other functional categories into the meanCPUE data.frame
-temp <- trawl_species[,c("database.name","fish.invert","pelagic.benthic","total.biomass.fish","guild","diet1","diet2","age_recruit","age_class")]
+temp <- trawl_species[,c("database.name","fish.invert","pelagic.benthic","total.biomass.fish","guild","diet1","diet2","age_recruit","age_class","repro.class","eggs")]
 colnames(temp)[1] <- "Species"
 
 meanCPUE <- merge(meanCPUE,temp)
@@ -113,7 +113,6 @@ quartz(file="Time-series of Biomass and Guilds (20 cm).pdf",type="pdf",dpi=300,h
 MAR <- c(2.5,2,0.5,0.1)
 A <- layout(matrix(c(1,2,3,4,1,5,6,7,1,8,9,10,1,11,12,13),4,4,byrow=T),
             widths=c(0.1,1,1,1))
-
 # TOTAL BIOMASS
 # Plot shared y axis first
 par(mar=c(0,0,0,0))
@@ -152,12 +151,24 @@ for(i in 1:length(DIET)){
   dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
   dat$inv.var <- dat$vari^(-1)
   dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
-  
+
   time_plot(dat,NAME=paste("Diet",DIET[i]))
 }
 
-### Age Lagged METRIC 
+# Reproductive Mode
+#REPRO <- c("P","V","E")
+# 
+# for(i in 1:length(REPRO)){
+#   temp <- meanCPUE[meanCPUE$repro.class == REPRO[i] & meanCPUE$eggs != "fresh" ,]
+#   dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+#   dat$inv.var <- dat$vari^(-1)
+#   dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+#   
+#   time_plot(dat,NAME=paste("Repro",REPRO[i]))
+# }
 
+
+### Age Lagged METRIC 
 AGE <- c("Short","Medium","Long") #unique(meanCPUE$guild)
 name.age <- c("Short","Medium","Long")
 for(i in 1:length(AGE)){
@@ -270,15 +281,32 @@ for(i in 1:length(DIET)){
   grand.mean <- aggregate(dat$Mean.totalDensity,by=list(Area=dat$Area),mean)
   dat$cent_density <-0
   for( j in 1:11){
-    dat$cent_density[dat$Area == j] <- dat$Mean.totalDensity[dat$Area == j] - grand.mean$x[grand.mean$Area == j] 
+    dat$cent_density[dat$Area == j] <- dat$Mean.totalDensity[dat$Area == j] - grand.mean$x[grand.mean$Area == j]
   }
-  
+
   cent_time_plot(dat,NAME=paste("Diet",DIET[i]))
   abline(h=0, lty=2,lwd=1.5)
 }
 
-### Age Lagged METRIC 
 
+# Reproductive Mode
+# REPRO <- c("P","V","E")
+# for(i in 1:length(REPRO)){
+#   temp <- meanCPUE[meanCPUE$repro.class == REPRO[i] & meanCPUE$eggs != "fresh" ,]
+#   dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+#   dat$inv.var <- dat$vari^(-1)
+#   dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+#   grand.mean <- aggregate(dat$Mean.totalDensity,by=list(Area=dat$Area),mean)
+#   dat$cent_density <-0
+#   for( j in 1:11){
+#     dat$cent_density[dat$Area == j] <- dat$Mean.totalDensity[dat$Area == j] - grand.mean$x[grand.mean$Area == j] 
+#   }
+#   
+#   cent_time_plot(dat,NAME=paste("Repro",REPRO[i]))
+#   abline(h=0, lty=2,lwd=1.5)
+# }
+
+### Age Lagged METRIC 
 AGE <- c("Short","Medium","Long") #unique(meanCPUE$guild)
 name.age <- c("Short","Medium","Long")
 for(i in 1:length(AGE)){
@@ -419,7 +447,7 @@ for(i in 1:length(DIET)){
   dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
   dat$inv.var <- dat$vari^(-1)
   dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
-  
+
   ### Calculate least squares trend in each area and portfolio metrics.
   AREA <- unique(dat$Area)
   vals <- NULL
@@ -434,11 +462,42 @@ for(i in 1:length(DIET)){
   }
   vals <- data.frame(vals)
   colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
-  vals$CV  <- vals$SD / vals$Grand.w.mean 
-  
+  vals$CV  <- vals$SD / vals$Grand.w.mean
+
   dat.2 <- vals
   trend_plot(dat=dat.2,NAME=paste("Diet type" ,DIET[i]))
 }
+
+### BY DIET TYPE.
+# Aggregate into groups by guild and make plots
+# REPRO <- c("P","V","E")
+# for(i in 1:length(REPRO)){
+#   temp <- meanCPUE[meanCPUE$repro.class == REPRO[i] & meanCPUE$eggs != "fresh" ,]
+#   dat   <- aggregate(temp[,c("Mean.totalDensity","vari")],by=list(Area=temp$Area,Year=temp$year),sum)
+#   dat$inv.var <- dat$vari^(-1)
+#   dat$x.bar <- dat$Mean.totalDensity * dat$inv.var
+#   grand.mean <- aggregate(dat$Mean.totalDensity,by=list(Area=dat$Area),mean)
+#   
+#   ### Calculate least squares trend in each area and portfolio metrics.
+#   AREA <- unique(dat$Area)
+#   vals <- NULL
+#   for(j in 1:length(AREA)){
+#     A <- lm(Mean.totalDensity~Year,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+#     B <- lm(Mean.totalDensity~1,data=dat[dat$Area == AREA[j] & dat$Year > 1989,],weights = inv.var )
+#     vals <- rbind(vals,c(AREA[j],
+#                          coef(summary(A))["Year",c("Estimate","Std. Error")],
+#                          coef(summary(B))[1,c("Estimate","Std. Error")],
+#                          var(A$residuals),
+#                          sd(A$residuals)))
+#   }
+#   vals <- data.frame(vals)
+#   colnames(vals) <- c("Area","Trend","SE.trend","Grand.w.mean","Grand.w.mean.se","Var","SD")
+#   vals$CV  <- vals$SD / vals$Grand.w.mean 
+#   
+#   dat.2 <- vals
+#   trend_plot(dat=dat.2,NAME=paste("Repro",REPRO[i]))
+# }
+
 
 ### BY DIET TYPE.
 # Aggregate into groups by guild and make plots
@@ -483,7 +542,8 @@ dev.off()
 cv_plot <- function(dat,NAME){
   AT <- dat$Area  
   y.lim <- c(0,round(max(dat$CV.boot+dat$CV.boot.se)*1.15,1))
-
+  #x.lim <- c(1,11.5)
+  
   if(y.lim[1]>0){y.lim[1]=-0.1}
   plot(CV.boot~Area,data=dat,ylim=y.lim,axes=F,pch=21,bg=1,type="n")
   polygon(y=c(y.lim[1],0.95*(y.lim[2]-y.lim[1])+y.lim[1],0.95*(y.lim[2]-y.lim[1])+y.lim[1],y.lim[1]),
@@ -497,21 +557,22 @@ cv_plot <- function(dat,NAME){
          y0=dat$CV.boot + dat$CV.boot.se,y1= dat$CV.boot - dat$CV.boot.se,
          length=0,lwd=1.5)
   axis(1,at=AT,las=1,padj=-1,tcl=-0.25,cex.axis=0.85)
-  axis(2,las=2,hadj=0.7,tcl=-0.25)
+  axis(2,las=2,hadj=0.6,tcl=-0.25)
   box(bty="l",lwd=2)
   mtext(NAME,adj=0.05,line=-0.75)
 }
 
+
 quartz(file="CV of Biomass and Guilds since 1990.pdf",type="pdf",dpi=300,height=7,width=7)
 
-MAR <- c(2.5,3,0.5,0.2)
+MAR <- c(2.5,2,0.5,0.3)
 A <- layout(matrix(c(1,2,3,4,1,5,6,7,1,8,9,10,1,11,12,13,1,14,14,14),5,4,byrow=T),
             widths=c(0.08,1,1,1),heights =c(1,1,1,1,0.1) )
 #layout.show(A)
 # Plot shared y axis first
 par(mar=c(0,0,0,0))
 plot(1,1,type="n",xlab="",ylab="",axes=F)
-mtext(expression("Coefficient of Variation"),side=2,line=-2)
+mtext(expression("Coefficient of Variation"),side=2,line=-1.5)
 
 # TOTAL BIOMASS
 dat   <- aggregate(meanCPUE[meanCPUE$fish.invert=="fish",c("Mean.totalDensity","vari")],
@@ -543,7 +604,6 @@ colnames(vals) <- c("Area","Trend","SE.trend",
                       "Grand.w.mean","Grand.w.mean.se",
                       "Var","SD","CV.boot","CV.boot.se")
 vals$CV.point <- vals$SD / vals$Grand.w.mean
-
 dat.2 <- vals
 
 par(mar=MAR)
@@ -674,6 +734,22 @@ plot(1,1,type="n",xlab="",ylab="",axes=F)
 mtext(expression("Area"),side=3,line=-1)
 
 dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ######################################################################################
 #### SD PLOT

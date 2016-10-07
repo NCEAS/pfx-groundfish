@@ -1,0 +1,215 @@
+---
+title: "Univariate plotting & summary metrics of spatial model output"
+author: "Ben Williams"
+date: "October 26, 2015"
+output: html_document
+---
+This is the initial examination using Ole's model output file 2015-11-12.
+
+The *vplot* function will generate a figure for each year and area. Input a dataframe containing the species of interest, subsets of the "All_sp_index_meanCPUEByArea.csv"" file. The location of this may change when the model is updated.
+
+A seperate file can be used to house a data.frame of species names and trophic guilds etc. This file can be used to inform vplot of the groups to plot (example code below). Further this will allow for relatively painless exmainations of guild variance vs the whole, etc.
+
+```{r load, message=FALSE, echo=FALSE, warning=FALSE}
+library(extrafont)
+#font_import() #only do this one time - it takes a while
+loadfonts(quiet = T)
+#windowsFonts(Times=windowsFont("TT Times New Roman"))
+
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(mapproj)
+library(dplyr)
+library(tidyr)
+```
+
+```{r, cache=FALSE, echo=FALSE, warning=FALSE}
+meanCPUE <- read.csv("All_sp_index_meanCPUEByArea.csv") # load data
+meanCPUE <- subset(meanCPUE,area!='Total') #remove total field
+meanCPUE <- droplevels(meanCPUE) 
+meanCPUE$area <- as.numeric(levels(meanCPUE$area))[meanCPUE$area]#use numeric/factor conventions
+meanCPUE$Area <- factor(meanCPUE$area)
+meanCPUE$vari <- meanCPUE$SD.totalDensity^2 #calculate variance
+#meanCPUE$Species <- gsub("[.]","",meanCPUE$Species) #quit changing how names are spelled damnit!
+
+discrete_areas <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
+#head(discrete_areas)
+
+trawl_species <- read.csv("./goaTrawl/Output Data/trawl_species_control_file.csv")
+s <- trawl_species$diet
+s <- as.data.frame(s) %>% separate(s, into = paste("diet", 1:2, sep = ""))
+trawl_species <- cbind(trawl_species,s)
+```
+
+```{r map, cache=FALSE, echo=FALSE, warning=FALSE}
+ak<-map_data('worldHires','USA:Alaska')
+akmap<-ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black")+
+    theme(panel.background=element_rect(fill='aliceblue'))+
+    xlab(expression(paste(Longitude^o,~'W')))+
+    ylab(expression(paste(Latitude^o,~'N')))+
+    coord_map(xlim = c(-160, -143),ylim = c(54, 61))
+```
+
+Map of area locations
+
+```{r, echo=FALSE, cache=FALSE}
+discrete_areas$area <- discrete_areas$Area
+discrete_areas$Area <- factor(discrete_areas$area)
+akmap+geom_point(data=discrete_areas,aes(LONGITUDE,LATITUDE,color=Area))
+```
+
+Function for generating figures
+
+```{r vplot,echo=TRUE}
+
+vplot <- function(x, title=""){
+  require(ggplot2)
+  theme_set(theme_bw(base_size=12,base_family='Times New Roman')+ 
+  theme(panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank()))
+a <- aggregate(vari~area+year,data=x,FUN=sum)
+b <- aggregate(Mean.totalDensity~area+year,data=x,FUN=sum)
+c <- merge(a, b, by=c("area", "year"))
+c$se <- sqrt(c$vari)
+c$uci <- c$se*2 + c$Mean.totalDensity
+c$lci <- c$Mean.totalDensity - c$se*2
+c$Area <- factor(c$area)
+
+year.range <- c(1984,1987,1990,1993,1996,seq(1999,2015,by=2))
+ggplot(c, aes(year, Mean.totalDensity, group=Area, color=Area))+geom_line()+
+  geom_ribbon(aes(ymin=lci, ymax=uci, fill=Area), alpha=.2, linetype=0)+
+  ylim(min(c$lci), max(c$uci))+ scale_x_continuous(limits=c(1984, 2015), breaks=year.range)+ggtitle(title)+xlab("Year")+ylab("Mean total density") +
+  theme(text=element_text(family="Helvetica"),axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5))
+}
+```
+
+Subset groups based upon "trawl_species_control_file.csv"
+```{r}
+sp <- subset(trawl_species, pelagic.benthic!='pelagic')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+```
+
+Define the group to plot based upon the species names pulled from the database
+```{r}
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+```
+
+Plot the group
+
+```{r}
+vplot(group,title="Demersal sp.")
+```
+
+Examine by guild
+```{r guild}
+sp <- subset(trawl_species, guild=='A')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Guild A")
+
+sp <- subset(trawl_species, guild=='B')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Guild B")
+
+
+sp <- subset(trawl_species, guild=='P')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Guild P")
+
+
+
+sp <- subset(trawl_species, guild=='E')
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Guild E")
+
+```
+
+Examine by diet
+```{r diet}
+sp <- subset(trawl_species, diet1=='I' | diet2=="I")
+sp <- droplevels(sp)
+sp.names <- as.list(levels(sp$database.name))
+
+group <- meanCPUE[meanCPUE$Species %in% sp.names,]
+
+vplot(group, title="Diet I")
+
+```
+
+Plot of the sum and variance of mean total density by year and area
+```{r}
+vplot(meanCPUE, title="All species")
+```
+
+Area 8 jumps out as higher than the other areas
+
+
+Examine all species minus Walleye Pollock, Arrowtooth Flounder and Pacific Halibut
+
+```{r, echo=TRUE}
+#subset by area
+smean <- subset(meanCPUE, Species!="Gadus.chalcogrammus" & Species!="Atheresthes.stomias"& Species!="Hippoglossoides.stenolepis")
+smean <- droplevels(smean)
+
+vplot(smean)
+```
+
+
+Walleye Pollock, Arrowtooth Flounder and Pacific Halibut
+
+```{r, echo=FALSE}
+polarrhal <- subset(meanCPUE, Species=="Gadus.chalcogrammus" | Species== "Atheresthes.stomias" | Species!="Hippoglossoides.stenolepis" )
+polarrhal <- droplevels(polarrhal)
+
+vplot(polarrhal)
+```
+
+Cod and Spiny Dogfish
+
+```{r, echo=FALSE}
+codsha <- subset(meanCPUE, Species=="Gadus.macrocephalus"| Species=="Squalus.acanthias")
+
+vplot(codsha)
+```
+
+Capelin, Herring, and Eulachon
+
+```{r, echo=FALSE}
+capherreu <- subset(meanCPUE,Species== "Mallotus.villosus"|Species== "Clupea.pallasi" | Species=="Thaleichthys.pacificus")
+
+vplot(capherreu)
+```
+
+Rock Sole, Yellowfin Sole, Bigmouth Sculpin, Ling Cod
+
+```{r, echo=FALSE}
+#pull out species "groups"
+rocyelbig <- subset(meanCPUE, Species=="Lepidopsetta.sp"|Species== "Limanda.aspera"|Species== "Hemitripterus.bolini" | Species == "Ophiodon.elongatus" |Species =="Dasycottus.setiger" | Species=="Hemilepidotus.jordani")
+
+vplot(rocyelbig)
+```
+
+Bairdi Crab
+
+```{r, echo=FALSE}
+bai <- subset(meanCPUE, Species=="Chionoecetes.bairdi")
+
+vplot(bai)
+```
