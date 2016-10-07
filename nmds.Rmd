@@ -110,7 +110,7 @@ shallowCPUE_spread3 <- shallowCPUEArea2 %>%
 # organize Deep areas data for nMDS:
 deepCPUE_spread3 <- deepCPUEArea2 %>%
   select(common.name, Mean.totalDensity, area, year) %>%
-  mutate(area = revalue(area, c("1"="10", "2"="11", "3"="12", "4"="13", "5"="14"))) %>%
+  mutate(area = revalue(area, c("1"="10", "2"="11", "3"="13", "4"="14", "5"="12"))) %>%
   filter(area != "Total") %>%
   spread(common.name, Mean.totalDensity) %>% # make each species a column
   mutate(Area = as.numeric(area)) %>% select(-area) # convert area to numeric
@@ -130,13 +130,12 @@ CPUE_spread3 <- rbind(shallowCPUE_spread3, deepCPUE_spread3)
 ordShallowWiscSqrt <- metaMDS(shallowCPUE_spread3[2:54], distance='bray', trymax=1000)
 ordShallowHellinger <- metaMDS(decostand(shallowCPUE_spread3[,2:54], "hell"), distance='bray', trymax=1000) # goodness of fit plots look better on data with Hellinger transformation
 # also considered method = "log" (does not converge) and "max" (results are similar to wisc(sqrt( )))
-ordShallow
 
 par(mfrow=c(1,1))
-stressplot(ordShallow) # make sure stressplots show good fits
+stressplot(ordShallowWiscSqrt) # make sure stressplots show good fits
 
-plot(ordShallow, display = 'sites', type = 't', main = "Shallow Areas") # look at goodness-of-fit plots
-points(ordShallow, display = 'sites', cex = goodness (ordShallow)*200)
+plot(ordShallowWiscSqrt, display = 'sites', type = 't', main = "Shallow Areas") # look at goodness-of-fit plots
+points(ordShallowWiscSqrt, display = 'sites', cex = goodness (ordShallowWiscSqrt)*200)
 
   
   
@@ -144,10 +143,10 @@ points(ordShallow, display = 'sites', cex = goodness (ordShallow)*200)
 ordDeepWiscSqrt <- metaMDS(deepCPUE_spread3[2:54], distance='bray', trymax=1000)
 ordDeepHellinger <- metaMDS(decostand(deepCPUE_spread3[2:54],"hell"), distance='bray', trymax=1000)
 
-stressplot(ordDeep) # make sure stressplots show good fits
+stressplot(ordDeepWiscSqrt) # make sure stressplots show good fits
 
-plot(ordDeep, display = 'sites', type = 't', main = "Deep Areas") # look at goodness-of-fit plots
-points(ordDeep, display = 'sites', cex = goodness (ordDeep)*200)
+plot(ordDeepWiscSqrt, display = 'sites', type = 't', main = "Deep Areas") # look at goodness-of-fit plots
+points(ordDeepWiscSqrt, display = 'sites', cex = goodness (ordDeepWiscSqrt)*200)
 
 
 
@@ -294,11 +293,14 @@ ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=12, col="magenta
 ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=13, col="tomato1", label=T, lwd=3, lty=1)
 ordihull(ordAllHellinger, groups=CPUE_spread3$Area, show.groups=14, col="orangered4", label=T, lwd=3, lty=1)
 
+```
 
-###############
 
+
+``` {r}
 # Ordination plots with grouping by years:
 
+# Wisconsin transformation:
 par(mfrow=c(1,2))
 ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
 title(main="Shallow Areas")
@@ -343,6 +345,52 @@ ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2013, col="d
 ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$year, show.groups=2015, col="black", label=T, lwd=3, lty=1)
 
 
+
+
+
+# Hellinger Transformation:
+par(mfrow=c(1,2))
+ordiplot(ordShallowHellinger, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+title(main="Shallow Areas")
+#text(ordShallowHellinger, display = "sites", cex = 0.5, col="black")
+text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
+#ordiplot(ordShallowHellinger, display = "sites") #, groups=shallowCPUE_spread3$Area)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1984, col="red", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1987, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1990, col="yellow", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1993, col="green", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1996, col="dark green", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=1999, col="turquoise", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2001, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2003, col="dark blue", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2005, col="lavender", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2007, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2009, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2011, col="light grey", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2013, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$year, show.groups=2015, col="black", label=T, lwd=3, lty=1)
+
+
+
+
+ordiplot(ordDeepHellinger, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+#text(ordDeepHellinger, display = "sites", cex = 0.5, col="black")
+title(main="Deep Areas")
+text(ordDeepHellinger, display = "spec", cex = 0.5, col="black")
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1984, col="red", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1987, col="orange", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1990, col="yellow", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1993, col="green", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1996, col="dark green", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=1999, col="turquoise", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2001, col="blue", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2003, col="dark blue", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2005, col="lavender", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2007, col="purple", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2009, col="pink", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2011, col="light grey", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2013, col="dark grey", label=T, lwd=3, lty=1)
+ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2015, col="black", label=T, lwd=3, lty=1)
 
 ```
 

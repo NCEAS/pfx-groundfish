@@ -1,0 +1,159 @@
+---
+title: "Groundfish PCA - Compare years by area"
+author: "Colette Ward"
+date: "May 16, 2016"
+output: pdf_document
+---
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load packages
+library(httr)
+library(vegan)
+library(plyr)
+library(dplyr)
+library(tidyr)
+
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prep look-up table of common names
+URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
+common_Get <- GET(URL_common)
+common_1 <- content(common_Get, as='text')
+common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+#View(common)
+
+common1 <- common %>%
+  select(database.name, common.name) %>%
+  rename(Species = database.name)
+for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
+  if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
+  if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
+}
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prepare Mean annual CPUE data for Shallow Areas:
+URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
+shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
+shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(shallowCPUEArea)
+
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+
+shallowCPUE_spread <- shallowCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  spread(common.name, Mean.totalDensity) %>% # make each species a column
+  mutate(area = revalue(area, c("Total" = "10")), # recode Total for looping later
+         area = as.numeric(area)) # convert to numeric class
+
+shallowByArea_list <- split(shallowCPUE_spread, f = shallowCPUE_spread$area) # create a list of dataframes (one for each area; NB area 10 is Total)
+
+shallowByArea_list1 <- lapply(shallowByArea_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
+shallowByArea_list2 <- lapply(shallowByArea_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prepare mean annual CPUE for Deep areas:
+URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+deepCPUEArea_Get <- GET(URL_deepCPUEArea)
+deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
+deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#View(deepCPUEArea)
+
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+
+deepCPUE_spread <- deepCPUEArea2 %>%
+  select(common.name, Mean.totalDensity, area, year) %>%
+  spread(common.name, Mean.totalDensity) %>% # make each species a column
+  mutate(area = revalue(area, c("Total" = "10")), # recode Total for looping later
+         area = as.numeric(area)) # convert to numeric class
+
+deepByArea_list <- split(deepCPUE_spread, f = deepCPUE_spread$area) # create a list of dataframes (one for each area; NB area 10 is Total)
+
+deepByArea_list1 <- lapply(deepByArea_list, function(y){ row.names(y) <- y$year; y}) # create row names from year column
+deepByArea_list2 <- lapply(deepByArea_list1, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+
+```
+
+
+######################################################
+######################################################
+######################################################
+
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# PCA for shallow areas
+shallowByArea_list2$`1`
+
+sh1.pca <- rda(shallowByArea_list2$`1`)
+sh1.pca
+842.8/1833 # 0.46  PC1
+502.8/1833 # 0.27  PC2
+plot(sh1.pca)
+# all species except the most abundant (pollock, arrowtooth, POP, northern rockfish, P cod) are clustered around plot origins
+sum(apply(sh1.pca, 2, var))
+biplot(sh1.pca, scaling = -1) # The negative values mean that species
+#scores are divided by the species standard deviations so that abundant
+#and scarce species will be approximately as far away from the origin
+
+# Standardizing all species to unit variance, or using correlation coecients 
+# instead of covariances will give a more balanced ordination:
+sh1.pca1 <- rda(shallowByArea_list2$`1`, scale = TRUE)
+sh1.pca1
+18.655/53 # 0.352  PC1
+10.86/53  # 0.205  PC2
+plot(sh1.pca1, scaling = 3)
+biplot(sh1.pca1, scaling = 3)
+
+
+pcaShallow <- list()
+for (i in seq_along(shallowByArea_list2)) {
+  pcaShallow[[i]] <- rda(shallowByArea_list2[[i]], scale = TRUE)
+}
+
+```
+
+#Shallow areas
+Area 10 is Total
+
+```{r, echo=FALSE}
+# Ordination plots:
+par(mfrow = c(2,2), mar=c(2,2,2,2))
+pcaShallow1 <- list()
+for (i in seq_along(pcaShallow)) {
+  pcaShallow1[[i]] <- plot(pcaShallow[[i]], scaling = 3, main = paste("Shallow Area",i))
+}
+
+```
+
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# PCA for deep areas
+pcaDeep <- list()
+for (i in seq_along(deepByArea_list2)) {
+  pcaDeep[[i]] <- rda(deepByArea_list2[[i]], scale = TRUE)
+}
+
+```
+
+#Deep areas
+Area 6 is Total
+
+```{r, echo=FALSE}
+# Ordination plots:
+par(mfrow = c(2,2), mar=c(2,2,2,2))
+pcaDeep1 <- list()
+for (i in seq_along(pcaDeep)) {
+  pcaDeep1[[i]] <- plot(pcaDeep[[i]], scaling = 3, main = paste("Deep Area",i))
+}
+
+```
