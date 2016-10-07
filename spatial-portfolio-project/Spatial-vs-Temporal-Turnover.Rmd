@@ -141,10 +141,35 @@ all_mean_spatial <- colSums(as.data.frame(as.matrix(all_dis_bray_wisc)))/13
 # start with 1984 vs 2015
 # calculate for each site
 
-temporal_func <- function(your_df, area_number){
+
+# create list of all pairs of years
+library(caTools)
+yr_pairs <- as.data.frame(combs(yrs, 2)) %>%
+  #rename(start = V1, end = V2) #%>%
+  #mutate(interval = end - start)
+  mutate(yrs = paste(start, end, sep = ",")) %>%
+  #mutate(yrs = paste(c, \\(, start, ",", end, \\), sep = "")) %>%
+  select(yrs)
+yrs_list <- dlply(yr_pairs, 1, c) # make this into a list of lists
+yrs_list
+str(yrs_list)
+
+# make a list of elements with: "c(year, year)"
+
+
+#interval_count <- yr_pairs %>%
+#  group_by(interval) %>%
+#  count(interval) # how many values are there of each interval?
+#View(interval_count)
+
+
+#year %in% c(paste(yrs_list[[i]]$yrs))
+
+temporal_func <- function(your_df, year_pairs, area_number){
+  
                  Temp_Mat <- your_df %>%
                              select(area, year, Mean.totalDensity, common.name) %>%
-                             filter(area != "Total", year %in% c("1984", "2015")) %>%
+                             filter(area != "Total", year %in% year_pairs) %>%
                              spread(common.name, Mean.totalDensity) %>%
                              filter(area == area_number) %>% select(-area, -year)
                  
@@ -153,11 +178,20 @@ temporal_func <- function(your_df, area_number){
                  return(Wisc_Temp_Mat)
 }
 
-#temporal_func(shallowCPUEArea2, 1) #testing the function
+temporal_func(shallowCPUEArea2, time_pairs[[1]], 1)#testing the function
+#temporal_func(shallowCPUEArea2, c(1984, 2015), 1)#testing the function
 
+time_pairs <- as.vector(yr_pairs$yrs)
 areas_shallow <- c(1:9)
+expand.grid()
 # produces Wisconsin-transformed matrices for each study area
-shallow_mats <- lapply(areas_shallow, FUN = temporal_func, your_df=shallowCPUEArea2)   
+shallow_mats <- lapply(areas_shallow, FUN = temporal_func, your_df = shallowCPUEArea2)
+
+shallow_test <- lapply(time_pairs, FUN = temporal_func, your_df = shallowCPUEArea2, area_number=1)
+shallow_test <- mapply(FUN = temporal_func, your_df = shallowCPUEArea2, area_number=areas_shallow, year_pairs = time_pairs)
+
+
+
 # get Bray-Curtis dissimilarities
 bray_shallow_mats <- lapply(shallow_mats, FUN=vegdist, method="bray")   
 
@@ -186,6 +220,8 @@ bray_all_mats <- lapply(all_mats, FUN=vegdist, method="bray")
 shallow_for_plotting <- data.frame(shallow_mean_spatial, unlist(bray_shallow_mats))
 shallow_for_plotting$area <- c(1:9)  
 #str(shallow_for_plotting)
+
+
 
 bray_shallow <- ggplot(shallow_for_plotting, aes(x = shallow_mean_spatial, 
                                                  y = unlist.bray_shallow_mats.,
