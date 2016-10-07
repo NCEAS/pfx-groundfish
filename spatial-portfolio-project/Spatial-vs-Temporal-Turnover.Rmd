@@ -80,6 +80,14 @@ deepCPUEArea2 <- deepCPUEArea2 %>%    # renumber deep areas
                                                   "13" = "3", "14" = "4")))
 
 
+#3. Combined shallow and deep areas:
+shallowCPUEArea2$depth <- "shallow"    # add depth column
+deepCPUEArea2$depth <- "deep" 
+
+allCPUEArea <- shallowCPUEArea2 %>%
+               bind_rows(deepCPUEArea2) 
+
+
 ```
 
 
@@ -89,42 +97,36 @@ deepCPUEArea2 <- deepCPUEArea2 %>%    # renumber deep areas
 
 # Shallow areas, Bray spatial
 # need mean community composition matrix for each area (mean of 1984-2015)
-shallow_Spatial_mat <- shallowCPUEArea2 %>%
-                       select(common.name, Mean.totalDensity, area, year) %>%
-                       filter(area != "Total") %>%
-                       group_by(area, common.name) %>%
-                       summarize(temporal.mean = mean(Mean.totalDensity)) %>%
-                       ungroup() %>%
-                       spread(common.name, temporal.mean) %>% # make each species a column
-                       select(-area)
-  # then spread as needed by vegan for dissimilarity matrix calcs: sites as rows, species as columns
+spatial_func <- function(your_df){
+                Spat_Mat <- your_df %>%
+                            select(common.name, Mean.totalDensity, area, year) %>%
+                            filter(area != "Total") %>%
+                            group_by(area, common.name) %>%
+                            summarize(temporal.mean = mean(Mean.totalDensity)) %>%
+                            ungroup() %>%
+                            spread(common.name, temporal.mean) %>% # make each species a column
+                            select(-area)
+                 
+                Wisc_Spat_Mat <- wisconsin(Spat_Mat)   # wisconsin transformation
+                
+                return(Wisc_Spat_Mat)
+}
 
-shallow.dis.bray.wisc <- vegdist(wisconsin(shallow_Spatial_mat), "bray", 
-                                 upper = TRUE, lower=TRUE)
-#shallow.dis.bray.wisc # with Wisconsin transformation
-#shallow.dis.bray.hell <- vegdist(decostand(shallow_Spatial_mat, "hell"), "bray")
-#shallow.dis.bray.hell # with Hellinger transformation
 
+shallow_mat1 <- spatial_func(shallowCPUEArea2)  
+# get Bray-Curtis dissimilarities
+shallow.dis.bray.wisc <- vegdist(shallow_mat1, "bray", upper = TRUE, lower=TRUE)    
 shallow_mean_spatial <- colSums(as.data.frame(as.matrix(shallow.dis.bray.wisc)))/8
 
 
-# Deep areas
-deep_Spatial_mat <- deepCPUEArea2 %>%
-                    select(common.name, Mean.totalDensity, area, year) %>%
-                    filter(area != "Total") %>%
-                    group_by(area, common.name) %>%
-                    summarize(temporal.mean = mean(Mean.totalDensity)) %>%
-                    ungroup() %>%
-                    spread(common.name, temporal.mean) %>% # make each species a column
-                    select(-area)
-
-deep_dis_bray_wisc <- vegdist(wisconsin(deep_Spatial_mat), "bray", 
-                              upper = TRUE, lower=TRUE)
-#deep_dis_bray_wisc # with Wisconsin transformation
-
+deep_mat1 <- spatial_func(deepCPUEArea2)  
+deep_dis_bray_wisc <- vegdist(deep_mat1, "bray", upper = TRUE, lower=TRUE)    
 deep_mean_spatial <- colSums(as.data.frame(as.matrix(deep_dis_bray_wisc)))/4
 
 
+all_mat1 <- spatial_func(allCPUEArea)
+all_dis_bray_wisc <- vegdist(all_mat1, "bray", upper = TRUE, lower=TRUE)    
+all_mean_spatial <- colSums(as.data.frame(as.matrix(all_dis_bray_wisc)))/13
 
 
 # calculate community dissimilarities
@@ -165,6 +167,11 @@ deep_mats <- lapply(areas_deep, FUN = temporal_func, your_df=deepCPUEArea2)
 bray_deep_mats <- lapply(deep_mats, FUN=vegdist, method="bray") 
 
 
+areas_all <- c(1:14)
+all_mats <- lapply(areas_all, FUN=temporal_func, your_df=allCPUEArea)
+bray_all_mats <- lapply(all_mats, FUN=vegdist, method="bray") 
+
+
 
 
 ```
@@ -177,14 +184,15 @@ bray_deep_mats <- lapply(deep_mats, FUN=vegdist, method="bray")
 
 #bray_shallow_mats1 <- unlist(bray_shallow_mats)
 shallow_for_plotting <- data.frame(shallow_mean_spatial, unlist(bray_shallow_mats))
-
+shallow_for_plotting$area <- c(1:9)  
 #str(shallow_for_plotting)
 
 bray_shallow <- ggplot(shallow_for_plotting, aes(x = shallow_mean_spatial, 
-                                              y = unlist.bray_shallow_mats.)) +
+                                                 y = unlist.bray_shallow_mats.,
+                                                 label = area)) +
                 geom_point(size = 4, color="#00BFC4") + theme_bw() +
                 xlab("Bray spatial turnover") + ylab("Bray temporal turnover") +
-                labs(title="Shallow") + 
+                labs(title="Shallow") + geom_text(hjust = 0, nudge_x = 0.002) +
                 stat_smooth(method="glm")
 
 #bray_shallow
@@ -195,12 +203,14 @@ bray_shallow <- ggplot(shallow_for_plotting, aes(x = shallow_mean_spatial,
 # Deep Plot
 
 deep_for_plotting <- data.frame(deep_mean_spatial, unlist(bray_deep_mats))
+deep_for_plotting$area <- c(10:14)  
 
 bray_deep <- ggplot(deep_for_plotting, aes(x = deep_mean_spatial, 
-                                              y = unlist.bray_deep_mats.)) +
+                                           y = unlist.bray_deep_mats.,
+                                           label = area)) +
              geom_point(size = 4, color="#F8766D") + theme_bw()  +
              xlab("Bray spatial turnover") + ylab("Bray temporal turnover") + 
-             labs(title="Deep") + 
+             labs(title="Deep") + geom_text(hjust = 0, nudge_x = 0.002) +
              stat_smooth(method="glm")
 
 
@@ -210,6 +220,46 @@ bray_deep <- ggplot(deep_for_plotting, aes(x = deep_mean_spatial,
 
 ```{r, echo=FALSE,  fig.cap="Bray Dissimilarities: fits are glm with se"}
 grid.arrange(bray_shallow, bray_deep, ncol=2, nrow=1)
+
+```
+
+```{r, echo=FALSE, eval=FALSE}
+
+bray_one_plot <- ggplot() + theme_bw()  +
+                 geom_point(data=shallow_for_plotting, aes(x = shallow_mean_spatial,
+                                                           y = unlist.bray_shallow_mats.,
+                                                           label = area), 
+                            size = 4, color="#00BFC4") + 
+                 geom_point(data=deep_for_plotting, aes(x = deep_mean_spatial,
+                                                        y = unlist.bray_deep_mats.), 
+                            size = 4, color="#F8766D") +
+             xlab("Bray spatial turnover") + ylab("Bray temporal turnover") + 
+             stat_smooth(method="glm")
+
+bray_one_plot
+
+
+```
+
+
+
+```{r, echo=FALSE, eval=FALSE}
+#all_mean_spatial ; bray_all_mats
+
+all_for_plotting <- data.frame(all_mean_spatial, unlist(bray_all_mats))
+all_for_plotting$area <- c(1:14)  
+all_for_plotting$depth <- ifelse(all_for_plotting$area %in% c(10:14), "deep", "shallow")
+
+bray_all <- ggplot(all_for_plotting, aes(x = all_mean_spatial,
+                                         y = unlist.bray_all_mats.,
+                                         label = area, color=depth)) +
+             geom_point(size = 4) + theme_bw()  +
+             geom_text(hjust = 0, nudge_x = 0.002) +
+             xlab("Bray spatial turnover") + ylab("Bray temporal turnover") + 
+            # labs(title="Deep") + 
+             stat_smooth(method="glm")
+
+bray_all
 
 ```
 
