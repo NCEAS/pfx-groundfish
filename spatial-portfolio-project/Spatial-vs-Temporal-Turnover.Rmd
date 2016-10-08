@@ -141,12 +141,44 @@ all_mean_spatial <- colSums(as.data.frame(as.matrix(all_dis_bray_wisc)))/13
 # start with 1984 vs 2015
 # calculate for each site
 
-<<<<<<< HEAD
+# for just 1984 vs 2015:
 temporal_func <- function(your_df, area_number){
+  
                  Temp_Mat <- your_df %>%
                              select(area, year, Mean.totalDensity, common.name) %>%
-                             filter(area != "Total", year %in% c("1984", "2015")) %>%
-=======
+                             filter(area != "Total", year %in% c(1984, 2015)) %>%
+                             spread(common.name, Mean.totalDensity) %>%
+                             filter(area == area_number) %>% select(-area, -year)
+                 
+                 Wisc_Temp_Mat <- wisconsin(Temp_Mat)
+                 
+                 return(Wisc_Temp_Mat)
+}
+
+temporal_func(shallowCPUEArea2, 1)#testing the function
+
+areas_shallow <- c(1:9)
+# produces Wisconsin-transformed matrices for each study area
+shallow_mats <- lapply(areas_shallow, FUN = temporal_func, your_df=shallowCPUEArea2)
+# get Bray-Curtis dissimilarities
+bray_shallow_mats <- lapply(shallow_mats, FUN=vegdist, method="bray")   
+
+
+areas_deep <- c(10:14)
+deep_mats <- lapply(areas_deep, FUN = temporal_func, your_df=deepCPUEArea2)   
+bray_deep_mats <- lapply(deep_mats, FUN=vegdist, method="bray") 
+
+
+areas_all <- c(1:14)
+all_mats <- lapply(areas_all, FUN=temporal_func, your_df=allCPUEArea)
+bray_all_mats <- lapply(all_mats, FUN=vegdist, method="bray") 
+
+```
+
+
+``` {r, echo=FALSE}
+
+# for all pairs of years:
 
 # create list of all pairs of years
 library(caTools)
@@ -176,7 +208,6 @@ temporal_func <- function(your_df, year_pairs, area_number){
                  Temp_Mat <- your_df %>%
                              select(area, year, Mean.totalDensity, common.name) %>%
                              filter(area != "Total", year %in% year_pairs) %>%
->>>>>>> 6eba2fcc00656e04b897f56afe3d6f3f5720384f
                              spread(common.name, Mean.totalDensity) %>%
                              filter(area == area_number) %>% select(-area, -year)
                  
@@ -185,13 +216,12 @@ temporal_func <- function(your_df, year_pairs, area_number){
                  return(Wisc_Temp_Mat)
 }
 
-<<<<<<< HEAD
+
 #temporal_func(shallowCPUEArea2, 1) #testing the function
 
 areas_shallow <- c(1:9)
 # produces Wisconsin-transformed matrices for each study area
 shallow_mats <- lapply(areas_shallow, FUN = temporal_func, your_df=shallowCPUEArea2)   
-=======
 temporal_func(shallowCPUEArea2, time_pairs[[1]], 1)#testing the function
 #temporal_func(shallowCPUEArea2, c(1984, 2015), 1)#testing the function
 
@@ -206,7 +236,6 @@ shallow_test <- mapply(FUN = temporal_func, your_df = shallowCPUEArea2, area_num
 
 
 
->>>>>>> 6eba2fcc00656e04b897f56afe3d6f3f5720384f
 # get Bray-Curtis dissimilarities
 bray_shallow_mats <- lapply(shallow_mats, FUN=vegdist, method="bray")   
 
@@ -236,18 +265,17 @@ shallow_for_plotting <- data.frame(shallow_mean_spatial, unlist(bray_shallow_mat
 shallow_for_plotting$area <- c(1:9)  
 #str(shallow_for_plotting)
 
-<<<<<<< HEAD
-=======
 
-
->>>>>>> 6eba2fcc00656e04b897f56afe3d6f3f5720384f
 bray_shallow <- ggplot(shallow_for_plotting, aes(x = shallow_mean_spatial, 
                                                  y = unlist.bray_shallow_mats.,
                                                  label = area)) +
                 geom_point(size = 4, color="#00BFC4") + theme_bw() +
                 xlab("Bray spatial turnover") + ylab("Bray temporal turnover") +
                 labs(title="Shallow") + geom_text(hjust = 0, nudge_x = 0.002) +
-                stat_smooth(method="glm")
+                stat_smooth(method="glm") +
+                theme(plot.title = element_text(face="bold", size=22)) +
+                theme(axis.title = element_text(size=16))
+
 
 #bray_shallow
 
@@ -265,7 +293,9 @@ bray_deep <- ggplot(deep_for_plotting, aes(x = deep_mean_spatial,
              geom_point(size = 4, color="#F8766D") + theme_bw()  +
              xlab("Bray spatial turnover") + ylab("Bray temporal turnover") + 
              labs(title="Deep") + geom_text(hjust = 0, nudge_x = 0.002) +
-             stat_smooth(method="glm")
+             stat_smooth(method="glm") +
+             theme(plot.title = element_text(face="bold", size=22)) +
+             theme(axis.title = element_text(size=16))
 
 
 #bray_deep
