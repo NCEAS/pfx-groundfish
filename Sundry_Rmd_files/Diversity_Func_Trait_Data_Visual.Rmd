@@ -1,0 +1,88 @@
+---
+title: "Functional Trait Data in Hand"
+author: "Rachael Blake"
+date: "March 10, 2016"
+output: html_document
+---
+
+```{r ,  include=FALSE, echo=FALSE, results='hide'}
+library(httr)
+library(plyr)
+library(dplyr)
+library(XML)
+library(curl)
+library(rvest)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(ggplot2)
+library(scales)
+
+
+# source Gf FD trait cleaning script
+source()
+
+#GF_T <- read.csv("Groundfish-Functional-Diversity-Traits.csv", header=TRUE)
+
+```
+
+
+# Heatmap of all datasets we have in hand to date
+
+```{r,  include=FALSE, echo=FALSE}
+traits <- unique(GF_T$trait)
+sp <- data.frame(unique(GF_T$genus.species))
+
+GF_Tb <- data.frame(sp[rep(seq_len(nrow(sp)), each=21),])  # repeats data frame 
+GF_Tb$Trait <- rep(traits)   # adds the column
+GF_3 <- select(GF_T,genus.species,trait,estimate,region)
+    
+
+GFT <- GF_Tb %>%
+       rename(Genus_Species=sp.rep.seq_len.nrow.sp....each...21....) %>%
+       mutate(Bin_Value = ifelse((is.na(estimate)),'0',
+                          ifelse((!is.na(estimate)),'1',"")))
+```
+
+
+```{r , fig.height=12, fig.width=12, echo=FALSE}
+
+# plot data presence in time for each variable
+
+GFT_GOA <- GFT %>% 
+           filter(region %in% c("GoA","Kodiak Is (GoA","GoA (Kodiak Island)",
+                                "GoA (Kodiak Is)","GoA & Aleutian Islands"))
+           
+
+p1 <- ggplot(data=GFT_GOA, aes(x=trait, y=genus.species)) + 
+             geom_tile(aes(fill = Bin_Value), colour = "white") +
+             scale_fill_manual(values=c("0"="white", "1"="red"), guide=FALSE) +
+             scale_y_reverse() + 
+             theme(axis.text.x = element_text(angle=90, vjust=0.3, hjust=1, 
+                                              color="black", size=15),
+                   axis.text.y = element_text(color="black", size=15),
+                   axis.title  = element_text(face="bold", size=20))
+p1
+
+
+```
+
+
+```{r , fig.height=12, fig.width=12, echo=FALSE}
+
+GFT_ <- GFT %>% 
+           filter(region!="GOA")
+
+p2 <- ggplot(data=GFT_, aes(x=Data_Set, y=Year)) + 
+             geom_tile(aes(fill = Bin_Value), colour = "white") +
+             scale_fill_manual(values=c("0"="white", "1"="red"), guide=FALSE) +
+             scale_y_reverse() + 
+             theme(axis.text.x = element_text(angle=90, vjust=0.3, hjust=1, 
+                                              color="black", size=15),
+                   axis.text.y = element_text(color="black", size=15),
+                   axis.title  = element_text(face="bold", size=20))
+p2
+
+
+```
+
