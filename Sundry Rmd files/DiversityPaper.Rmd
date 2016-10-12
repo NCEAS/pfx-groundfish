@@ -1,11 +1,12 @@
 ---
-title: "Diversity Paper: THIS NEEDS A CATCHY TITLE!"
-date: "May 3, 2016"
+title: 'Diversity Paper: THIS NEEDS A CATCHY TITLE!'
 output:
-  pdf_document: 
+  html_document: default
   fig_height: 4
   fig_width: 7
-  fig_caption: true
+  fig_caption: yes
+  pdf_document: null
+date: "May 3, 2016"
 ---
 
 ##Introduction
