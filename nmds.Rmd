@@ -223,7 +223,7 @@ ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=14, col="gre
 ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=15, col="blue", label=T, lwd=3, lty=1)
 
 
-par(mfrow=c(1,2))
+par(mfrow=c(1,1))
 # Ordination plot for shallow + deep areas:
 ordiplot(ordAllWiscSqrt, type="n", choices=c(1,2), main="Wisc-Sqrt Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
 #title(main="Wisconsin + Sqrt Transformation")
@@ -287,6 +287,7 @@ ordihull(ordDeepHellinger, groups=deepCPUE_spread3$Area, show.groups=15, col="bl
 
 
 # Ordination plot for shallow + deep areas:
+par(mfrow = c(1,1))
 ordiplot(ordAllHellinger, type="n", choices=c(1,2), main="Hellinger Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
 #title(main="Hellinger Transformation")
 #text(ordAllHellinger, display = "sites", cex = 0.5, col="black")
@@ -421,28 +422,28 @@ ordihull(ordDeepHellinger, groups=deepCPUE_spread3$year, show.groups=2015, col="
 
 # Shallow areas:
 adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area*year, data = shallowCPUE_spread3, permutations = 200, method = "bray")
-#            Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
-# Area        1    1.0514 1.05137  42.788 0.22180 0.004975 **
-# year        1    0.6248 0.62483  25.429 0.13181 0.004975 **
-# Area:year   1    0.0663 0.06629   2.698 0.01398 0.029851 * 
-# Residuals 122    2.9977 0.02457         0.63240            
-# Total     125    4.7402                 1.00000 
+#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+#Area        1    1.2116 1.21156  45.282 0.21624 0.004975 **
+#year        1    0.6860 0.68597  25.638 0.12243 0.004975 **
+#Area:year   1    0.0665 0.06655   2.487 0.01188 0.054726 . 
+#Residuals 136    3.6388 0.02676         0.64945            
+#Total     139    5.6029                 1.00000 
 
 
 adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area, data = shallowCPUE_spread3, permutations = 200, method = "bray")
-#            Df SumsOfSqs MeanSqs F.Model     R2   Pr(>F)   
-# Area        1    1.0514 1.05137  35.342 0.2218 0.004975 **
-# Residuals 124    3.6888 0.02975         0.7782            
-# Total     125    4.7402                 1.0000  
+#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+#Area        1    1.2116 1.21156  38.074 0.21624 0.004975 **
+#Residuals 138    4.3914 0.03182         0.78376            
+#Total     139    5.6029                 1.00000 
 
 
 adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area + year, data = shallowCPUE_spread3, permutations = 200, method = "jaccard")
 # Terms added sequentially (first to last)
-#            Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
-# Area        1    2.0236 2.02363  31.379 0.18058 0.004975 **
-# year        1    1.2502 1.25016  19.385 0.11156 0.004975 **
-# Residuals 123    7.9324 0.06449         0.70786            
-# Total     125   11.2062                 1.00000 
+#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+#Area        1    2.3476 2.34762  34.120 0.17900 0.004975 **
+#year        1    1.3410 1.34096  19.489 0.10225 0.004975 **
+#Residuals 137    9.4263 0.06881         0.71875            
+#Total     139   13.1149                 1.00000 
 
 
 ######################################################
@@ -450,22 +451,22 @@ adonis(wisconsin(sqrt(shallowCPUE_spread3[,2:54])) ~ Area + year, data = shallow
 # Using Hellinger transformation:
 adonis(decostand(shallowCPUE_spread3[2:54],"hell") ~ Area*year, data = shallowCPUE_spread3, permutations = 200, method = "bray")
 # Note this significance is likely driven by differences between 8 & 9 vs all other sites, not sites 1-6
-#            Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
-# Area        1    0.7363 0.73635  35.198 0.20271 0.004975 **
-# year        1    0.2871 0.28707  13.722 0.07903 0.004975 **
-# Area:year   1    0.0569 0.05689   2.719 0.01566 0.009950 **
-# Residuals 122    2.5523 0.02092         0.70261            
-# Total     125    3.6326                 1.00000 
+#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+#Area        1    0.8614 0.86138  39.894 0.20597 0.004975 **
+#year        1    0.3261 0.32614  15.105 0.07799 0.004975 **
+#Area:year   1    0.0579 0.05794   2.683 0.01385 0.039801 * 
+#Residuals 136    2.9365 0.02159         0.70218            
+#Total     139    4.1820                 1.00000   
 
 
 adonis(decostand(deepCPUE_spread3[2:54],"hell") ~ Area*year, data = deepCPUE_spread3, permutations = 200, method = "bray")
 # Note this significance is likely driven by differences between 5 vs all other sites, not sites 1-4
-#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
-# Area       1   0.25909 0.25909 19.4659 0.17013 0.004975 **
-# year       1   0.35357 0.35357 26.5645 0.23217 0.004975 **
-# Area:year  1   0.03181 0.03181  2.3896 0.02088 0.034826 * 
-# Residuals 66   0.87845 0.01331         0.57682            
-# Total     69   1.52292                 1.00000 
+#          Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+#Area       1   0.13534 0.13534  8.8843 0.08887 0.004975 **
+#year       1   0.35357 0.35357 23.2101 0.23217 0.004975 **
+#Area:year  1   0.02860 0.02860  1.8772 0.01878 0.099502 . 
+#Residuals 66   1.00541 0.01523         0.66019            
+#Total     69   1.52292                 1.00000  
 
 ######################################################
 ######################################################
@@ -494,18 +495,18 @@ anova(shallowTest_years) # p = 1 ... how does this add up with our signifant bet
 adonis(wisconsin(sqrt(deepCPUE_spread3[,2:54])) ~ Area*year, data = deepCPUE_spread3, permutations = 200, method = "bray")
 # Terms added sequentially (first to last)
 # 
-#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
-# Area       1   0.45975 0.45975 27.3499 0.22935 0.004975 **
-# year       1   0.41073 0.41073 24.4335 0.20490 0.004975 **
-# Area:year  1   0.02462 0.02462  1.4648 0.01228 0.208955   
-# Residuals 66   1.10946 0.01681         0.55347            
-# Total     69   2.00457                 1.00000 
+#          Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
+#Area       1   0.31119 0.31119 16.2707 0.15524 0.004975 **
+#year       1   0.41073 0.41073 21.4751 0.20490 0.004975 **
+#Area:year  1   0.02035 0.02035  1.0642 0.01015 0.353234   
+#Residuals 66   1.26230 0.01913         0.62971            
+#Total     69   2.00457                 1.00000  
 
 adonis(wisconsin(sqrt(deepCPUE_spread3[,2:54])) ~ Area, data = deepCPUE_spread3, permutations = 200, method = "bray")
-#           Df SumsOfSqs MeanSqs F.Model      R2   Pr(>F)   
-# Area       1   0.45975 0.45975  20.238 0.22935 0.004975 **
-# Residuals 68   1.54482 0.02272         0.77065            
-# Total     69   2.00457                 1.00000
+#          Df SumsOfSqs  MeanSqs F.Model      R2   Pr(>F)   
+#Area       1   0.31119 0.311189  12.496 0.15524 0.004975 **
+#Residuals 68   1.69338 0.024903         0.84476            
+#Total     69   2.00457                  1.00000 
 
 
 
