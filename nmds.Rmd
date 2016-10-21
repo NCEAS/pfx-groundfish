@@ -183,7 +183,6 @@ points(ordAllHellinger, display = 'sites', cex = goodness (ordAllHellinger)*200)
 
 
 # Create ordination plots for Wisconsin double standardization + Square root transformation:
-par(mfrow = c(1,2))
 
 # Plot shallow areas:
 ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
@@ -223,8 +222,11 @@ ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=14, col="gre
 ordihull(ordDeepWiscSqrt, groups=deepCPUE_spread3$Area, show.groups=15, col="blue", label=T, lwd=3, lty=1)
 
 
-par(mfrow=c(1,1))
-# Ordination plot for shallow + deep areas:
+
+
+###############
+
+# Ordination plot for shallow + deep areas, Wisconsin-Sqrt Transformation:
 ordiplot(ordAllWiscSqrt, type="n", choices=c(1,2), main="Wisc-Sqrt Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
 #title(main="Wisconsin + Sqrt Transformation")
 #text(ordAllWiscSqrt, display = "sites", cex = 0.5, col="black")
@@ -252,9 +254,9 @@ ordihull(ordAllWiscSqrt, groups=CPUE_spread3$Area, show.groups=15, col="orangere
 #####
 
 # Create ordination plots for Hellinger transformation:
-par(mfrow = c(1,2))
+
 # Plot shallow areas:
-ordiplot(ordShallowHellinger, type="n", choices=c(1,2), main="Hellinger Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+ordiplot(ordShallowHellinger, type="n", choices=c(1,2), xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2)), main="Hellinger Transformation",
 #title(main="Shallow Areas, Hellinger")
 #text(ordShallowHellinger, display = "sites", cex = 0.5, col="black")
 text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
@@ -286,9 +288,11 @@ ordihull(ordDeepHellinger, groups=deepCPUE_spread3$Area, show.groups=15, col="bl
 
 
 
-# Ordination plot for shallow + deep areas:
-par(mfrow = c(1,1))
-ordiplot(ordAllHellinger, type="n", choices=c(1,2), main="Hellinger Transformation", xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
+
+#############
+
+# Ordination plot for shallow + deep areas, Hellinger Transformation:
+ordiplot(ordAllHellinger, type="n", choices=c(1,2), xlab="NMDS 1", ylab="NMDS 2")#, ylim = c(-0.3, 0.2))
 #title(main="Hellinger Transformation")
 #text(ordAllHellinger, display = "sites", cex = 0.5, col="black")
 text(ordAllHellinger, display = "spec", cex = 0.5, col="black")
