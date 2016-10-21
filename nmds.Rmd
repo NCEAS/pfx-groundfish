@@ -472,28 +472,35 @@ adonis(decostand(deepCPUE_spread3[2:54],"hell") ~ Area*year, data = deepCPUE_spr
 #Residuals 66   1.00541 0.01523         0.66019            
 #Total     69   1.52292                 1.00000  
 
-######################################################
-######################################################
-######################################################
 
 
+###################
 # Homogeneity of multivariate dispersion:
 
-shallowDist = vegdist(wisconsin(sqrt(shallowCPUE_spread3[,2:54])),"bray") # consider Hellinger transformation to deal with superabundant vs super rare species (see Legendre & Legendre)
+shallowDist <- vegdist(wisconsin(sqrt(shallowCPUE_spread3[,2:54])),"bray") # consider Hellinger transformation to deal with superabundant vs super rare species (see Legendre & Legendre)
 #shallowDist = vegdist(wisconsin(sqrt(shallowCPUE_spread3[,2:54])),"jaccard") 
 
 
-shallowTest_areas = betadisper(shallowDist,shallowCPUE_spread3$Area) # this gives within-area variability (ie looks at temporal effects ... how different is each year from the mean across all years)
+shallowTest_areas <- betadisper(shallowDist,shallowCPUE_spread3$Area) # this gives within-area variability (ie looks at temporal effects ... how different is each year from the mean across all years)
 boxplot(shallowTest_areas) # indicates temporal turnover (beta diversity in time)
 anova(shallowTest_areas) # p = 0.94   Shows that area of each hull in nmds is not significantly different ... ie no difference in temporal turnover between areas
+#            Df   Sum Sq    Mean Sq F value Pr(>F)
+# Groups      9 0.005072 0.00056356  0.3949 0.9357
+# Residuals 130 0.185509 0.00142699 
 # TukeyHSD(shallowTest_areas) # irrelevant
 
 
-shallowTest_years = betadisper(shallowDist,shallowCPUE_spread3$year) # within-year variability ... how different is each area from the mean across all areas?
+shallowTest_years <- betadisper(shallowDist,shallowCPUE_spread3$year) # within-year variability ... how different is each area from the mean across all areas?
 boxplot(shallowTest_years)
 anova(shallowTest_years) # p = 1 ... how does this add up with our signifant betwen-region result???
+#            Df  Sum Sq   Mean Sq F value Pr(>F)
+# Groups     13 0.00232 0.0001784  0.0378      1
+# Residuals 126 0.59462 0.0047192
 # TukeyHSD(shallowTest_years) # irrelevant
 
+
+
+######################################################
 
 # Deep areas:
 adonis(wisconsin(sqrt(deepCPUE_spread3[,2:54])) ~ Area*year, data = deepCPUE_spread3, permutations = 200, method = "bray")
@@ -514,18 +521,27 @@ adonis(wisconsin(sqrt(deepCPUE_spread3[,2:54])) ~ Area, data = deepCPUE_spread3,
 
 
 
-deepDist = vegdist(wisconsin(sqrt(deepCPUE_spread3[,2:54])),"bray") # consider Hellinger transformation
-#deepDist = vegdist(wisconsin(sqrt(deepCPUE_spread3[,2:54])),"jaccard") 
+###################
+# Homogeneity of multivariate dispersion:
 
-deepTest = betadisper(deepDist,deepCPUE_spread3$Area)
+deepDist <- vegdist(wisconsin(sqrt(deepCPUE_spread3[,2:54])),"bray") # consider Hellinger transformation
+#deepDist <- vegdist(wisconsin(sqrt(deepCPUE_spread3[,2:54])),"jaccard") 
+
+deepTest <- betadisper(deepDist,deepCPUE_spread3$Area)
 boxplot(deepTest)
 anova(deepTest) # p = 0.89   
+#           Df  Sum Sq    Mean Sq F value Pr(>F)
+# Groups     4 0.00188 0.00046998   0.277 0.8919
+# Residuals 65 0.11031 0.00169700  
 # TukeyHSD(deepTest) # irrelevant
 
 
-deepTest_years = betadisper(deepDist,deepCPUE_spread3$year)
+deepTest_years <- betadisper(deepDist,deepCPUE_spread3$year)
 boxplot(deepTest_years)
 anova(deepTest_years) # p = 0.95 ... how does this add up with our signifant betwen-region result???
+#           Df   Sum Sq    Mean Sq F value Pr(>F)
+# Groups    13 0.004998 0.00038448  0.4309 0.9515
+# Residuals 56 0.049965 0.00089223 
 # TukeyHSD(deepTest_years) # irrelevant
 
 ```

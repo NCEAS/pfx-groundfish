@@ -13,6 +13,7 @@ library(gridExtra)
 
 
 # load the functional trait data from local source in our repository:
+setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
 traits_df <- read.csv("Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
 
 # or load it from our google drive:
@@ -215,7 +216,7 @@ for(i in 1:nrow(dCoef1)) { # add columns for trait, gender, location
 
 # bind these dfs together 
 # This creates a dataframe of all the functional trait data we have. These are summarized values - ie means, maxima, etc
-traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1, KL_df1, dCoef1) #kl_df1,
+traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1, dCoef1) #KL_df1,
 
 
 
@@ -285,8 +286,8 @@ traits_wide <- traits_df4 %>%
 
 
 quant = c("age50percentMaturity", "ageMaximum", "depthCoefPos", "depthMax", "depthRange", 
-         "firstMaturityAge", "firstMaturityLength", "K", "length50percentMaturity", 
-         "lengthMaximum", "Linfinity", "trophicPosition")
+         "firstMaturityAge", "firstMaturityLength", "length50percentMaturity", 
+         "lengthMaximum", "trophicPosition") # "K", "Linfinity"
 traits_wide[,quant] <- apply(traits_wide[,quant], 2, function(x) as.numeric(x)) # convert columns to numeric as needed
 traits_wide[,quant] <- apply(traits_wide[,quant], 2, function(y) log(y)) # log-transform the quantitative traits (as per recommendation in Botta-Dukat 2005)
 
@@ -295,7 +296,12 @@ traits_wide[,categ] <- lapply(traits_wide[,categ] , factor)
 #write.csv(traits_wide, file = "traits_wide.csv")
 
 
+##########################################################################
+##########################################################################
+##########################################################################
 
+
+traits_wide <- read.csv("traits_wide.csv", header=T)
 # which pairs of (log-transformed) quantitative traits are correlated?
 pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
 names(traits_wide[,quant])
@@ -342,12 +348,15 @@ View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
 
 
 # load Mean annual CPUE data for Shallow Areas:
-URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
-SPCPUEArea_Get <- GET(URL_SPCPUEArea)
-SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
-SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
+#URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
+#SPCPUEArea_Get <- GET(URL_SPCPUEArea)
+#SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
+#SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
 #View(SPCPUEArea)
 
+setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
+SPCPUEArea <- read.csv("All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE) # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
+str(SPCPUEArea)
 
 # NB  SPCPUEArea and deepCPUE both have only 53 taxa, not 57. Which ones are missing?
 # spDiffs <- setdiff(traits_wide$Species, deepCPUE$Species); spDiffs
@@ -357,12 +366,13 @@ SPCPUEArea <- read.csv(file=textConnection(SPCPUEArea_1),stringsAsFactors=FALSE,
 # organize Shallow Areas CPUE data for analysis in FD package:
 # unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
 spShallow_df <- SPCPUEArea %>%
+  filter(area != "Total", area != "8") %>% # remove regional totals and Ole's area 8
+  mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting
   select(area, year, Species, Mean.totalDensity) %>%
   filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
                           "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
                           "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
-  mutate(area = revalue(area, c("Total" = "10")), # recode Total for looping later
-         area = as.numeric(area)) # convert to numeric class
+  mutate(area = as.numeric(area)) # convert to numeric class
 
 Sh <- spShallow_df %>% 
   select(Species, area, year, Mean.totalDensity) %>%
@@ -370,7 +380,7 @@ Sh <- spShallow_df %>%
   spread(Species, Mean.totalDensity) %>%
   select(-year)
 
-shallowByArea_list <- split(Sh, f = Sh$area) # create a list of dataframes (one for each area; NB area 10 is Total)
+shallowByArea_list <- split(Sh, f = Sh$area) # create a list of dataframes (one for each area)
 
 shallowByArea_list1 <- lapply(shallowByArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
 
@@ -390,12 +400,13 @@ deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head
 # organize Deep Areas CPUE data for analysis in FD package:
 # unique(sort(setdiff(deepCPUE$Species, ft_df$Species)))
 spDeep_df <- deepCPUE %>%
+  filter(area != "Total") %>%
+  mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 (but removing 8)
   select(area, year, Species, Mean.totalDensity) %>%
   filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
                           "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
                           "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
-  mutate(area = revalue(area, c("Total" = "6")), # recode Total for looping later
-         area = as.numeric(area)) # convert to numeric class
+  mutate(area = as.numeric(area)) # convert to numeric class
 
 Dp <- spDeep_df %>% 
   select(Species, area, year, Mean.totalDensity) %>%
@@ -417,12 +428,13 @@ deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("are
 
 
 # Methods info from FD package documentation:
-# "If not all traits are numeric, Gower’s (1971) standardization by the
-#  range is automatically used; see gowdis for more details."
+# ***"If not all traits are numeric, Gower’s (1971) standardization by the
+#  range is automatically used; see gowdis for more details."***
 
 # "If x (trait df) is a matrix or a data frame that contains only continuous traits, no NAs, and no weights
 # are specified (i.e. w is missing), a species-species Euclidean distance matrix is computed via dist.
-# Otherwise, a Gower dissimilarity matrix is computed via gowdis."
+
+# ***Otherwise, a Gower dissimilarity matrix is computed via gowdis."***
 
 # "Rao’s quadratic entropy (Q) is computed from the uncorrected species-species distance matrix via divc."
 
@@ -432,7 +444,7 @@ deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("are
 
 
 # Rao's Q for Shallow Areas:
-ftMahalanobis <- mahaldis(as.matrix(ft_df)) # calculate Mahalanobis generalized distance for the functional trait matrix (using raw, not log-transformed, values)
+# ftMahalanobis <- mahaldis(as.matrix(ft_df)) # calculate Mahalanobis generalized distance for the functional trait matrix (using raw, not log-transformed, values)
 # then substitute this into dbFD() in place of ft_df
 # the above will produce a distance matrix for continuous traits. but how do I then use this with categorical traits?
 
@@ -469,23 +481,21 @@ for (i in seq_along(fdShallow)) {
 }
 
 year <- as.data.frame(unique(sort(SPCPUEArea$year))); colnames(year) <- "year"
-shallowRaoQ <- shallowRao1 %>% bind_cols(year) %>% 
-  select(-Area10) # remove column for total areas combined
+shallowRaoQ <- shallowRao1 %>% bind_cols(year)
 
 
 
 
 # Deep areas:
-colsDeep <- paste("Area", 1:6, sep="")
-deepRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 6)); colnames(deepRao1) <- colsDeep
+colsDeep <- paste("Area", 11:15, sep="")
+deepRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 5)); colnames(deepRao1) <- colsDeep
 
 for (i in seq_along(fdDeep)) {
   deepRao1[,i] <- data.frame(as.data.frame(fdDeep[[i]]$RaoQ))
 }
 
 year2 <- as.data.frame(unique(sort(deepCPUE$year))); colnames(year) <- "year"
-deepRaoQ <- bind_cols(year, deepRao1) %>% 
-  select(-Area6) # remove column for total areas combined
+deepRaoQ <- bind_cols(year, deepRao1)
 
 ######################################################
 ######################################################
@@ -507,6 +517,7 @@ shallowRaoQ_temporal <- ggplot(data=shallowRaoQ, aes(x=year3, y = value)) +
   geom_point(aes(y = Area7), size=2) +         geom_line(aes(y = Area7), size=2) +
   geom_point(aes(y = Area8), size=2) +         geom_line(aes(y = Area8), size=2) +
   geom_point(aes(y = Area9), size=2) +         geom_line(aes(y = Area9), size=2) +
+  geom_point(aes(y = Area10), size=2) +        geom_line(aes(y = Area10), size=2) +
   
   theme(axis.line=element_line('black'),
         panel.grid.major = element_blank(),
@@ -527,11 +538,11 @@ shallowRaoQ_temporal <- ggplot(data=shallowRaoQ, aes(x=year3, y = value)) +
 year4 <- unique(sort(deepCPUE$year))
 
 deepRaoQ_temporal <- ggplot(data=deepRaoQ, aes(x=year4, y = value)) + 
-  geom_point(aes(y = Area1), size=2, col=2) +  geom_line(aes(y = Area1), size=2, col=2) +
-  geom_point(aes(y = Area2), size=2, col=2) +  geom_line(aes(y = Area2), size=2, col=2) +
-  geom_point(aes(y = Area3), size=2) +         geom_line(aes(y = Area3), size=2) +
-  geom_point(aes(y = Area4), size=2) +         geom_line(aes(y = Area4), size=2) +
-  geom_point(aes(y = Area5), size=2) +         geom_line(aes(y = Area5), size=2) +
+  geom_point(aes(y = Area11), size=2, col=2) +  geom_line(aes(y = Area11), size=2, col=2) +
+  geom_point(aes(y = Area12), size=2, col=2) +  geom_line(aes(y = Area12), size=2, col=2) +
+  geom_point(aes(y = Area13), size=2) +         geom_line(aes(y = Area13), size=2) +
+  geom_point(aes(y = Area14), size=2) +         geom_line(aes(y = Area14), size=2) +
+  geom_point(aes(y = Area15), size=2) +         geom_line(aes(y = Area15), size=2) +
   
   theme(axis.line=element_line('black'),
         panel.grid.major = element_blank(),
@@ -560,13 +571,13 @@ grid.arrange(shallowRaoQ_temporal, deepRaoQ_temporal, ncol=2)
 year <- as.data.frame(unique(sort(SPCPUEArea$year)))
 
 shallowRao2 <- shallowRaoQ %>% 
-  gather(key = area, value = RaosQ, Area1:Area9) %>%
+  gather(key = area, value = RaosQ, Area1:Area10) %>%
   mutate(area = gsub("Area", "", area), 
          area = as.factor(area))
 
 deepRao2 <- deepRaoQ %>% 
-  gather(key = area, value = RaosQ, Area1:Area5) %>%
-  mutate(area = gsub("Area", "", area), 
+  gather(key = area, value = RaosQ, Area11:Area15) %>%
+  mutate(area = gsub("Area", "", area),
          area = as.factor(area))
 
 #########################
@@ -605,28 +616,30 @@ range(shallowRao2$RaosQ); range(deepRao2$RaosQ)
 shallow_FD <- ggplot(data=shallowRao2, aes(x = area, y = RaosQ)) + 
   geom_boxplot() + theme_boxplot() +
   xlab("Area (West <-> East)") + ylab("Rao's Q") +
-  xlim("9", "8", "7", "6", "5", "4", "3", "2", "1") + 
+  xlim("10", "9", "8", "7", "6", "5", "4", "3", "2", "1") + 
   #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
   ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
   #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
   #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
   theme(plot.background=element_blank(),
         axis.text.x = element_text(size=15))
+shallow_FD
 
 
 deep_FD <- ggplot(data=deepRao2, aes(x = area, y = RaosQ)) + 
   geom_boxplot() + theme_boxplot() +
   xlab("Area (West <-> East)") + ylab("Rao's Q") +
-  xlim("5", "4", "3", "2", "1") + 
+  xlim("15", "14", "13", "12", "11") + 
   #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
   ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
   #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
   #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
   theme(plot.background=element_blank(),
         axis.text.x = element_text(size=15))
+deep_FD
 
 
-grid.arrange(shallow_FD, deep_FD, ncol=2)
+#grid.arrange(shallow_FD, deep_FD, ncol=2)
 
 
 ######################################################
@@ -637,25 +650,49 @@ grid.arrange(shallow_FD, deep_FD, ncol=2)
 # Test for between-area differences in Rao's Q:
 # note that we are treating area as a factor, not a continuous variable
 
+plot(density(shallowRao2$RaosQ))
+
 shallowANOVA <- aov(RaosQ ~ area, data = shallowRao2)
-shallowANOVA <- aov(RaosQ ~ area*year, data = shallowRao2)
-shallowANOVA <- aov(RaosQ ~ area + year, data = shallowRao2)
 summary(shallowANOVA)
+#               Df  Sum Sq   Mean Sq F value   Pr(>F)    
+#  area          9 0.00241 2.678e-04   3.481 0.000698 ***
+#  Residuals   130 0.01000 7.694e-05 
+shapiro.test(shallowANOVA$residuals) # ok
 
-pairwise.t.test(shallowRao2$RaosQ, shallowRao2$area, p.adjust = "bonferroni", alternative = c("two.sided")) # alt = "two.sided", "less", "greater"
-# output = table of p-values, which tells us which pairs are significantly different 
+#shallowANOVA <- aov(RaosQ ~ area*year, data = shallowRao2) # interaction is not significant
+shallowANOVA1 <- aov(RaosQ ~ area + year, data = shallowRao2)
+summary(shallowANOVA1)
+#               Df   Sum Sq   Mean Sq F value   Pr(>F)    
+#  area          9 0.002410 0.0002678   3.772 0.000304 ***
+#  year          1 0.000841 0.0008412  11.845 0.000780 ***
+#  Residuals   129 0.009161 0.0000710 
 
+
+# which areas are different?
 TukeyHSD(shallowANOVA, conf.level = 0.95)
+# 6 is different from 1, 2, and 4
+# 2 and 10 are different
 
 
 
+
+
+plot(density(deepRao2$RaosQ))
 
 deepANOVA <- aov(RaosQ ~ area, data = deepRao2)
-deepANOVA <- aov(RaosQ ~ area*year, data = deepRao2)
-deepANOVA <- aov(RaosQ ~ area + year, data = deepRao2)
 summary(deepANOVA)
+#             Df   Sum Sq   Mean Sq F value Pr(>F)  
+# area         4 0.000617 1.542e-04   2.276 0.0705 .
+# Residuals   65 0.004405 6.776e-05 
+shapiro.test(deepANOVA$residuals) # p = 0.056 (residuals are almost not normal)
 
-pairwise.t.test(deepRao2$RaosQ, deepRao2$area, p.adjust = "bonferroni", alternative = c("two.sided")) # alt = "two.sided", "less", "greater"
-# output = table of p-values, which tells us which pairs are significantly different 
+#deepANOVA <- aov(RaosQ ~ area*year, data = deepRao2) # interaction is not significant
+deepANOVA1 <- aov(RaosQ ~ area + year, data = deepRao2)
+summary(deepANOVA1)
+#              Df   Sum Sq   Mean Sq F value   Pr(>F)    
+#  area         4 0.000617 0.0001542   2.866   0.0301 *  
+#  year         1 0.000961 0.0009612  17.866 7.68e-05 ***
+#  Residuals   64 0.003443 0.0000538 
 
-TukeyHSD(deepANOVA, conf.level = 0.95)
+
+
