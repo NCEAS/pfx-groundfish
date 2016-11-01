@@ -1,0 +1,240 @@
+---
+#title: "Figures for Blake et al. diversity paper"
+#author: "M. Hunsicker"
+#date: "10/24/2016"
+output:
+  pdf_document: 
+  fig_height: 4
+  fig_width: 7
+---
+
+```{r, include=FALSE, echo=FALSE}
+###Steps, R code and output files for generating diversity metrics for 10 shallow and 5 deep area in the GoA
+
+#1. Selected deep areas by modifying Ole's original code.
+#Code: git_repos/pfx-groundfish/goaTrawl/RScripts/SelectingDeepAreasForComparison.MH.R
+#Output: pfx-groundfish/goaTrawl/Output Data/Deep_goa_discrete_areas_for_comparison_151_to_300m.final.csv
+
+#2. Projected occurrence and density estimates to defined area by modifying Ole's orginal code to get mean CPUE and occurence for each area.
+#Code: git_repos/pfx-groundfish/goaTrawl/RScripts/processINLAOutput_index_for_discrete.MH
+#Output: git_repos/pfx-groundfish/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv
+#Output:  git_repos/pfx-groundfish/All_sp_index_occurrenceByArea.Shallow.MH.final.csv
+#Output: git_repos/pfx-groundfish/All_sp_index_meanCPUEByArea.Deep.MH.final.csv
+#Output: git_repos/pfx-groundfish/All_sp_index_occurrenceByArea.Deep.MH.final.csv
+
+#3. Generated bootstrapped estimates of diversity metrics. 
+#Code: git_repos/pfx-groundfish/goaTrawl/RScriptsBootstrap.Diversity.Final.R
+#Output: git_repos/pfx-groundfish/DiversityMetrics.Shallow.Bootstrapped.Final
+#Output: git_repos/pfx-groundfish/DiversityMetrics.Deep.Bootstrapped.Final
+
+# 4. Generated figures using code in this r markdown file.
+```
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load all necessary packages
+library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ; 
+library(sp) ; library(maptools) ; library(raster) ; library(ggplot2) ; 
+library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ; library(extrafont) ; 
+library(vegan) ; library(scales)
+```
+
+```{r loadMapData, message=FALSE, echo=FALSE, warning=FALSE}
+# Map of area locations
+#discrete_ShallowAreas <- read.csv("./goaTrawl/Output #Data/Shallow_goa_discrete_areas_for_comparison_50_to_150m.final.csv")
+#discrete_DeepAreas <- read.csv("./goaTrawl/Output #Data/Deep_goa_discrete_areas_for_comparison_150_to_300m.final.csv")
+```
+
+ 
+```{r map, cache=FALSE, echo=FALSE, warning=FALSE}
+# Figure 1: Map of shallow and deep study areas overlaid with EVOS slick 
+    ak <- map_data('worldHires','USA:Alaska')
+    akmap <- ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color="black") +
+             theme(panel.background=element_rect(fill='aliceblue')) +
+             xlab(expression(paste(Longitude^o,~'W'))) +
+             ylab(expression(paste(Latitude^o,~'N'))) +
+             coord_map(xlim = c(-160, -143),ylim = c(54, 61))
+```
+
+```{r, fig.cap="Locations of shallow areas (50-150 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
+#map of Shallow locations
+#discrete_ShallowAreas$area <- discrete_ShallowAreas$Area
+#discrete_ShallowAreas$Area <- factor(discrete_ShallowAreas$area)
+
+#akmap + geom_point(data=discrete_ShallowAreas,aes(LONGITUDE,LATITUDE,color=Area))
+```
+
+```{r, fig.cap="Locations of deep areas (>150-300 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
+#map of Deep locations
+#discrete_DeepAreas$area <- discrete_DeepAreas$Area
+#discrete_DeepAreas$Area <- factor(discrete_DeepAreas$area)
+
+#akmap + geom_point(data=discrete_DeepAreas,aes(LONGITUDE,LATITUDE,color=Area))
+```
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Make custom theme for plotting
+theme_boxplot <- function(base_size = 12){
+  theme_bw(base_size)%+replace%
+    theme(legend.key.size=unit(15,"points"),
+          legend.text=element_text(size=14),
+          legend.key=element_blank(),
+          legend.title=element_blank(),
+          legend.background=element_rect(colour="white", fill="transparent"),
+          plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
+          panel.border=element_blank(),
+          panel.margin=unit(0,"lines"),
+          panel.background=element_rect(fill=NA, colour=NA),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.ticks.length=unit(1,"mm"),
+          axis.text.x = element_text(margin=margin(5,0,0,0), size=15), 
+          axis.text.y = element_text(margin=margin(0,5,0,0), size=15),
+          axis.title.x=element_text(size=15, margin=margin(15,0,0,0)),
+          axis.title.y=element_text(size=15, angle=90, margin=margin(0,15,0,0)),
+          strip.text.x=element_text(size=14),
+          strip.background=element_rect(colour="black", fill='white'))
+}
+```
+
+
+```{r, include=FALSE, echo=FALSE,results='hide'}
+# Figure 2a Diversity Metrics for 1 shallow areas
+# Read in diversity metrics for 10 shallow areas (1-10)
+shallowDat<-read.csv("/Users/flipper/Documents/git_repos/pfx-groundfish/DiversityMetrics.Shallow.Bootstrapped.final.csv")
+shallowDat$AREA<-as.factor(shallowDat$AREA)
+```
+
+```{r, include=FALSE, echo=FALSE,results='hide'}
+#Boxplots Alpha Diversity Shallow Areas (exp H'):
+sp_box1 <- ggplot(data=shallowDat, aes(AREA, y=Eff_Num_Sp)) + 
+  geom_boxplot() + theme_boxplot() + 
+  theme(axis.title.x=element_blank())+
+  #xlab("Area (West <-> East)") +
+  ylab("Alpha Diversity (exp H')") +
+  xlim("10","9","8","7","6","5","4","3","2","1") + #shallow areas
+  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
+  theme(legend.position="none", plot.background=element_blank(),
+        axis.text.x=element_text(size=15),
+        plot.title=element_text(colour="black", size=15,
+                                hjust=0.04, vjust=0.5, face="bold"))
+```
+
+```{r, echo=FALSE,fig.height=4, fig.width=7}
+sp_box1
+```
+
+```{r, include=FALSE, echo=FALSE,results='hide'}
+#Boxplots Beta Diversity Shallow Areas:
+sp_box2 <- ggplot(data=shallowDat, aes(AREA, y=Exp_B_Div)) +
+  geom_boxplot() + theme_boxplot() + 
+  theme(axis.title.x=element_blank())+
+  #xlab("Area (West <-> East)") +
+  ylab("Beta Diversity") +
+  xlim("10","9","8","7","6","5","4","3","2","1") + #shallow areas
+  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
+  theme(legend.position="none", plot.background=element_blank(),
+        axis.text.x=element_text(size=15),
+        plot.title=element_text(colour="black", size=15,
+                                hjust=0.04, vjust=0.5, face="bold"))
+```
+
+```{r, echo=FALSE,fig.height=4, fig.width=7}
+sp_box2
+```
+
+```{r, include=FALSE, echo=FALSE,results='hide'}
+#Boxplots Species Richness shallow areas:
+sp_box3 <- ggplot(data=shallowDat, aes(AREA, y=Sp_rich)) + 
+  geom_boxplot() + theme_boxplot() + xlab("Area (West <-> East)") +
+  theme(axis.title.x=element_blank())+
+  ylab("Species Richness") +
+  xlim("10","9","8","7","6","5","4","3","2","1") + 
+  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
+  theme(legend.position="none", plot.background=element_blank(),
+        axis.text.x=element_text(size=15),
+        plot.title=element_text(colour="black", size=15,
+                               hjust=0.04, vjust=0.5, face="bold"))
+```
+
+```{r, fig.cap="Alpha diversity, beta diversity and species richness of the groundfish assemblage in shallow areas of the Gulf of Alaska. The medians and confidence intervals estimated from bootstrap sampling are shown.", echo=FALSE,fig.height=4, fig.width=7}
+sp_box3
+```
+
+
+
+
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Figure 2b Diversity Metrics for deep areas
+# Read in diversity data for 5 deep areas (11-15)
+dat<-read.csv("/Users/flipper/Documents/git_repos/pfx-groundfish/DiversityMetrics.Deep.Bootstrapped.final.csv")
+
+deepDat <- dat%>%
+  mutate(plotAREA = ifelse((AREA=="1"),'11',
+                ifelse((AREA=="2"),'12',
+                ifelse((AREA=="3"),'13',
+                ifelse((AREA=="4"),'14',       
+                ifelse((AREA=="5"),'15',
+                "")))))
+        )
+deepDat$AREA<-as.factor(deepDat$plotAREA)
+```
+
+```{r, include=FALSE, echo=FALSE,results='hide'}
+#Boxplots Alpha Diversity Deep Areas (exp H'):
+sp_box4 <- ggplot(data=deepDat, aes(AREA, y=Eff_Num_Sp)) + 
+  geom_boxplot() + theme_boxplot() + 
+  #xlab("Area (West <-> East)") +
+  theme(axis.title.x=element_blank())+
+  ylab("Alpha Diversity (exp H')") +
+  xlim("15","14","13","12","11") 
+  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
+  theme(legend.position="none", plot.background=element_blank(),
+        axis.text.x=element_text(size=15),
+        plot.title=element_text(colour="black", size=15,
+                                hjust=0.04, vjust=0.5, face="bold"))
+```
+
+```{r, echo=FALSE,fig.height=4, fig.width=7}
+sp_box4
+```
+
+```{r, include=FALSE, echo=FALSE,results='hide'}
+#Boxplots Beta Diversity Deep Areas:
+sp_box5 <- ggplot(data=deepDat, aes(AREA, y=Exp_B_Div)) + 
+  geom_boxplot() + theme_boxplot() + 
+  #xlab("Area (West <-> East)") +
+  theme(axis.title.x=element_blank())+
+  ylab("Beta Diversity") +
+  xlim("15","14","13","12","11") 
+  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
+  theme(legend.position="none", plot.background=element_blank(),
+        axis.text.x=element_text(size=15),
+        plot.title=element_text(colour="black", size=15,
+                                hjust=0.04, vjust=0.5, face="bold"))
+```
+
+```{r, echo=FALSE,fig.height=4, fig.width=7}
+sp_box5
+```
+
+```{r, include=FALSE, echo=FALSE,results='hide'}
+#Boxplots Species Richness Deep areas:
+sp_box6 <- ggplot(data=deepDat, aes(AREA, y=Sp_rich)) + 
+  geom_boxplot() + theme_boxplot() + xlab("Area (West <-> East)") +
+  ylab("Species Richness") +
+  xlim("15","14","13","12","11") + 
+  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
+  theme(legend.position="none", plot.background=element_blank(),
+        axis.text.x=element_text(size=15),
+        plot.title=element_text(colour="black", size=15,
+                                hjust=0.04, vjust=0.5, face="bold"))
+```
+
+```{r, fig.cap="Alpha diversity, beta diversity and species richness of the groundfish assemblage in deep areas of the Gulf of Alaska. Medians and confidence intervals estimated from bootstrap sampling are shown.", echo=FALSE,fig.height=4, fig.width=7}
+sp_box6
+```
