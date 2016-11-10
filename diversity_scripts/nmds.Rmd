@@ -25,7 +25,7 @@ common_1 <- content(common_Get, as='text')
 common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
 
 common1 <- common %>%
-  select(database.name, common.name) %>%
+  dplyr::select(database.name, common.name) %>%
   rename(Species = database.name)
 for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
   if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
@@ -43,8 +43,8 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 #View(shallowCPUEArea)
 
 # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
-setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
-shallowCPUEArea <- read.csv("All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
+#setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
+shallowCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
   filter(area != "Total", area != "8") %>% # remove regional totals and Ole's area 8
@@ -114,17 +114,17 @@ We do not use a Hellinger transformation because it reduces the influence of ver
 
 # organize Shallow areas data for nMDS:
 shallowCPUE_spread3 <- shallowCPUEArea2 %>%
-  select(common.name, Mean.totalDensity, area, year) %>%
-  spread(common.name, Mean.totalDensity) %>% # make each species a column
-  mutate(Area = as.numeric(area)) %>% select(-area) # convert area to numeric
+                       dplyr::select(common.name, Mean.totalDensity, area, year) %>%
+                       spread(common.name, Mean.totalDensity) %>% # make each species a column
+                       mutate(Area = as.numeric(area)) %>% dplyr::select(-area) # convert area to numeric
 
 
 
 # organize Deep areas data for nMDS:
 deepCPUE_spread3 <- deepCPUEArea2 %>%
-  select(common.name, Mean.totalDensity, area, year) %>%
-  spread(common.name, Mean.totalDensity) %>% # make each species a column
-  mutate(Area = as.numeric(area)) %>% select(-area) # convert area to numeric
+                    select(common.name, Mean.totalDensity, area, year) %>%
+                    spread(common.name, Mean.totalDensity) %>% # make each species a column
+                    mutate(Area = as.numeric(area)) %>% select(-area) # convert area to numeric
 
 
 
@@ -190,16 +190,18 @@ ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1",
 #text(ordShallowWiscSqrt, display = "sites", cex = 0.5, col="black")
 text(ordShallowWiscSqrt, display = "spec", cex = 0.5, col="black")
 #ordiplot(ordShallowWiscSqrt, display = "sites") #, groups=shallowCPUE_spread3$Area)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=3, col="goldenrod", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=4, col="brown", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=5, col="green", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=6, col="blue", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=7, col="purple", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=8, col="pink", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=9, col="dark grey", label=T, lwd=3, lty=1)
-ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=10, col="black", label=T, lwd=3, lty=1)
+# colors from map and other plots ("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
+#           "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")   
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=1, col="#FFE6DA", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=2, col="#E3C9C6", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=3, col="#FCC5C0", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=4, col="#FA9FB5", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=5, col="#F768A1", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=6, col="#E7298A", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=7, col="#DD3497", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=8, col="#AE017E", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=9, col="#7A0177", label=T, lwd=3, lty=1)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=10, col="#49006A", label=T, lwd=3, lty=1)
 
 
 # areas 8 & 9  are very different from the rest, and also from each other.
@@ -261,16 +263,18 @@ ordiplot(ordShallowHellinger, type="n", choices=c(1,2), xlab="NMDS 1", ylab="NMD
 #text(ordShallowHellinger, display = "sites", cex = 0.5, col="black")
 text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
 #ordiplot(ordShallowHellinger, display = "sites") #, groups=shallowCPUE_spread3$Area)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=1, col="red", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=2, col="orange", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=3, col="goldenrod", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=4, col="brown", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=5, col="green", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=6, col="blue", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=7, col="purple", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=8, col="pink", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=9, col="dark grey", label=T, lwd=3, lty=1)
-ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=10, col="black", label=T, lwd=3, lty=1)
+# colors from map and other plots ("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
+#           "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")  
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=1, col="#FFE6DA", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=2, col="#E3C9C6", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=3, col="#FCC5C0", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=4, col="#FA9FB5", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=5, col="#F768A1", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=6, col="#E7298A", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=7, col="#DD3497", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=8, col="#AE017E", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=9, col="#7A0177", label=T, lwd=3, lty=1)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=10, col="#49006A", label=T, lwd=3, lty=1)
 
 
 
