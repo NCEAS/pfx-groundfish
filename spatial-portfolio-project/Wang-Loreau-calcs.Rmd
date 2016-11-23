@@ -37,15 +37,7 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE data for Shallow Areas:
-#URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
-#shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
-#shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
-#shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(shallowCPUEArea)
-
-
-setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data") # set this to the path on your local machine
-shallowCPUEArea <- read.csv("All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
+shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
@@ -161,10 +153,10 @@ Although we can compare local and regional community stability using CVs alone, 
 The following uses formulas from Wang & Loreau's (2014) Supp Mat (i.e. for the case where biomass varies within and between local communities).
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
-# CONSIDER WHETHER TO LOG-TRANSFORME SPECIES FIRST
+# CONSIDER WHETHER TO LOG THE CUES FIRST
+
 
 # note: for applying this to our spatial groupings, your_df should have a column called spatialGrouping, which contains the grouping code
-
 WangLoreau_func <- function(your_df){
   
   #shallowAreas_list <- split(your_df, f = your_df$area) # create a list of dataframes (one df for each local area)
