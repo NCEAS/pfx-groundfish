@@ -8,7 +8,6 @@ output: pdf_document
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load packages
-library(httr)
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -20,10 +19,7 @@ library(gridExtra)
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prep look-up table of common names
-URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
-common_Get <- GET(URL_common)
-common_1 <- content(common_Get, as='text')
-common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
   select(database.name, common.name) %>%
@@ -39,7 +35,6 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 # load mean annual CPUE data for Shallow Areas:
 shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
-
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
   filter(area != "8") %>% # remove Ole's area 8
@@ -50,15 +45,11 @@ shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # me
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE for Deep areas:
-URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
-deepCPUEArea_Get <- GET(URL_deepCPUEArea)
-deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
-deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(deepCPUEArea)
+deepCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.final.csv", header = T, stringsAsFactors = FALSE) # this is the latest file created by Mary Oct 26 2016
 
 deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in common names
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
-  mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13", "Total" = "Region")))
+  mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13", "Total" = "Region"))) # renumbering areas
 
 ```
 
@@ -103,7 +94,7 @@ CV_shallow_plot <- ggplot(data=CV_shallow, aes(x=area, y = CV)) +
 
   scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) +
   
-  labs(x = "Area", y = "CV (Total CPUE)", title = "Shallow Areas")
+  labs(x = "Local Community", y = "CV (Total CPUE)", title = "Shallow Areas")
 
 
 
@@ -141,7 +132,7 @@ CV_deep_plot <- ggplot(data=CV_deep, aes(x=area, y = CV)) +
   
   scale_y_log10(breaks = c(0.15, 0.2, 0.25, 0.3, 0.35, 0.4)) +
   
-  labs(x = "Area", y = "CV (Total CPUE)", title = "Deep Areas")
+  labs(x = "Local Community", y = "CV (Total CPUE)", title = "Deep Areas")
 
 
 
