@@ -19,7 +19,7 @@ library(gridExtra)
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prep look-up table of common names
-common <- read.csv("../diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
+common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
   select(database.name, common.name) %>%
@@ -32,14 +32,14 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 
 
 # load area file
-area <- read.csv("../spatial-portfolio-project/local-community-area.csv", header = T, stringsAsFactors = F) # note area numbers do not need updating; they reflect remove Ole's area 8
+area <- read.csv("./spatial-portfolio-project/local-community-area.csv", header = T, stringsAsFactors = F) # note area numbers do not need updating; they reflect remove Ole's area 8
 
 ```
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE data for Shallow Areas:
-shallowCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
+shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
@@ -265,7 +265,7 @@ ggplot(data=plotting_df, aes(x=Area, y = CV, color = startingFrom)) +
 
 # load occurrence data
 occDat <-read.csv("./diversity-data/All_sp_index_occurrenceByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
-View(occDat)
+#View(occDat)
 
 area1 <- area %>%
   filter(area != "Region") %>%
@@ -288,12 +288,11 @@ Richness_Area_func <- function(my_df, spatialGrouping){
       filter(area %in% spatialGrouping[[i]]) %>%
       
       group_by(year.numb, Species) %>%
-      summarize(meanPresenceBySpecies = mean(Mean.avgPresence)) %>% # mean presence of each species, in each year, for each spatialGrouping
-      # NOTE mean may still not be the right thing to do ...
+      summarize(presenceBySpecies = max(Mean.avgPresence)) %>% # take maximum probability of occurrence of each species, in each year, for each spatialGrouping
       ungroup() %>%
       
       group_by(year.numb) %>%
-      summarize(spPresenceByYear = sum(meanPresenceBySpecies)) %>% # spRichness for each year = sum of all spPresence across all species
+      summarize(spPresenceByYear = sum(presenceBySpecies)) %>% # spRichness for each year = sum of all presenceBySpecies, across all species
       ungroup() %>%
 
       summarize(spRichness = mean(spPresenceByYear)) %>% # mean spRichness across all years for each spatialGrouping
@@ -337,7 +336,7 @@ big_list <- c(a, b, c, d, e, f, g, h, k, l, m, n, o, q)
 
 
 richness1 <- Richness_Area_func(occDat1, big_list)
-richness1
+View(richness1)
 
 
 ############
@@ -345,21 +344,20 @@ richness1
 # plot the result
 
 ggplot(data=richness1, aes(x=Area, y = speciesRichness)) + 
-  geom_point(aes(y = speciesRichness), size=2) +
-  #geom_line(aes(y = speciesRichness), size = 1) +
+  geom_point(aes(y = speciesRichness), size=5) +
   
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
         axis.line.y = element_line(color="black"),
         axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
         axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
-        axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
-        axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
   scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Area (km^2)", y = "Species Richness")
+  labs(x = "Area (km^2)", y = "Species Richness (summed probability of occurrence)")
 
 
 ############
