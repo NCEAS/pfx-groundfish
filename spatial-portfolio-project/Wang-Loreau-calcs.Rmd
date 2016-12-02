@@ -46,7 +46,9 @@ shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # me
   filter(area != "8") %>% # remove Ole's area 8
   mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 but removing 8
   mutate(area = revalue(area, c("Total" = "Region"))) %>%
-  left_join(area, by = "area")
+  left_join(area, by = "area") %>%
+  filter(area != "Region") %>% # run as needed for analyses below
+  mutate(area = as.numeric(area))
 
 ```
 
@@ -284,7 +286,7 @@ Richness_Area_func <- function(my_df, spatialGrouping){
   
   for(i in seq_along(spatialGrouping)) {
     
-    richness_agg_list[[i]] <- occDat %>%
+    richness_agg_list[[i]] <- my_df %>%
       filter(area %in% spatialGrouping[[i]]) %>%
       
       group_by(year.numb, Species) %>%
@@ -300,12 +302,15 @@ Richness_Area_func <- function(my_df, spatialGrouping){
     
     
     Area_agg_list[[i]] <- my_df %>%
-                            filter(area %in% spatialGrouping[[i]]) %>%
-                            select(area, km2) %>%
-                            group_by(area) %>%
-                            summarise(eachArea = first(km2)) %>%
-                            ungroup() %>%
-                            summarise(area_agg = sum(eachArea))
+      filter(area %in% spatialGrouping[[i]]) %>%
+      select(area, km2) %>%
+      
+      group_by(area) %>%
+      summarise(eachArea = first(km2)) %>%
+      ungroup() %>%
+      
+      summarise(area_agg = sum(eachArea))
+    
   }
   
   df_list <- list(Area_agg_list, richness_agg_list)
@@ -357,7 +362,9 @@ ggplot(data=richness1, aes(x=Area, y = speciesRichness)) +
   
   scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Area (km^2)", y = "Species Richness (summed probability of occurrence)")
+  labs(x = "Area (km^2)", 
+       y = "Species Richness 
+       (sum of max. probability of occurrence)")
 
 
 ############
@@ -400,136 +407,169 @@ The following uses formulas from Wang & Loreau's (2014) Supp Mat (i.e. for the c
 # CONSIDER WHETHER TO LOG THE CUES FIRST
 
 
-# note: for applying this to our spatial groupings, your_df should have a column called spatialGrouping, which contains the grouping code
-WangLoreau_func <- function(your_df){
+# nomenclature for the following calculations:
+# i, h = local community i (and h)
+# j, k, l = species j, k, l
+# j_i = species j in local community i
+# u = mean
+# w = variance or covariance
+# w_kk_i = variance of each species k within local community i
+# w_kl_i = covariance between species k and l within local community i
+# w_ii = variance (of total community CPUE) for each local community i
+# w_ih = covariance (of total community CPUE) between local communities i & h
+# rho = temporal Synchrony; inverse is Beta (temporal Asynchrony)
+
+
+    
+WangLoreau_func <- function(this_df, spatialGrouping){
   
-  #shallowAreas_list <- split(your_df, f = your_df$area) # create a list of dataframes (one df for each local area)
-  shallowAreas_list <- split(your_df, f = your_df$spatialGrouping) # create a list of dataframes (one df for each spatial group)
-
-  # nomenclature for the following calculations:
-  # i, h = local community i (and h)
-  # j, k, l = species j, k, l
-  # j_i = species j in local community i
-  # u = mean
-  # w = variance or covariance
-  # w_kk_i = variance of each species k within local community i
-  # w_kl_i = covariance between species k and l within local community i
-  # w_ii = variance (of total community CPUE) for each local community i
-  # w_ih = covariance (of total community CPUE) between local communities i & h
-  # rho = temporal Synchrony; inverse is Beta (temporal Asynchrony)
-
-
+  Area_agg_list <- list()
+  AA_list <- list(); AAA_list <- list()
+  u_m_list <- list(); alpha_CV_list <- list()
   A_list <- list(); B_list <- list(); C_list <- list(); D_list <- list(); E_list <- list(); F_list <- list()
   covMatrix_i_list <- list(); w_kk_i_list <- list(); rho_species_i_list <- list(); CV_i_list <- list()
+  another_df_list <- list(); covMatrix_m_list <- list(); w_ii_list <- list(); w_ih_list <- list()
+  summed_w_ih_list <- list(); rho_list <- list(); Beta1_list <- list(); gamma_CV_list <- list()
 
   
-  
-  for(i in seq_along(shallowAreas_list)) {
+  for(i in seq_along(spatialGrouping)) {
+    
+    AA_list[[i]] <- this_df %>%
+      filter(area %in% spatialGrouping[[i]]) 
+    
+    
+    Area_agg_list[[i]] <- AA_list[[i]] %>%
+      select(area, km2) %>%
+      group_by(area) %>%
+      summarise(eachArea = first(km2)) %>%
+      ungroup() %>%
+      summarise(area_agg = sum(eachArea))
+    
+    
+    
+    
+    for(j in seq_along(unique(sort(AA_list[[i]]$area)))) { # loop over each unique local area j within spatialGrouping in AA_list[[i]]
+      
+      AAA_list[[j]] <- AA_list[[i]] %>%
+         filter(area == j) 
+
     
   # 1. Calculate averaged species variability (C_list[[i]]$CV_species_i_squared):
   
   # calculate local community-level stuff
-    A_list[[i]] <- shallowAreas_list[[i]] %>%
+    A_list[[j]] <- AAA_list[[j]] %>%
       group_by(year) %>%
       summarise(annual_total_i = sum(Mean.totalDensity)) %>%
       ungroup() %>%
       summarise(var_i = var(annual_total_i),
                 stDev_i = sqrt(var(annual_total_i)),
                 u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local community i
-    
+
   
   # calculate species-level stuff
-    B_list[[i]] <- shallowAreas_list[[i]] %>%
+    B_list[[j]] <- AAA_list[[j]] %>%
       group_by(Species) %>%
       summarise(u_j_i = mean(Mean.totalDensity), # mean biomass (across all years) of species j in local community i
                 CV_j_i_squared = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in local community i. Note the usual formula for CV is squared
-                CV_species_j_i = u_j_i / A_list[[i]]$u_i * CV_j_i_squared) %>% # CV of species in local community i
+                CV_species_j_i = u_j_i / A_list[[j]]$u_i * CV_j_i_squared) %>% # CV of species in local community i
       ungroup()
   
   
   # calculate averaged species variability
-    C_list[[i]] <- B_list[[i]] %>%
+    C_list[[j]] <- B_list[[j]] %>%
       summarise(CV_species_i_squared = sum(CV_species_j_i))
   
   
   ##############################
   # 2. Calculate species asynchrony WITHIN local areas (rho_species_i_list[[i]]):
-    D_list[[i]] <- shallowAreas_list[[i]] %>%
+    D_list[[j]] <- AAA_list[[j]]%>%
       select(year, Mean.totalDensity, Species) %>%
       spread(Species, Mean.totalDensity) %>%
       select(-year)
     
+    covMatrix_i_list[[j]] <- cov(D_list[[j]]) # create the covariance matrix
     
-    covMatrix_i_list[[i]] <- cov(D_list[[i]]) # create the covariance matrix
+    w_kk_i_list[[j]] <- diag(covMatrix_i_list[[j]]) # extract diagonals of the covariance matrix. these are temporal variance of each species k within local community i
     
+    covMatrix_i_list[[j]][upper.tri(covMatrix_i_list[[j]], diag = TRUE)] <- NA # for each local community i, keep one copy of all the non-diagonals. these are w_kl_i
+    E_list[[j]] <- as.data.frame(covMatrix_i_list[[j]])
     
-    w_kk_i_list[[i]] <- diag(covMatrix_i_list[[i]]) # extract diagonals of the covariance matrix. these are temporal variance of each species k within local community i
+    F_list[[j]] <- E_list[[j]] %>%
+      summarise(sum_w_kl_i = sum(E_list[[j]][,1:53], na.rm = T)) # for each local community i, find the sum of all w_kl_i. calc has been checked
     
-    
-    covMatrix_i_list[[i]][upper.tri(covMatrix_i_list[[i]], diag = TRUE)] <- NA # for each local community i, keep one copy of all the non-diagonals. these are w_kl_i
-    E_list[[i]] <- as.data.frame(covMatrix_i_list[[i]])
-    
-    
-    F_list[[i]] <- E_list[[i]] %>%
-      summarise(sum_w_kl_i = sum(E_list[[i]][,1:53], na.rm = T)) # for each local community i, find the sum of all w_kl_i. calc has been checked
-    
-    
-    rho_species_i_list[[i]] <- F_list[[i]]$sum_w_kl_i / ((sum(sqrt(w_kk_i_list[[i]][1:53])))^2)
+    rho_species_i_list[[j]] <- F_list[[j]]$sum_w_kl_i / ((sum(sqrt(w_kk_i_list[[j]][1:53])))^2)
   
   
   ##############################
   # 3. Calculate Variability of local community i (CV_i_list[[i]])
-    CV_i_list[[i]] <- C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]]
-   #CV_i_list[[i]] <- (C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]])^2 # It's not clear whether this should be squared. If not squred, returns a negative value when within-patch species synchrony is negative.
-      
+    CV_i_list[[j]] <- C_list[[j]]$CV_species_i_squared * rho_species_i_list[[j]] # It's not clear whether this should be squared. If not squred, returns a negative value when within-patch species synchrony is negative
   # CHECK WHETHER LOCAL COMMUNITY VARIABILITY CORRELATES WITH SIZE (AREA) OF LOCAL COMMUNITY (IE DO LARGER AREAS SHOW MORE VARIABILITY?)
+    
+    } # end of j
   
-  
+    
   ##############################
   # 4. Calculate Alpha variability (local community variability weighed for local community biomass; alpha_CV_list[[i]])
-    u_m <- sum(A_list[[i]]$u_i)
-    alpha_CV <- (sum(A_list[[i]]$u_i / u_m * CV_i_list[[i]] ))^2 # It's not clear whether this should be squared.
+    u_m_list[[i]] <- sum(A_list[[j]]$u_i)
+    alpha_CV_list[[i]] <- (sum(A_list[[j]]$u_i / u_m_list[[i]] * CV_i_list[[j]] ))^2 # It's not clear whether this should be squared.
     
-    }
-
   
   ##############################
   # 5. Calculate Beta variability (spatial synchrony; rho)
   # note I'm replacing Wang & Loreau's local patch i & j notation with i & h, to avoid confusion with species j
-
-  shallowCPUEArea3 <- your_df %>%  
-    filter(area != "Total") %>%
+    
+  another_df_list[[i]] <- AA_list[[i]] %>%  
     group_by(area, year) %>%
     summarise(ann_tot_i = sum(Mean.totalDensity)) %>%
     ungroup() %>%
     spread(area, ann_tot_i) %>%
     select(-year)
   
+  covMatrix_m_list[[i]] <- cov(another_df_list[[i]]) # create the covariance matrix
   
-  covMatrix_m <- cov(shallowCPUEArea3) # create the covariance matrix
+  w_ii_list[[i]] <- diag(covMatrix_m_list[[i]]) # extract diagonals of the covariance matrix. returns a vector. this is temporal variance of total community CPUE, within each local community.
   
-  w_ii <- diag(covMatrix_m) # extract diagonals of the covariance matrix. returns a vector. this is temporal variance of total community CPUE, within each local community.
+  covMatrix_m_list[[i]][upper.tri(covMatrix_m_list[[i]], diag = TRUE)] <- NA # keep one copy of all the non-diagonals. These are w_ih (temporal covariance of total community biomass between local patches i & h). NB it would be nice to bring in species-level information here, to prevent dominant species from driving the result.
+  w_ih_list[[i]] <- as.data.frame(covMatrix_m_list[[i]])
   
-  covMatrix_m[upper.tri(covMatrix_m, diag = TRUE)] <- NA # keep one copy of all the non-diagonals. These are w_ih (temporal covariance of total community biomass between local patches i & h). NB it would be nice to bring in species-level information here, to prevent dominant species from driving the result.
-  w_ih <- as.data.frame(covMatrix_m)
+  summed_w_ih_list[[i]] <- w_ih_list[[i]] %>% 
+    summarise(sum_w_ih = sum(w_ih_list[[i]][,1:ncol(w_ih_list[[i]])], na.rm = T)) # find the sum of all w_ih. calc has been checked
+
+  rho_list[[i]] <- summed_w_ih_list[[i]]$sum_w_ih / ((sum(sqrt (w_ii_list[[i]][1:length(w_ii_list[[i]])] ) ))^2) # Wang & Loreau (2014) claim that standardizing for within-patch covariance accounts for spatial uneveness in biomass. Not sure about this.
   
-  summed_w_ih <-w_ih %>% summarise(sum_w_ih = sum(w_ih[,1:9], na.rm = T)) # find the sum of all w_ih. calc has been checked
-  
-  rho <- summed_w_ih$sum_w_ih / ((sum(sqrt(w_ii[1:9])))^2) # Wang & Loreau (2014) claim that standardizing for within-patch covariance accounts for spatial uneveness in biomass. Not sure about this.
-  Beta1 <- 1 / rho
-  
+  Beta1_list[[i]] <- 1 / rho_list[[i]]
+
 
   ##############################
   # 6. Calculate Gamma variability
   
-  gamma_CV <- alpha_CV / Beta1
+  gamma_CV_list[[i]] <- alpha_CV_list[[i]] / Beta1_list[[i]]
   
-  return(gamma_CV)
+  } # end of i
+  
+  WangLoreau_list <- list(Area_agg_list, alpha_CV_list, rho_list, gamma_CV_list)
+  WangLoreau_df <- as.data.frame(matrix(unlist(WangLoreau_list), nrow=length(unlist(WangLoreau_list[1]))))
+  colnames(WangLoreau_df) <- c("Area", "alphaCV", "Rho", "gammaCV")
+  return(WangLoreau_df)
+
 }
 
 
+############
 
-WangLoreau_func(shallowCPUEArea2) # test the function ... result is as expected.
+m <- list(1:4)
+n <- list(5:7)
+o <- list(8:10)
+q <- list(1:10)
+agg_list <- c(a, b, c, d, e, f, g, h, k, l, m, n, o, q)
+
+m <- list(1:4); agg_list <- c(m) # alpha_CV = 6.574154e-05
+m <- list(1:3); agg_list <- c(m) # alpha_CV = 2.969732e-05
+m <- list(1:10); agg_list <- c(m) # alpha_CV = 1.78654e-05
+m <- list(8:10); agg_list <- c(m) # Error: argumemt is not a character vector
+
+WangLoreau_func(shallowCPUEArea2, agg_list) # test the function ... only works for lists beginning with 1
+#otherwise  Error: argumemt is not a character vector
   
 ```
 
