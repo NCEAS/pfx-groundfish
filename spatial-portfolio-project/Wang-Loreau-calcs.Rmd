@@ -363,7 +363,7 @@ ggplot(data=richness1, aes(x=Area, y = speciesRichness)) +
   scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
   
   labs(x = "Area (km^2)", 
-       y = "Species Richness 
+       y = "Species Richness
        (sum of max. probability of occurrence)")
 
   
@@ -570,19 +570,120 @@ h <- list(8)
 k <- list(9)
 l <- list(10)
 
+
+
+a <- list(1:2)
+b <- list(3:4)
+c <- list(5:6)
+d <- list(7:8)
+e <- list(9:10)
+
+f <- list(1:3)
+g <- list(4:6)
+h <- list(7:9)
+
+k <- list(5:8)
+l <- list(6:10)
+
+t <- list(1:5)
+u <- list(6:10)
+
+v <- list(1:6)
+w <- list(5:10)
+
+zz <- list(4:10) 
+
 m <- list(1:4)
 n <- list(5:7)
 o <- list(8:10)
+r <- list(1:7)
+s <- list(5:10)
 q <- list(1:10)
 
-agg_list <- c(m, n, o, q)
-#agg_list <- c(a, b, c, d, e, f, g, h, k, l, m, n, o, q)
+#agg_list <- c(m, n, o, q, r, s)
+agg_list <- c(a, b, c, d, e, f, g, h, k, l, t, u, v, w, zz, m, n, o, r, s, q)
 
 result <- WangLoreau_func(shallowCPUEArea2, agg_list)
 result
 
 
 ```
+
+```{r, echo=F, fig.height=5, fig.width=5}
+
+# plot stuff
+
+alphaCV_plot <- ggplot(data=result, aes(x=Area, y = alphaCV)) + 
+  geom_point(aes(y = alphaCV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=8), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=10),
+        axis.title.x=element_text(size=12, margin=margin(7,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,7,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Area (km^2)", 
+       y = "Alpha CV")
+
+
+
+
+rho_plot <- ggplot(data=result, aes(x=Area, y = Rho)) + 
+  geom_point(aes(y = Rho), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=8), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=10),
+        axis.title.x=element_text(size=12, margin=margin(7,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,7,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  
+  scale_y_log10(breaks = c(0.001, 0.01, 0.1, 0.2), labels = c(0.001, 0.01, 0.1, 0.2)) +
+  
+  labs(x = "Area (km^2)", 
+       y = "Rho")
+
+
+
+
+gammaCV_plot <- ggplot(data=result, aes(x=Area, y = gammaCV)) + 
+  geom_point(aes(y = gammaCV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=8), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=10),
+        axis.title.x=element_text(size=12, margin=margin(7,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,7,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  
+  scale_y_log10(breaks = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001), labels = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001)) +
+  
+  labs(x = "Area (km^2)", 
+       y = "Gamma CV")
+
+
+
+
+grid.arrange(alphaCV_plot, rho_plot, gammaCV_plot, ncol = 2)
+
+```
+
+
+
+
 
 
 ###Within-patch sums of all between-species covariances. Negative values indicate asynchrony.
