@@ -8,7 +8,6 @@ output: pdf_document
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load packages
-library(httr)
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -20,10 +19,7 @@ library(gridExtra)
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prep look-up table of common names
-URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
-common_Get <- GET(URL_common)
-common_1 <- content(common_Get, as='text')
-common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
   select(database.name, common.name) %>%
@@ -32,36 +28,41 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
   if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
   if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
 }
+
+
+
+# load area file
+area <- read.csv("./spatial-portfolio-project/local-community-area.csv", header = T, stringsAsFactors = F) # note area numbers do not need updating; they reflect remove Ole's area 8
+
 ```
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE data for Shallow Areas:
-URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
-shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
-shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
-shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(shallowCPUEArea)
+shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
-  mutate(area = revalue(area, c("Total" = "Region")))
+  filter(area != "8") %>% # remove Ole's area 8
+  mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 but removing 8
+  mutate(area = revalue(area, c("Total" = "Region"))) %>%
+  left_join(area, by = "area") %>%
+  filter(area != "Region") %>% # run as needed for analyses below
+  mutate(area = as.numeric(area))
 
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE for Deep areas:
-URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
-deepCPUEArea_Get <- GET(URL_deepCPUEArea)
-deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
-deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(deepCPUEArea)
+deepCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.final.csv", header = T, stringsAsFactors = FALSE) # this is the latest file created by Mary Oct 26 2016
 
 deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in common names
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
-  mutate(area = revalue(area, c("1"="10", "2"="11", "3"="13", "4"="14", "5"="12", "Total" = "Region")))
+  mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13", "Total" = "Region")))  %>% # renumbering areas
+  left_join(area, by = "area")
 
 ```
+
 
 To address local vs regional community stability we can compare CVs of total CPUE between local communities and the regional metacommunity.
 The regional community does indeed show greater stability than local communities. Note that y-axis scales differ - deep areas are generally less stable than shallow areas.  
@@ -78,7 +79,9 @@ CV_shallow <- shallowCPUEArea2 %>%
   
   group_by(area) %>%
   summarise(CV = sd(total) / mean(total)) %>%
-  ungroup()
+  ungroup() %>%
+  
+  left_join(area, by = "area") # add area data
 
 # mean CV of shallow local areas
 # CV_shallow %>%
@@ -100,9 +103,11 @@ CV_shallow_plot <- ggplot(data=CV_shallow, aes(x=area, y = CV)) +
         axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
-  scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) + # how do I put minor tick marks on the y axis?
+  scale_x_discrete(limits=c(1:10, "Region")) +
+
+  scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) +
   
-  labs(x = "Area", y = "CV (Total CPUE)", title = "Shallow Areas")
+  labs(x = "Local Community", y = "CV (Total CPUE)", title = "Shallow Areas")
 
 
 
@@ -140,23 +145,267 @@ CV_deep_plot <- ggplot(data=CV_deep, aes(x=area, y = CV)) +
   
   scale_y_log10(breaks = c(0.15, 0.2, 0.25, 0.3, 0.35, 0.4)) +
   
-  labs(x = "Area", y = "CV (Total CPUE)", title = "Deep Areas")
+  labs(x = "Local Community", y = "CV (Total CPUE)", title = "Deep Areas")
 
 
 
 grid.arrange(CV_shallow_plot, CV_deep_plot, ncol=2)
 
+
+##########
+
+# plot CV vs area
+ggplot(data=CV_shallow, aes(x=km2, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=10), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=10),
+        axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_discrete(limits=c(1000, 5000, 10000, 20000, 30000, 40000, 50000, "Region")) +
+  
+  scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000)) +
+
+  scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) +
+  
+  labs(x = "Area of Local Community (km2)", y = "CV (Total CPUE)", title = "Shallow Areas")
+
 ```
+
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=8}
+
+# Calculate & plot CV vs Area (km^2)
+
+CV_Area_func <- function(my_df, spatialGrouping){
+  
+  CV_agg_list <- list()
+  Area_agg_list <- list()
+  df_list <- list()
+  
+  for(i in seq_along(spatialGrouping)) {
+  
+                CV_agg_list[[i]] <- my_df %>%
+                          filter(area %in% spatialGrouping[[i]]) %>%
+                          group_by(year) %>%
+                          summarise(total = sum(Mean.totalDensity)) %>%
+                          ungroup() %>%
+                          summarise(CV = sd(total) / mean(total))
+  
+                Area_agg_list[[i]] <- my_df %>%
+                            filter(area %in% spatialGrouping[[i]]) %>%
+                            select(area, km2) %>%
+                            group_by(area) %>%
+                            summarise(eachArea = first(km2)) %>%
+                            ungroup() %>%
+                            summarise(area_agg = sum(eachArea))
+  }
+  
+  df_list <- list(Area_agg_list, CV_agg_list)
+  my_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
+  colnames(my_df) <- c("Area", "CV")
+  return(my_df)
+  
+}
+
+
+############
+
+a <- list(1); b <- list(1:2); c <- list(1:3); d <- list(1:4); e <- list(1:5)
+f <- list(1:6); g <- list(1:7); h <- list(1:8); k <- list(1:9); l <- list(1:10)
+corner1_list <- c(a, b, c, d, e, f, g, h, k, l)
+
+m <- list(10); q <- list(9:10); r <- list(8:10); s <- list(7:10); t <- list(6:10)
+u <- list(5:10); v <- list(4:10); w <- list(3:10); z <- list(2:10); zz <- list(1:10)
+corner10_list <- c(m, q, r, s, t, u, v, w, z, zz)
+
+
+corner1 <- CV_Area_func(shallowCPUEArea2, corner1_list)
+for(i in 1:nrow(corner1)) {
+  corner1$startingFrom[[i]] <- "East -> West" 
+}
+
+corner10 <- CV_Area_func(shallowCPUEArea2, corner10_list)
+for(i in 1:nrow(corner10)) {
+  corner10$startingFrom[[i]] <- "West -> East" 
+}
+
+plotting_df <- rbind(corner1, corner10)
+
+
+############
+
+ggplot(data=plotting_df, aes(x=Area, y = CV, color = startingFrom)) + 
+  #geom_point(aes(y = CV), size=2) +
+  geom_line(aes(y = CV), size = 1) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Area (km^2)", y = "CV of Total Community CUE")
+
+
+```
+
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=8}
+
+# Calculate and plot Species Richness (gamma) vs Area
+
+# load occurrence data
+occDat <-read.csv("./diversity-data/All_sp_index_occurrenceByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
+#View(occDat)
+
+area1 <- area %>%
+  filter(area != "Region") %>%
+  mutate(area = as.numeric(area))
+
+occDat1 <- occDat %>%
+  select(area, year.numb, Species, Mean.avgPresence) %>%
+  left_join(area1, by = "area")
+
+
+Richness_Area_func <- function(my_df, spatialGrouping){
+  
+  richness_agg_list <- list()
+  Area_agg_list <- list()
+  df_list <- list()
+  
+  for(i in seq_along(spatialGrouping)) {
+    
+    richness_agg_list[[i]] <- my_df %>%
+      filter(area %in% spatialGrouping[[i]]) %>%
+      
+      group_by(year.numb, Species) %>%
+      summarize(presenceBySpecies = max(Mean.avgPresence)) %>% # take maximum probability of occurrence of each species, in each year, for each spatialGrouping
+      ungroup() %>%
+      
+      group_by(year.numb) %>%
+      summarize(spPresenceByYear = sum(presenceBySpecies)) %>% # spRichness for each year = sum of all presenceBySpecies, across all species
+      ungroup() %>%
+
+      summarize(spRichness = mean(spPresenceByYear)) %>% # mean spRichness across all years for each spatialGrouping
+      ungroup()
+    
+    
+    Area_agg_list[[i]] <- my_df %>%
+      filter(area %in% spatialGrouping[[i]]) %>%
+      select(area, km2) %>%
+      
+      group_by(area) %>%
+      summarise(eachArea = first(km2)) %>%
+      ungroup() %>%
+      
+      summarise(area_agg = sum(eachArea))
+    
+  }
+  
+  df_list <- list(Area_agg_list, richness_agg_list)
+  my_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
+  colnames(my_df) <- c("Area", "speciesRichness")
+  return(my_df)
+  
+}
+
+
+############
+
+a <- list(1)
+b <- list(2)
+c <- list(3)
+d <- list(4)
+e <- list(5)
+f <- list(6)
+g <- list(7)
+h <- list(8)
+k <- list(9)
+l <- list(10)
+m <- list(1:4)
+n <- list(5:7)
+o <- list(8:10)
+q <- list(1:10)
+big_list <- c(a, b, c, d, e, f, g, h, k, l, m, n, o, q)
+
+
+richness1 <- Richness_Area_func(occDat1, big_list)
+View(richness1)
+
+
+############
+
+# plot the result
+
+ggplot(data=richness1, aes(x=Area, y = speciesRichness)) + 
+  geom_point(aes(y = speciesRichness), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Area (km^2)", 
+       y = "Species Richness 
+       (sum of max. probability of occurrence)")
+
+
+############
+
+
+# Mary's code for bootstrapping Species Richness using beta distribution:
+
+### Beta Method of Moments - for occurrence data
+#beta.mom <- function(MEAN,SD){
+#  VAR   <- SD^2
+#  alpha <- MEAN * ((MEAN *(1 - MEAN)) / VAR - 1)
+#  beta  <- (1-MEAN) * ((MEAN *(1 - MEAN)) / VAR - 1)
+#  OUT   <- list(alpha=alpha,beta=beta) 
+#  #return(OUT)
+#  return(list(alpha=alpha,beta=beta))
+#}
+
+#b <- beta.mom(datj$Mean.avgPresence,datj$SD.totalPresence)
+
+#      for(b in 1:BootstrapLength){
+        
+#        #  generate a vector of abundance / species in ab
+#        obs.sp <- rbeta(1:length(ab$alpha),ab$alpha,ab$beta) ##################
+        
+        #calculate diversity metrcs
+#        year=years[i] 
+#        area=areas[j] 
+#        Sp_rich <- sum(obs.sp)
+        
+        
+
+```
+
+
 
 Although we can compare local and regional community stability using CVs alone, here we calculate metrics from Wang & Loreau (2014) to help us think about mechanisms underlying this result.
 The following uses formulas from Wang & Loreau's (2014) Supp Mat (i.e. for the case where biomass varies within and between local communities).
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
+# CONSIDER WHETHER TO LOG THE CUES FIRST
 
-# CONSIDER WHETHER TO LOG-TRANSFORMED SPECIES FIRST
-
-shallowAreas_list <- split(shallowCPUEArea2, f = shallowCPUEArea2$area) # create a list of dataframes (one df for each local area & total region)
-shallowAreas_list[[10]] <- NULL  # remove the 10th element from the list (remove the list for the total regional metacommunity)
 
 # nomenclature for the following calculations:
 # i, h = local community i (and h)
@@ -170,109 +419,157 @@ shallowAreas_list[[10]] <- NULL  # remove the 10th element from the list (remove
 # w_ih = covariance (of total community CPUE) between local communities i & h
 # rho = temporal Synchrony; inverse is Beta (temporal Asynchrony)
 
-A_list <- list(); B_list <- list(); C_list <- list(); D_list <- list(); E_list <- list(); F_list <- list()
-covMatrix_i_list <- list(); w_kk_i_list <- list(); rho_species_i_list <- list(); CV_i_list <- list()
 
-for(i in seq_along(shallowAreas_list)) {
+    
+WangLoreau_func <- function(this_df, spatialGrouping){
   
+  Area_agg_list <- list()
+  AA_list <- list(); AAA_list <- list()
+  u_m_list <- list(); alpha_CV_list <- list()
+  A_list <- list(); B_list <- list(); C_list <- list(); D_list <- list(); E_list <- list(); F_list <- list()
+  covMatrix_i_list <- list(); w_kk_i_list <- list(); rho_species_i_list <- list(); CV_i_list <- list()
+  another_df_list <- list(); covMatrix_m_list <- list(); w_ii_list <- list(); w_ih_list <- list()
+  summed_w_ih_list <- list(); rho_list <- list(); Beta1_list <- list(); gamma_CV_list <- list()
+
+  
+  for(i in seq_along(spatialGrouping)) {
+    
+    AA_list[[i]] <- this_df %>%
+      filter(area %in% spatialGrouping[[i]]) 
+    
+    
+    Area_agg_list[[i]] <- AA_list[[i]] %>%
+      select(area, km2) %>%
+      group_by(area) %>%
+      summarise(eachArea = first(km2)) %>%
+      ungroup() %>%
+      summarise(area_agg = sum(eachArea))
+    
+    
+    
+    
+    for(j in seq_along(unique(sort(AA_list[[i]]$area)))) { # loop over each unique local area j within spatialGrouping in AA_list[[i]]
+      
+      AAA_list[[j]] <- AA_list[[i]] %>%
+         filter(area == j) 
+
+    
   # 1. Calculate averaged species variability (C_list[[i]]$CV_species_i_squared):
   
   # calculate local community-level stuff
-  A_list[[i]] <- shallowAreas_list[[i]] %>%
-    group_by(year) %>%
-    summarise(annual_total_i = sum(Mean.totalDensity)) %>%
-    ungroup() %>%
-    summarise(var_i = var(annual_total_i),
-              stDev_i = sqrt(var(annual_total_i)),
-              u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local community i
-    
+    A_list[[j]] <- AAA_list[[j]] %>%
+      group_by(year) %>%
+      summarise(annual_total_i = sum(Mean.totalDensity)) %>%
+      ungroup() %>%
+      summarise(var_i = var(annual_total_i),
+                stDev_i = sqrt(var(annual_total_i)),
+                u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local community i
+
   
   # calculate species-level stuff
-  B_list[[i]] <- shallowAreas_list[[i]] %>%
-    group_by(Species) %>%
-    summarise(u_j_i = mean(Mean.totalDensity), # mean biomass (across all years) of species j in local community i
-              CV_j_i_squared = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in local community i. Note the usual formula for CV is squared
-              CV_species_j_i = u_j_i / A_list[[i]]$u_i * CV_j_i_squared) %>% # CV of species in local community i
-    ungroup()
+    B_list[[j]] <- AAA_list[[j]] %>%
+      group_by(Species) %>%
+      summarise(u_j_i = mean(Mean.totalDensity), # mean biomass (across all years) of species j in local community i
+                CV_j_i_squared = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in local community i. Note the usual formula for CV is squared
+                CV_species_j_i = u_j_i / A_list[[j]]$u_i * CV_j_i_squared) %>% # CV of species in local community i
+      ungroup()
   
   
   # calculate averaged species variability
-  C_list[[i]] <- B_list[[i]] %>%
-    summarise(CV_species_i_squared = sum(CV_species_j_i))
+    C_list[[j]] <- B_list[[j]] %>%
+      summarise(CV_species_i_squared = sum(CV_species_j_i))
   
   
-  ###############
+  ##############################
   # 2. Calculate species asynchrony WITHIN local areas (rho_species_i_list[[i]]):
+    D_list[[j]] <- AAA_list[[j]]%>%
+      select(year, Mean.totalDensity, Species) %>%
+      spread(Species, Mean.totalDensity) %>%
+      select(-year)
+    
+    covMatrix_i_list[[j]] <- cov(D_list[[j]]) # create the covariance matrix
+    
+    w_kk_i_list[[j]] <- diag(covMatrix_i_list[[j]]) # extract diagonals of the covariance matrix. these are temporal variance of each species k within local community i
+    
+    covMatrix_i_list[[j]][upper.tri(covMatrix_i_list[[j]], diag = TRUE)] <- NA # for each local community i, keep one copy of all the non-diagonals. these are w_kl_i
+    E_list[[j]] <- as.data.frame(covMatrix_i_list[[j]])
+    
+    F_list[[j]] <- E_list[[j]] %>%
+      summarise(sum_w_kl_i = sum(E_list[[j]][,1:53], na.rm = T)) # for each local community i, find the sum of all w_kl_i. calc has been checked
+    
+    rho_species_i_list[[j]] <- F_list[[j]]$sum_w_kl_i / ((sum(sqrt(w_kk_i_list[[j]][1:53])))^2)
   
-  D_list[[i]] <- shallowAreas_list[[i]] %>%
-    select(year, Mean.totalDensity, Species) %>%
-    spread(Species, Mean.totalDensity) %>%
-    select(-year)
   
+  ##############################
+  # 3. Calculate Variability of local community i (CV_i_list[[i]])
+    CV_i_list[[j]] <- C_list[[j]]$CV_species_i_squared * rho_species_i_list[[j]] # It's not clear whether this should be squared. If not squred, returns a negative value when within-patch species synchrony is negative
+  # CHECK WHETHER LOCAL COMMUNITY VARIABILITY CORRELATES WITH SIZE (AREA) OF LOCAL COMMUNITY (IE DO LARGER AREAS SHOW MORE VARIABILITY?)
+    
+    } # end of j
   
-  covMatrix_i_list[[i]] <- cov(D_list[[i]]) # create the covariance matrix
+    
+  ##############################
+  # 4. Calculate Alpha variability (local community variability weighed for local community biomass; alpha_CV_list[[i]])
+    u_m_list[[i]] <- sum(A_list[[j]]$u_i)
+    alpha_CV_list[[i]] <- (sum(A_list[[j]]$u_i / u_m_list[[i]] * CV_i_list[[j]] ))^2 # It's not clear whether this should be squared.
     
   
-  w_kk_i_list[[i]] <- diag(covMatrix_i_list[[i]]) # extract diagonals of the covariance matrix. these are temporal variance of each species k within local community i
+  ##############################
+  # 5. Calculate Beta variability (spatial synchrony; rho)
+  # note I'm replacing Wang & Loreau's local patch i & j notation with i & h, to avoid confusion with species j
+    
+  another_df_list[[i]] <- AA_list[[i]] %>%  
+    group_by(area, year) %>%
+    summarise(ann_tot_i = sum(Mean.totalDensity)) %>%
+    ungroup() %>%
+    spread(area, ann_tot_i) %>%
+    select(-year)
   
+  covMatrix_m_list[[i]] <- cov(another_df_list[[i]]) # create the covariance matrix
   
-  covMatrix_i_list[[i]][upper.tri(covMatrix_i_list[[i]], diag = TRUE)] <- NA # for each local community i, keep one copy of all the non-diagonals. these are w_kl_i 
-  E_list[[i]] <- as.data.frame(covMatrix_i_list[[i]])
+  w_ii_list[[i]] <- diag(covMatrix_m_list[[i]]) # extract diagonals of the covariance matrix. returns a vector. this is temporal variance of total community CPUE, within each local community.
   
+  covMatrix_m_list[[i]][upper.tri(covMatrix_m_list[[i]], diag = TRUE)] <- NA # keep one copy of all the non-diagonals. These are w_ih (temporal covariance of total community biomass between local patches i & h). NB it would be nice to bring in species-level information here, to prevent dominant species from driving the result.
+  w_ih_list[[i]] <- as.data.frame(covMatrix_m_list[[i]])
   
-  F_list[[i]] <- E_list[[i]] %>%
-    summarise(sum_w_kl_i = sum(E_list[[i]][,1:53], na.rm = T)) # for each local community i, find the sum of all w_kl_i. calc has been checked
+  summed_w_ih_list[[i]] <- w_ih_list[[i]] %>% 
+    summarise(sum_w_ih = sum(w_ih_list[[i]][,1:ncol(w_ih_list[[i]])], na.rm = T)) # find the sum of all w_ih. calc has been checked
 
+  rho_list[[i]] <- summed_w_ih_list[[i]]$sum_w_ih / ((sum(sqrt (w_ii_list[[i]][1:length(w_ii_list[[i]])] ) ))^2) # Wang & Loreau (2014) claim that standardizing for within-patch covariance accounts for spatial uneveness in biomass. Not sure about this.
   
-  rho_species_i_list[[i]] <- F_list[[i]]$sum_w_kl_i / ((sum(sqrt(w_kk_i_list[[i]][1:53])))^2)
+  Beta1_list[[i]] <- 1 / rho_list[[i]]
+
+
+  ##############################
+  # 6. Calculate Gamma variability
   
+  gamma_CV_list[[i]] <- alpha_CV_list[[i]] / Beta1_list[[i]]
   
-  ###############
-  # 3. Calculate Variability of local community i (CV_i_list[[i]])
-  CV_i_list[[i]] <- C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]]
-  #CV_i_list[[i]] <- (C_list[[i]]$CV_species_i_squared * rho_species_i_list[[i]])^2 # It's not clear whether this should be squared. If not squred, returns a negative value when within-patch species synchrony is negative.
-      
-  # CHECK WHETHER LOCAL COMMUNITY VARIABILITY CORRELATES WITH SIZE (AREA) OF LOCAL COMMUNITY (IE DO LARGER AREAS SHOW MORE VARIABILITY?)
+  } # end of i
   
-  
-  ###############
-  # 4. Calculate Alpha variability (local community variability weighed for local community biomass; alpha_CV_list[[i]])
-  u_m <- sum(A_list[[i]]$u_i)
-  alpha_CV <- (sum(A_list[[i]]$u_i / u_m * CV_i_list[[i]] ))^2 # It's not clear whether this should be squared.
+  WangLoreau_list <- list(Area_agg_list, alpha_CV_list, rho_list, gamma_CV_list)
+  WangLoreau_df <- as.data.frame(matrix(unlist(WangLoreau_list), nrow=length(unlist(WangLoreau_list[1]))))
+  colnames(WangLoreau_df) <- c("Area", "alphaCV", "Rho", "gammaCV")
+  return(WangLoreau_df)
 
 }
 
-  
-###############
-# 5. Calculate Beta variability (spatial synchrony; rho)
-# note I'm replacing Wang & Loreau's local patch i & j notation with i & h, to avoid confusion with species j
-  
-shallowCPUEArea3 <- shallowCPUEArea2 %>%
-  filter(area != "Total") %>%
-  group_by(area, year) %>%
-  summarise(ann_tot_i = sum(Mean.totalDensity)) %>%
-  ungroup() %>%
-  spread(area, ann_tot_i) %>%
-  select(-year)
 
+############
 
-covMatrix_m <- cov(shallowCPUEArea3) # create the covariance matrix
-    
-w_ii <- diag(covMatrix_m) # extract diagonals of the covariance matrix. returns a vector. this is temporal variance of total community CPUE, within each local community.
-  
-covMatrix_m[upper.tri(covMatrix_m, diag = TRUE)] <- NA # keep one copy of all the non-diagonals. These are w_ih (temporal covariance of total community biomass between local patches i & h). NB it would be nice to bring in species-level information here, to prevent dominant species from driving the result.
-w_ih <- as.data.frame(covMatrix_m)
-  
-summed_w_ih <-w_ih %>% summarise(sum_w_ih = sum(w_ih[,1:9], na.rm = T)) # find the sum of all w_ih. calc has been checked
-  
-rho <- summed_w_ih$sum_w_ih / ((sum(sqrt(w_ii[1:9])))^2) # Wang & Loreau (2014) claim that standardizing for within-patch covariance accounts for spatial uneveness in biomass. Not sure about this.
-Beta1 = 1 / rho
-  
+m <- list(1:4)
+n <- list(5:7)
+o <- list(8:10)
+q <- list(1:10)
+agg_list <- c(a, b, c, d, e, f, g, h, k, l, m, n, o, q)
 
-###############
-# 6. Calculate Gamma variability
+m <- list(1:4); agg_list <- c(m) # alpha_CV = 6.574154e-05
+m <- list(1:3); agg_list <- c(m) # alpha_CV = 2.969732e-05
+m <- list(1:10); agg_list <- c(m) # alpha_CV = 1.78654e-05
+m <- list(8:10); agg_list <- c(m) # Error: argumemt is not a character vector
 
-gamma_CV <- alpha_CV / Beta1
+WangLoreau_func(shallowCPUEArea2, agg_list) # test the function ... only works for lists beginning with 1
+#otherwise  Error: argumemt is not a character vector
   
 ```
 
@@ -395,421 +692,3 @@ Beta1
 gamma_CV
 ```
 
-
-
-
-```{r}
-deepAreas_list <- split(deepCPUEArea2, f = deepCPUEArea2$area) # create a list of dataframes (one df for each local area & total region)
-deepAreas_list[[Region]] <- NULL  # remove Regional total from the list
-
-# nomenclature for the following calculations:
-# i, h = local community i (and h)
-# j, k, l = species j, k, l
-# j_i = species j in local community i
-# u = mean
-# w = variance or covariance
-# w_kk_i = variance of each species k within local community i
-# w_kl_i = covariance between species k and l within local community i
-# w_ii = variance (of total community CPUE) for each local community i
-# w_ih = covariance (of total community CPUE) between local communities i & h
-# rho = temporal Synchrony; inverse is Beta (temporal Asynchrony)
-
-G_list <- list()
-
-for(i in seq_along(deepAreas_list)) {
-  
-  # 1. Calculate averaged species variability (C_list[[i]]$CV_species_i_squared):
-  
-  # calculate local community-level stuff
-  G_list[[i]] <- deepAreas_list[[i]] %>%
-    group_by(year) %>%
-    summarise(annual_total_i = sum(Mean.totalDensity)) %>%
-    ungroup() %>%
-    summarise(var_i = var(annual_total_i),
-              stDev_i = sqrt(var(annual_total_i)),
-              u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local community i
-}
-```
-
-# Calculate Predator / Prey ratios:
-```{r, include=FALSE, echo=FALSE, results='hide'}
-
-# Assign predator and prey groupings
-topPred <- c("Albatrossia.pectoralis", "Anoplopoma.fimbria", "Atheresthes.stomias", "Bathyraja.aleutica", 
-             "Hemilepidotus.jordani", "Hemitripterus.bolini", "Hexagrammos.decagrammus", "Hippoglossus.stenolepis",
-             "Myoxocephalus.polyacanthocephalus", "Ophiodon.elongatus", "Raja.binoculata", "Squalus.acanthias", 
-             "Oncorhynchus.tshawytscha", "Dusky.and.Dark.Rockfish")
-
-benthicPrey <- 
-  
-pelagicPrey <-
-
-
-
-# assign predator & prey categories to data, then calculate pred/prey ratios
-for(i in 1:nrow(shallowCPUEArea2)) {
-  if(grepl(paste(topPred, collapse = "|"), shallowCPUEArea2$Species[i])) {shallowCPUEArea2$categ[i] <- "Predator"}
-  else{shallowCPUEArea2$categ[i] <- "Prey"}
-}
-shallowStuff <- shallowCPUEArea2 %>%
-  filter(area != "Region") %>%
-  group_by(area, year, categ) %>% summarise(sumTotal = sum(Mean.totalDensity)) %>% ungroup() %>%
-  spread(categ, sumTotal) %>% # now spread into columns for pred & prey
-  mutate(ratio = Predator/Prey) #%>%
-  #group_by(area) %>% summarise(meanRatio = mean(ratio), sdRatio = sd(ratio)) %>% ungroup()
-#View(shallowStuff)
-  
-
-
-for(i in 1:nrow(deepCPUEArea2)) {
-  if(grepl(paste(topPred, collapse = "|"), deepCPUEArea2$Species[i])) {deepCPUEArea2$categ[i] <- "Predator"}
-  else{deepCPUEArea2$categ[i] <- "Prey"}
-}
-deepStuff <- deepCPUEArea2 %>%
-  filter(area != "Region") %>%
-  group_by(area, year, categ) %>% summarise(sumTotal = sum(Mean.totalDensity)) %>% ungroup() %>%
-  spread(categ, sumTotal) %>% # now spread into columns for pred & prey
-  mutate(ratio = Predator/Prey) #%>%
-  #group_by(area) %>% summarise(meanRatio = mean(ratio), sdRatio = sd(ratio)) %>% ungroup()
-#View(deepStuff)
-
-
-stuff <- full_join(shallowStuff, deepStuff) #%>% mutate(area = as.numeric(area))
-
-
-# calculate lag-1 differences in Pred/Prey ratios
-diffs <- apply( as.matrix(stuff$ratio) , 2 , diff )
-dummyRow = c(1); diffs <- as.data.frame(rbind(dummyRow,diffs))  # then add 1 row to start of this vector
-colnames(diffs) <- "ratioDiffs"
-stuff$ratioDiffs <- diffs$ratioDiffs # paste this vector onto existing stuff df
-for(i in 1:nrow(stuff)) {
-  if(stuff$year[i] == 1984) {stuff$ratioDiffs[i] <- NA} # remove diff values for 1984 for all areas b/c they're meaningless
-}
-
-
-
-# Set colors for local areas:
-colorsSE <- c("pink", "red", "orange", "yellow", "yellow3", "lightgreen", "green")
-colorsS <- c("pink", "red", "orange", "yellow", "yellow3", "lightgreen", "green", "blue", "navy")
-colorsD <- c("purple", "lightslateblue", "saddlebrown", "black", "grey")
-colorsWest <- c("blue", "navy", "black", "grey")
-colorsMid <- c("orange", "yellow", "yellow3", "lightgreen", "green", "purple", "lightslateblue", "saddlebrown")
-colors <- c("pink", "red", "orange", "yellow", "yellow3", "lightgreen", "green", "blue", "navy", "purple", "lightslateblue", "saddlebrown", "black", "grey")
-
-
-years <- unique(sort(stuff$year))
-
-
-# Plot Predator / Prey ratios over time:
-ggplot(data=stuff, aes(x=year, y = ratio, group = area, color = area)) + 
-  geom_point(aes(y = ratio), size=5) + geom_line(aes(y = ratio)) +
-  theme(panel.background = element_blank(),
-        axis.line.x = element_line(color="black"),
-        axis.line.y = element_line(color="black")) +
-  scale_y_log10(breaks = c(0.1, 0.5, 1, 2, 3)) +
-  scale_x_continuous(breaks=c(years), labels=c(years)) +
-  labs(x = "Year", y = "Predator / Prey ratio (CPUE)") +
-  geom_hline(yintercept= 1) +
-
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsMid, c(3:7,10:12)), 
-                     limits=c('3', '4', '5', '6', '7', '10', '11', '12'))
-  
-  #scale_color_manual(name = "Area", 
-                     values=setNames(colorsWest, c(8:9,13:14)), 
-                     limits=c('8', '9', '13', '14'))
-  
-  #scale_color_manual(name = "Area", 
-                     values=setNames(colorsSE, 1:7), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7'))
-  
-  #scale_color_manual(name = "Area", 
-                     values=setNames(colorsD, 10:14), 
-                     limits=c('10', '11', '12', '13', '14'))
-
-  scale_color_manual(name = "Area", 
-                     values=setNames(colors, 1:14), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'))
-
-
-
-
-
-# Plot Predator / Prey ratio lag-1 differences over time:
-ggplot(data=stuff, aes(x=year, y = ratioDiffs, group = area, color = area)) + 
-  geom_point(aes(y = ratioDiffs), size=5) + geom_line(aes(y = ratioDiffs)) +
-  theme(panel.background = element_blank(),
-        axis.line.x = element_line(color="black"),
-        axis.line.y = element_line(color="black")) +
-  scale_x_continuous(breaks=c(years), labels=c(years)) +
-  labs(x = "Year", y = "Difference (lag-1) Predator / Prey ratio (CPUE)") +
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsMid, c(3:7,10:12)), 
-                     limits=c('3', '4', '5', '6', '7', '10', '11', '12'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsWest, c(8:9,13:14)), 
-                     limits=c('8', '9', '13', '14'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsSE, 1:7), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7'))
-
-  #scale_color_manual(name = "Area", 
-                     values=setNames(colorsS, 1:9), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7', '8', '9'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsD, 10:14), 
-                     limits=c('10', '11', '12', '13', '14'))
-
-  scale_color_manual(name = "Area", 
-                     values=setNames(colors, 1:14), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'))
-
-
-
-  
-  
-# Plot Total  Prey CPUE over time:  
-ggplot(data=stuff, aes(x=year, y = Prey, group = area, color = area)) + 
-  geom_point(aes(y = Prey), size=5) + geom_line(aes(y = Prey)) +
-  theme(panel.background = element_blank(),
-        axis.line.x = element_line(color="black"),
-        axis.line.y = element_line(color="black")) +
-  scale_x_continuous(breaks=c(years), labels=c(years)) +
-  scale_y_log10(breaks = c(10, 100, 200, 300, 400)) +
-  labs(x = "Year", y = "Prey CPUE") +
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsMid, c(3:7,10:12)), 
-                     limits=c('3', '4', '5', '6', '7', '10', '11', '12'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsWest, c(8:9,13:14)), 
-                     limits=c('8', '9', '13', '14'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsSE, 1:7), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7'))
-
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsS, 1:9), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7', '8', '9'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsD, 10:14), 
-                     limits=c('10', '11', '12', '13', '14'))
-
-  scale_color_manual(name = "Area", 
-                     values=setNames(colors, 1:14), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'))
-
-
-
-  
-  
-  
-# Plot Total Predator CPUE over time:  
-ggplot(data=stuff, aes(x=year, y = Predator, group = area, color = area)) + 
-  geom_point(aes(y = Predator), size=5) + geom_line(aes(y = Predator)) +
-  theme(panel.background = element_blank(),
-        axis.line.x = element_line(color="black"),
-        axis.line.y = element_line(color="black")) +
-  scale_x_continuous(breaks=c(years), labels=c(years)) +
-  scale_y_log10(breaks = c(10, 100, 200, 300, 400)) +
-  labs(x = "Year", y = "Predator CPUE") +
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsMid, c(3:7,10:12)), 
-                     limits=c('3', '4', '5', '6', '7', '10', '11', '12'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsWest, c(8:9,13:14)), 
-                     limits=c('8', '9', '13', '14'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsSE, 1:7), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7'))
-
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsS, 1:9), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7', '8', '9'))
-  
-  scale_color_manual(name = "Area", 
-                     values=setNames(colorsD, 10:14), 
-                     limits=c('10', '11', '12', '13', '14'))
-
-  scale_color_manual(name = "Area", 
-                     values=setNames(colors, 1:14), 
-                     limits=c('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'))
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-
-# Load Mary & Rachael's boxplot theme:
-theme_boxplot <- function(base_size = 12){
-  theme_bw(base_size)%+replace%
-    theme(legend.key.size=unit(12,"points"),
-          legend.text=element_text(size=11),
-          legend.key=element_blank(),
-          legend.title=element_blank(),
-          legend.background=element_rect(colour="white", fill="transparent"),
-          plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
-          panel.border=element_blank(),
-          panel.margin=unit(0,"lines"),
-          panel.background=element_rect(fill=NA, colour=NA),
-          panel.grid.major=element_blank(),
-          panel.grid.minor=element_blank(),
-          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
-          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
-          axis.ticks.length=unit(1,"mm"),
-          axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
-          axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
-          axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
-          axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
-          strip.text.x=element_text(size=12),
-          strip.background=element_rect(colour="black", fill='white'))
-}
-
-
-shallow_ratio_boxplot <- ggplot(data=shallowStuff, aes(x = area, y = ratio)) + 
-  geom_boxplot() + theme_boxplot() +
-  xlab("Area (West <-> East)") + ylab("Predator / Prey ratio (CPUE)") +
-  xlim("9", "8", "7", "6", "5", "4", "3", "2", "1") + 
-  ylim(0, 3.15) +
-  geom_hline(yintercept= 1) +
-  theme(plot.background=element_blank(),
-        axis.text.x = element_text(size=15))
-
-deep_ratio_boxplot <- ggplot(data=deepStuff, aes(x = area, y = ratio)) + 
-  geom_boxplot() + theme_boxplot() +
-  xlab("Area (West <-> East)") + ylab("Predator / Prey ratio (CPUE)") +
-  xlim("14", "13", "12", "11", "10") + 
-  ylim(0, 3.15) +
-  geom_hline(yintercept= 1) +
-  theme(plot.background=element_blank(),
-        axis.text.x = element_text(size=15))
-  
-grid.arrange(shallow_ratio_boxplot, deep_ratio_boxplot, ncol=2)
-  
-  
-  
-
-
-# plot mean Arrowtooth CPUE in each area
-shallowTot <- shallowCPUEArea2 %>%
-  filter(area != "Region") %>% 
-  group_by(area, year) %>% summarise(sumTotal = sum(Mean.totalDensity)) %>% ungroup() %>%
-  group_by(area) %>% summarise(meanTotal = mean(sumTotal)) %>% ungroup()
-
-#shallowTot <- shallowCPUEArea2 %>%
-#  filter(area != "Region") %>% 
-#  group_by(area, year) %>% summarise(aftProp = mean(Mean.totalDensity)) %>% ungroup()
-
-shallowATF <- shallowCPUEArea2 %>%
-  filter(area != "Region") %>% filter(common.name == "arrowtooth flounder") #%>%
-  #group_by(area) %>% summarise(meanATF = mean(Mean.totalDensity)) %>% ungroup()
-
-shallow <- left_join(shallowTot, shallowATF) %>% 
-  mutate(area = as.numeric(area), 
-         atfProportion = meanATF/meanTotal) # should really do this fraction properly by year, then take means across years
-
-deepTot <- deepCPUEArea2 %>%
-  filter(area != "Region") %>% 
-  group_by(area, year) %>% summarise(sumTotal = sum(Mean.totalDensity)) %>% ungroup() %>%
-  group_by(area) %>% summarise(meanTotal = mean(sumTotal)) %>% ungroup()
-
-deepATF <- deepCPUEArea2 %>%
-  filter(area != "Region") %>% filter(common.name == "arrowtooth flounder") #%>%
-  #group_by(area) %>% summarise(meanATF = mean(Mean.totalDensity)) %>% ungroup()
-
-deep <- left_join(deepTot, deepATF) %>% 
-  mutate(area = as.numeric(area), 
-         atfProportion = meanATF/meanTotal) # should really do this fraction properly by year, then take means across years
-
-
-ATF <- bind_rows(shallow, deep)
-for(i in 1:nrow(ATF)) {
-  if(ATF$area[i] <= 9) {ATF$depth[i] <- "shallow"}
-  if(ATF$area[i] >= 10) {ATF$depth[i] <- "deep"}
-}
-
-
-ggplot(data=ATF, aes(x=area, y = meanATF, color = depth)) + 
-  geom_point(aes(y = meanATF), size=5) +
-  theme(panel.background = element_blank(),
-        axis.line.x = element_line(color="black"),
-        axis.line.y = element_line(color="black")) +
-  scale_y_log10(breaks = c(50, 100, 150)) +
-  labs(x = "Area", y = "Mean Arrowtooth CPUE") +
-  scale_x_continuous(breaks = c(1:14))
-  #facet_wrap(~ depth)
-
-
-
-
-
-shallow_ATF_boxplot <- ggplot(data=shallowATF, aes(x = area, y = Mean.totalDensity)) + 
-  geom_boxplot() + theme_boxplot() +
-  xlab("Area (West <-> East)") + ylab("Arrowtooth CPUE") +
-  xlim("9", "8", "7", "6", "5", "4", "3", "2", "1") + 
-  scale_y_log10(breaks = c(50, 100, 150, 200, 250, 300)) +
-  theme(plot.background=element_blank(),
-        axis.text.x = element_text(size=15))
-
-deep_ATF_boxplot <- ggplot(data=deepATF, aes(x = area, y = Mean.totalDensity)) + 
-  geom_boxplot() + theme_boxplot() +
-  xlab("Area (West <-> East)") + ylab("Arrowtooth CPUE") +
-  xlim("14", "13", "12", "11", "10") + 
-  scale_y_log10(breaks = c(50, 100, 150, 200, 250, 300)) +
-  theme(plot.background=element_blank(),
-        axis.text.x = element_text(size=15))
-  
-grid.arrange(shallow_ATF_boxplot, deep_ATF_boxplot, ncol=2)
-
-
-# what is the relationship between Arrowtooth CPUE and species richness? over space and over time (within each area and for all areas pooled?)
-
-
-
-
-# plot total CPUE
-ggplot(data=ATF, aes(x=area, y = meanTotal, color = depth)) + 
-  geom_point(aes(y = meanTotal), size=5) +
-  theme(panel.background = element_blank(),
-        axis.line.x = element_line(color="black"),
-        axis.line.y = element_line(color="black")) +
-  scale_y_log10(breaks = c(100, 200, 300)) +
-  scale_x_continuous(breaks = c(1:14)) +
-  labs(x = "Area", y = "Mean Total CPUE")
-
-
-# plot fraction of total CPUE in each area this is Arrowtooth
-ggplot(data=ATF, aes(x=area, y = atfProportion, color = depth)) + 
-  geom_point(aes(y = atfProportion), size=5) +
-  theme(panel.background = element_blank(),
-        axis.line.x = element_line(color="black"),
-        axis.line.y = element_line(color="black")) +
-  scale_x_continuous(breaks = c(1:14)) +
-  labs(x = "Area", y = "Mean Proportion of Total CPUE from Arrowtooth")
-
-
-
-
-
-
-
-
-
-
-```

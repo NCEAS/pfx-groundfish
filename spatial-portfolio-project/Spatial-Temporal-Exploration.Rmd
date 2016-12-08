@@ -11,7 +11,6 @@ output:
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load packages
-library(httr)
 library(vegan)
 library(mvnormtest)
 library(plyr)
@@ -25,10 +24,7 @@ library(gridExtra)
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prep look-up table of common names
-URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
-common_Get <- GET(URL_common)
-common_1 <- content(common_Get, as='text')
-common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
   select(database.name, common.name) %>%
@@ -43,23 +39,17 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE data for Shallow Areas:
-URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
-shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
-shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
-shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(shallowCPUEArea)
+shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
-shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
+  filter(area != "8") %>% # remove Ole's area 8
+  mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10")))
 
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE for Deep areas:
-URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
-deepCPUEArea_Get <- GET(URL_deepCPUEArea)
-deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
-deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(deepCPUEArea)
+deepCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.final.csv", header = T, stringsAsFactors = FALSE) # this is the latest file created by Mary Oct 26 2016
 
 deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in common names
 
@@ -76,8 +66,8 @@ shallowCPUEArea2$area<-as.factor(shallowCPUEArea2$area)
 deepCPUEArea2$area<-as.factor(deepCPUEArea2$area)
 
 deepCPUEArea3 <- deepCPUEArea2 %>%   # renumber deep areas
-                 mutate(area = fct_recode(area, c("10" = "1", "11" = "2", "12" = "5", 
-                                                  "13" = "3", "14" = "4")))
+                 mutate(area = fct_recode(area, c("11" = "1", "12" = "2", "13" = "5", 
+                                                  "14" = "3", "15" = "4")))
 
 shallowCPUEArea2$depth <- "shallow"    # add depth column
 deepCPUEArea3$depth <- "deep"          # add depth column
@@ -106,17 +96,17 @@ cpue <- shallowCPUEArea2 %>%
 #setwd("~/Google Drive/GoA project/pfx-groundfish")
 
 ## Data for 9 deep areas
-Div.Metrics <- read.csv("../DiversityMetrics.Shallow.Bootstrapped2.csv")
+Div.Metrics <- read.csv("../DiversityMetrics.Shallow.Bootstrapped2.csv") # NB this should probably be   read.csv("../DiversityMetrics.Shallow.Bootstrapped.Final.csv")
 Div.Metrics <- Div.Metrics[Div.Metrics$AREA!=10,]
-Sp.Richness <- read.csv("../Sp.Richness.Shallow.Bootstrapped.csv")
+Sp.Richness <- read.csv("../Sp.Richness.Shallow.Bootstrapped.csv") # NB should this be updated to reflect splitting area 7? or is it is Shallow.Bootstrapped.Final loaded above?
 Sp.Richness <- Sp.Richness[Sp.Richness$AREA!=10,]
 shallowDat <- cbind(Div.Metrics,Sp.Richness)
 shallowDat <- shallowDat[,c(2:3,7:10,14)]
 
 ## Data for 5 deep areas
-Div.Metrics <- read.csv("../DiversityMetrics.Deep.Bootstrapped2.csv")
+Div.Metrics <- read.csv("../DiversityMetrics.Deep.Bootstrapped2.csv") # NB this should probably be   read.csv("../DiversityMetrics.Deep.Bootstrapped.Final.csv")
 Div.Metrics <- Div.Metrics[Div.Metrics$AREA!=6,]
-Sp.Richness <- read.csv("../Sp.Richness.Deep.Bootstrapped.csv")
+Sp.Richness <- read.csv("../Sp.Richness.Deep.Bootstrapped.csv") # NB should this be updated to reflect adjustments to area definitions? (ie cutting the tail off area 12?)  or is it is Deep.Bootstrapped.Final loaded above?
 Sp.Richness <- Sp.Richness[Sp.Richness$AREA!=6,]
 deepDat <- cbind(Div.Metrics,Sp.Richness)
 deepDat <- deepDat[,c(2:3,7:10,14)]

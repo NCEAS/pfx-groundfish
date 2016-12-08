@@ -7,7 +7,6 @@ output: pdf_document
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load packages
-library(httr)
 library(vegan)
 library(mvnormtest)
 library(plyr)
@@ -19,10 +18,7 @@ library(tidyr)
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prep look-up table of common names
-URL_common <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7ubzIzdURzanhfZnc" # this is "trawl_species_control_file.csv"
-common_Get <- GET(URL_common)
-common_1 <- content(common_Get, as='text')
-common <- read.csv(file=textConnection(common_1),stringsAsFactors=FALSE,head=TRUE)
+common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
   select(database.name, common.name) %>%
@@ -36,25 +32,20 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE data for Shallow Areas:
-URL_shallowCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uYzBOUFRtZklmX0U" # new data for shallow areas
-shallowCPUEArea_Get <- GET(URL_shallowCPUEArea)
-shallowCPUEArea_1 <- content(shallowCPUEArea_Get, as='text')
-shallowCPUEArea <- read.csv(file=textConnection(shallowCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(shallowCPUEArea)
+shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
-shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") # merge common names onto SPCPUEArea
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
+  filter(area != "8") %>% # remove Ole's area 8
+  mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) 
 
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE for Deep areas:
-URL_deepCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
-deepCPUEArea_Get <- GET(URL_deepCPUEArea)
-deepCPUEArea_1 <- content(deepCPUEArea_Get, as='text')
-deepCPUEArea <- read.csv(file=textConnection(deepCPUEArea_1),stringsAsFactors=FALSE,head=TRUE)
-#View(deepCPUEArea)
+deepCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.final.csv", header = T, stringsAsFactors = FALSE) 
 
-deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in common names
+deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in common names
+  mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13"))) # renumbering areas
 
 ```
 
