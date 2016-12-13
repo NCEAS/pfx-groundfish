@@ -18,6 +18,7 @@ library(gridExtra)
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+
 # load & prep look-up table of common names
 common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
@@ -28,7 +29,6 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
   if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
   if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
 }
-
 
 
 # load area file
@@ -54,7 +54,7 @@ shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # me
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE for Deep areas:
-deepCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.final.csv", header = T, stringsAsFactors = FALSE) # this is the latest file created by Mary Oct 26 2016
+deepCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.final.csv", header = T, stringsAsFactors = FALSE) # this is the latest file created by Mary Oct 26 2016
 
 deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in common names
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
@@ -64,10 +64,68 @@ deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in
 ```
 
 
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# Create spatial groupings for shallow communities:
+
+aa <- list(1)
+ab <- list(2)
+ac <- list(3)
+ad <- list(4)
+ae <- list(5)
+af <- list(6)
+ag <- list(7)
+ah <- list(8)
+ak <- list(9)
+al <- list(10)
+am <- list(1:4)
+an <- list(5:7)
+ao <- list(8:10)
+aq <- list(1:10)
+big_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, am, an, ao, aq)
+
+
+a <- list(1:2)
+b <- list(3:4)
+c <- list(5:6)
+d <- list(7:8)
+e <- list(9:10)
+
+f <- list(1:3)
+g <- list(4:6)
+h <- list(7:9)
+
+k <- list(5:8)
+l <- list(6:10)
+
+t <- list(1:5)
+
+v <- list(1:6)
+w <- list(5:10)
+
+zz <- list(4:10) 
+
+m <- list(1:4)
+n <- list(5:7)
+o <- list(8:10)
+r <- list(1:7)
+
+q <- list(1:10)
+
+#agg_list <- c(m, n, o, r, q)
+#agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, a, b, c, d, e, f, g, h, k, l, t, v, w, zz, m, n, o, r, q)
+agg_list <- c(a, b, c, d, e, f, g, h, k, l, t, v, w, zz, m, n, o, r, q)
+
+
+```
+
+
 To address local vs regional community stability we can compare CVs of total CPUE between local communities and the regional metacommunity.
 The regional community does indeed show greater stability than local communities. Note that y-axis scales differ - deep areas are generally less stable than shallow areas.  
 **The magnitude of the portfolio effect can be assessed from the ratio of mean local CV / regional CV (ie the increase in stability that arises from spatial (beta) diversity; values >1 indicate a stabilizing effect): the ratio is ~2.3 for shallow areas and ~1.4 for deep areas.** (I'm not sure the difference between effect size in shallow and deep is meaningful, it may arise because we have more local patches for shallow areas.)  
 [If anyone wants to make these plots prettier, please do :) ]
+
 
 ```{r, echo=F, fig.height=3.5, fig.width=8}
 
@@ -178,6 +236,7 @@ ggplot(data=CV_shallow, aes(x=km2, y = CV)) +
 ```
 
 
+
 ```{r, echo=FALSE, fig.height=3.5, fig.width=8}
 
 # Calculate & plot CV vs Area (km^2)
@@ -214,7 +273,36 @@ CV_Area_func <- function(my_df, spatialGrouping){
 }
 
 
-############
+####################################
+
+
+allCV <- CV_Area_func(shallowCPUEArea2, agg_list)
+#View(allCV)
+
+ggplot(data=allCV, aes(x=Area, y = CV)) + 
+  geom_point(aes(y = CV), size=4) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  
+  geom_smooth(method = lm) +
+  
+  labs(x = "Area (km^2)", y = "CV of Total Community CUE")
+
+
+
+####################################
+
+
+# Create nested plots, growing area in nested fashion starting from Local Community 1 and 10:
 
 a <- list(1); b <- list(1:2); c <- list(1:3); d <- list(1:4); e <- list(1:5)
 f <- list(1:6); g <- list(1:7); h <- list(1:8); k <- list(1:9); l <- list(1:10)
@@ -263,7 +351,7 @@ ggplot(data=plotting_df, aes(x=Area, y = CV, color = startingFrom)) +
 
 ```{r, echo=FALSE, fig.height=3.5, fig.width=8}
 
-# Calculate and plot Species Richness (gamma) vs Area
+# Calculate and plot cumulative Species Richness vs Area
 
 # load occurrence data
 occDat <-read.csv("./diversity-data/All_sp_index_occurrenceByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
@@ -321,26 +409,7 @@ Richness_Area_func <- function(my_df, spatialGrouping){
 }
 
 
-############
-
-a <- list(1)
-b <- list(2)
-c <- list(3)
-d <- list(4)
-e <- list(5)
-f <- list(6)
-g <- list(7)
-h <- list(8)
-k <- list(9)
-l <- list(10)
-m <- list(1:4)
-n <- list(5:7)
-o <- list(8:10)
-q <- list(1:10)
-big_list <- c(a, b, c, d, e, f, g, h, k, l, m, n, o, q)
-
-
-richness1 <- Richness_Area_func(occDat1, big_list)
+richness1 <- Richness_Area_func(occDat1, agg_list)
 #View(richness1)
 
 
@@ -453,18 +522,18 @@ WangLoreau_func <- function(this_df, spatialGrouping){
   # calculate local community-level stuff
     A_list[[j]][[k]] <- AAA_list[[j]][[k]] %>%
       group_by(year) %>%
-      summarise(annual_total_i = sum(Mean.totalDensity)) %>%
+      summarise(annual_total_i = sum(Mean.totalDensity)) %>% # sum CUEs across all species for each local community in each year
       ungroup() %>%
       summarise(var_i = var(annual_total_i),
                 stDev_i = sqrt(var(annual_total_i)),
-                u_i = mean(annual_total_i)) # mean total community biomass (across all years) for local community i
+                u_i = mean(annual_total_i)) # mean total community CUE (across all years) for local community i
     
     
   # calculate species-level stuff
     B_list[[j]][[k]] <- AAA_list[[j]][[k]] %>%
       group_by(Species) %>%
-      summarise(u_j_i = mean(Mean.totalDensity), # mean biomass (across all years) of species j in local community i
-                CV_j_i_squared = var(Mean.totalDensity) / (u_j_i)^2 , # CV of species j in local community i. Note the usual formula for CV is squared
+      summarise(u_j_i = mean(Mean.totalDensity), # mean CUE (across all years) of species j in local community i
+                CV_j_i_squared = sqrt(var(Mean.totalDensity)) / u_j_i, # CV of species j in local community i; CV = StDev / Mean
                 CV_species_j_i = u_j_i / A_list[[j]][[k]]$u_i * CV_j_i_squared) %>% # CV of species in local community i
       ungroup()
     
@@ -505,7 +574,7 @@ WangLoreau_func <- function(this_df, spatialGrouping){
   ##############################
   # 4. Calculate Alpha variability (local community variability weighed for local community CPUE)
     u_m_list[[j]] <- sum(A_list[[j]][[k]]$u_i)
-    alpha_CV_list[[j]] <- (sum(A_list[[j]][[k]]$u_i / u_m_list[[j]] * CV_i_list[[j]][[k]] ))^2 # It's not clear whether this should be squared.
+    alpha_CV_list[[j]] <- (sum(A_list[[j]][[k]]$u_i / u_m_list[[j]] * CV_i_list[[j]][[k]]))^2
   
     
   ##############################
@@ -525,9 +594,9 @@ WangLoreau_func <- function(this_df, spatialGrouping){
     select(-year)
   
   
-    covMatrix_m_list[[j]] <- cov(another_df_list[[j]]) # create the covariance matrix
+    covMatrix_m_list[[j]] <- cov(another_df_list[[j]]) # create the covariance matrix of each local community j
   
-    w_ii_list[[j]] <- diag(covMatrix_m_list[[j]]) # extract diagonals of the covariance matrix. returns a vector. this is temporal variance of total community CPUE, within each local community.
+    w_ii_list[[j]] <- diag(covMatrix_m_list[[j]]) # extract diagonals of the covariance matrix. returns a vector. this is temporal variance of total community CPUE, within each local community j.
   
     covMatrix_m_list[[j]][upper.tri(covMatrix_m_list[[j]], diag = TRUE)] <- NA # keep one copy of all the non-diagonals. These are w_ih (temporal covariance of total community biomass between local patches i & h). NB it would be nice to bring in species-level information here, to prevent dominant species from driving the result.
     w_ih_list[[j]] <- as.data.frame(covMatrix_m_list[[j]])
@@ -535,7 +604,7 @@ WangLoreau_func <- function(this_df, spatialGrouping){
     summed_w_ih_list[[j]] <- w_ih_list[[j]] %>% 
       summarise(sum_w_ih = sum(w_ih_list[[j]][,1:ncol(w_ih_list[[j]])], na.rm = T)) # find the sum of all w_ih. calc has been checked
 
-    rho_list[[j]] <- summed_w_ih_list[[j]]$sum_w_ih / ((sum(sqrt (w_ii_list[[j]][1:length(w_ii_list[[j]])] ) ))^2) # Wang & Loreau (2014) claim that standardizing for within-patch covariance accounts for spatial uneveness in biomass. Not sure about this.
+    rho_list[[j]] <- summed_w_ih_list[[j]]$sum_w_ih / ((sum( sqrt(w_ii_list[[j]][1:length(w_ii_list[[j]])]) ))^2) # Wang & Loreau (2014) claim that standardizing for within-patch covariance accounts for spatial uneveness in biomass. Not sure about this.
   
     Beta1_list[[j]] <- 1 / rho_list[[j]]
 
@@ -551,6 +620,7 @@ WangLoreau_func <- function(this_df, spatialGrouping){
   
   ##############################
   
+  # 7. Return dataframe of outputs
   
     WangLoreau_list <- list(Area_agg_list, alpha_CV_list, rho_list, gamma_CV_list)
     WangLoreau_df <- as.data.frame(matrix(unlist(WangLoreau_list), nrow=length(unlist(WangLoreau_list[1]))))
@@ -559,61 +629,23 @@ WangLoreau_func <- function(this_df, spatialGrouping){
   
 }
 
-a <- list(1)
-b <- list(2)
-c <- list(3)
-d <- list(4)
-e <- list(5)
-f <- list(6)
-g <- list(7)
-h <- list(8)
-k <- list(9)
-l <- list(10)
+
+WangLoreauResult <- WangLoreau_func(shallowCPUEArea2, agg_list)
+WangLoreauResult
 
 
-
-a <- list(1:2)
-b <- list(3:4)
-c <- list(5:6)
-d <- list(7:8)
-e <- list(9:10)
-
-f <- list(1:3)
-g <- list(4:6)
-h <- list(7:9)
-
-k <- list(5:8)
-l <- list(6:10)
-
-t <- list(1:5)
-u <- list(6:10)
-
-v <- list(1:6)
-w <- list(5:10)
-
-zz <- list(4:10) 
-
-m <- list(1:4)
-n <- list(5:7)
-o <- list(8:10)
-r <- list(1:7)
-s <- list(5:10)
-q <- list(1:10)
-
-#agg_list <- c(m, n, o, q, r, s)
-agg_list <- c(a, b, c, d, e, f, g, h, k, l, t, u, v, w, zz, m, n, o, r, s, q)
-
-result <- WangLoreau_func(shallowCPUEArea2, agg_list)
-result
-
+#alpha <- plot(log(WangLoreauResult$gammaCV) ~ log(WangLoreauResult$alphaCV), pch=16, cex=1.5)
+#rho <- plot(log(WangLoreauResult$gammaCV) ~ log(WangLoreauResult$Rho), pch=16, cex=1.5)
 
 ```
 
-```{r, echo=F, fig.height=5, fig.width=5}
+
+
+```{r, echo=F, fig.height=10, fig.width=10}
 
 # plot stuff
 
-alphaCV_plot <- ggplot(data=result, aes(x=Area, y = alphaCV)) + 
+alphaCV_plot <- ggplot(data=WangLoreauResult, aes(x=Area, y = alphaCV)) + 
   geom_point(aes(y = alphaCV), size=5) +
   
   theme(panel.background = element_blank(),
@@ -627,13 +659,17 @@ alphaCV_plot <- ggplot(data=result, aes(x=Area, y = alphaCV)) +
   
   scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
   
+  scale_y_log10() +
+  
+  geom_smooth(method = lm, se = FALSE) +
+  
   labs(x = "Area (km^2)", 
        y = "Alpha CV")
 
 
 
 
-rho_plot <- ggplot(data=result, aes(x=Area, y = Rho)) + 
+rho_plot <- ggplot(data=WangLoreauResult, aes(x=Area, y = Rho)) + 
   geom_point(aes(y = Rho), size=5) +
   
   theme(panel.background = element_blank(),
@@ -649,13 +685,17 @@ rho_plot <- ggplot(data=result, aes(x=Area, y = Rho)) +
   
   scale_y_log10(breaks = c(0.001, 0.01, 0.1, 0.2), labels = c(0.001, 0.01, 0.1, 0.2)) +
   
+  geom_smooth(method = lm, se = FALSE) +
+  
   labs(x = "Area (km^2)", 
        y = "Rho")
+  
+  
 
 
 
 
-gammaCV_plot <- ggplot(data=result, aes(x=Area, y = gammaCV)) + 
+gammaCV_plot <- ggplot(data=WangLoreauResult, aes(x=Area, y = gammaCV)) + 
   geom_point(aes(y = gammaCV), size=5) +
   
   theme(panel.background = element_blank(),
@@ -671,6 +711,8 @@ gammaCV_plot <- ggplot(data=result, aes(x=Area, y = gammaCV)) +
   
   scale_y_log10(breaks = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001), labels = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001)) +
   
+  geom_smooth(method = lm, se = FALSE) +
+  
   labs(x = "Area (km^2)", 
        y = "Gamma CV")
 
@@ -680,6 +722,114 @@ gammaCV_plot <- ggplot(data=result, aes(x=Area, y = gammaCV)) +
 grid.arrange(alphaCV_plot, rho_plot, gammaCV_plot, ncol = 2)
 
 ```
+
+
+
+```{r, echo=F, fig.height=10, fig.width=10}
+
+# plot more stuff
+
+# bind all dataframes together:
+mydat <- list(richness1, allCV, WangLoreauResult) %>%
+  Reduce(function(x, y) left_join(x, y, by="Area"), .) %>%
+  distinct()
+
+
+
+gammaCV_spRichness <- ggplot(data=mydat, aes(x=speciesRichness, y = gammaCV)) + 
+  geom_point(aes(y = gammaCV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(7,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,7,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  
+  scale_y_log10(breaks = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001), labels = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001)) +
+  
+  geom_smooth(method = lm, se = FALSE) +
+  
+  labs(x = "Species Richness
+ (max. probability of occurrence)", 
+       y = "Gamma CV")
+
+
+
+
+CV_spRichness <- ggplot(data=mydat, aes(x=speciesRichness, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(7,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,7,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_y_log10(breaks = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001), labels = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001)) +
+  
+  geom_smooth(method = lm, se = FALSE) +
+  
+  labs(x = "Species Richness
+ (max. probability of occurrence)", 
+       y = "CV of Total Community CUE")
+
+
+
+
+CV_gammaCV_raw_scale <- ggplot(data=mydat, aes(x=CV, y = gammaCV)) + 
+  geom_point(aes(y = gammaCV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(7,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,7,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  labs(x = "CV of Total Community CUE", 
+       y = "Gamma CV")
+
+
+
+
+CV_gammaCV_log_scale <- ggplot(data=mydat, aes(x=CV, y = gammaCV)) + 
+  geom_point(aes(y = gammaCV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(7,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,7,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_y_log10(breaks = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001), labels = c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001)) +
+  
+  #geom_smooth(method = lm, se = FALSE) +
+  
+  labs(x = "CV of Total Community CUE", 
+       y = "Gamma CV")
+
+
+
+grid.arrange(CV_spRichness, gammaCV_spRichness, CV_gammaCV_raw_scale, CV_gammaCV_log_scale, ncol = 2)
+
+```
+
+
+
+
 
 
 
