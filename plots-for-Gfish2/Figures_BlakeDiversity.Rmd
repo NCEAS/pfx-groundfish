@@ -1,7 +1,7 @@
 ---
-#title: "Figures for Blake et al. diversity paper"
-#author: "M. Hunsicker"
-#date: "10/24/2016"
+title: "Figures for Blake et al. diversity paper"
+author: "M. Hunsicker"
+date: "10/24/2016"
 output:
   pdf_document: 
   fig_height: 4
