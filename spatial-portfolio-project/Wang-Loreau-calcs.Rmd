@@ -3,6 +3,8 @@ title: "Local vs Regional Stability of Gulf of Alaksa Groundfish Assemblages"
 author: "Colette Ward"
 date: "July 12, 2016"
 output: pdf_document
+
+# *** NB This is a code dump. Needs significant cleaning up. ***
 ---
 
 
@@ -13,6 +15,7 @@ library(dplyr)
 library(tidyr)
 library(vegan)
 library(mvnormtest)
+library(synchrony)
 library(ggplot2)
 library(gridExtra)
 
@@ -66,6 +69,13 @@ deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in
 ```
 
 
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# set working directory
+setwd("~/Google Drive/GoA project/pfx-groundfish/spatial-portfolio-project")
+
+```
+
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
@@ -87,7 +97,116 @@ ao <- list(8:10)
 aq <- list(1:10)
 big_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, am, an, ao, aq)
 
+# 2:
+a <- list(1:2)
+b <- list(3:4)
+c <- list(5:6)
+d <- list(7:8)
+e <- list(9:10)
 
+# 3:
+f <- list(1:3)
+fa <- list(2:4)
+fb <- list(3:5)
+g <- list(4:6)
+n <- list(5:7)
+gb <- list(6:8)
+h <- list(7:9)
+o <- list(8:10)
+
+# 4:
+m <- list(1:4)
+k <- list(5:8)
+u <- list(2:5)
+v <- list(3:6)
+w <- list(4:7)
+z <- list(5:8)
+za <- list(6:9)
+zb <- list(7:10)
+
+
+l <- list(6:10)
+
+t <- list(1:5)
+
+zc <- list(1:6)
+w <- list(5:10)
+
+
+r <- list(1:7)
+s <- list(2:8)
+zd <- list(3:9)
+zz <- list(4:10) 
+
+q <- list(1:10)
+
+#agg_list <- c(m, n, o, r, q)
+#agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, a, b, c, d, e, f, g, h, k, l, t, v, w, zz, m, n, o, r, q)
+agg_2s <- c(a, b, c, d, e)
+agg_3s <- c(f, fa, fb, g, n, gb, h, o)
+agg_4s <- c(m, k, u, v, w, z, za, zb)
+#agg_list <- c(a, b, c, d, e, f, g, h, k, l, t, v, w, zz, m, n, o, r, q)
+
+local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
+local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
+                    a, b, c, d, e, # 2s
+                    f, fa, fb, g, n, gb, h, o, # 3s
+                    m, k, u, v, w, z, za, zb, # 4s
+                    l, t, zc, w, r, s, zd, zz, q) # the rest
+agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
+
+
+
+#########################
+
+myNums1_list <- list()
+myNums2_list <- list()
+myNums3_list <- list()
+myNums4_list <- list()
+myNums5_list <- list()
+myNums6_list <- list()
+myNums7_list <- list()
+myNums8_list <- list()
+myNums9_list <- list()
+
+for (i in 1:100) {
+  myNums1_list[[i]] <- sample(seq(1:10), size = 1)
+  myNums2_list[[i]] <- sample(seq(1:10), size = 2)
+  myNums3_list[[i]] <- sample(seq(1:10), size = 3)
+  myNums4_list[[i]] <- sample(seq(1:10), size = 4)
+  myNums5_list[[i]] <- sample(seq(1:10), size = 5)
+  myNums6_list[[i]] <- sample(seq(1:10), size = 6)
+  myNums7_list[[i]] <- sample(seq(1:10), size = 7)
+  myNums8_list[[i]] <- sample(seq(1:10), size = 8)
+  myNums9_list[[i]] <- sample(seq(1:10), size = 9)
+}
+myNums10_list <- list(1:10)
+
+myNums_agg_list <- c(myNums1_list, myNums2_list, myNums3_list, myNums4_list, myNums5_list, myNums6_list, myNums7_list, myNums8_list, myNums9_list, myNums10_list)
+
+
+myNums_agg_list_noSingles <- c(myNums2_list, myNums3_list, myNums4_list, myNums5_list, myNums6_list, myNums7_list, myNums8_list, myNums9_list, myNums10_list)
+save(myNums_agg_list_noSingles, file = "myNums_agg_list_noSingles.RData")
+
+
+myNums_agg_list
+save(myNums_agg_list, file = "myNums_agg_list.RData")
+load("myNums_agg_list.RData")
+
+
+
+################
+
+# Create spatial groupings for pairwise dissimilarity indices:
+
+myNums2_list[[2]]
+
+myNums4_list[[2]]
+# split the list in half using length(myNums4_list[[2]]/2)
+length(myNums4_list[[2]])/2
+
+
+# 1. Create k subgroupings of local communities
 a <- list(1:2)
 b <- list(3:4)
 c <- list(5:6)
@@ -96,29 +215,37 @@ e <- list(9:10)
 
 f <- list(1:3)
 g <- list(4:6)
-h <- list(7:9)
+h <- list(5:7)
+m <- list(8:10)
 
-k <- list(5:8)
-l <- list(6:10)
+q <- list(1:4)
+r <- list(5:8)
+s <- list(3:6)
+t <- list(7:10)
 
-t <- list(1:5)
+u <- list(1:5)
+v <- list(6:10)
 
-v <- list(1:6)
-w <- list(5:10)
 
-zz <- list(4:10) 
+# 2. Create j pairs of k subgroupings
+b1 <- c(a, b)  # 1:2, 3:4
+b2 <- c(b, c)  # 3:4, 5:6
+b3 <- c(c, d)  # 5:6, 7:8
+b4 <- c(d, e)  # 7:8, 9:10
 
-m <- list(1:4)
-n <- list(5:7)
-o <- list(8:10)
-r <- list(1:7)
+b5 <- c(f, g) # 1:3, 4:6
+b6 <- c(h, m) # 5:7, 8:10
 
-q <- list(1:10)
+b7 <- c(q, r) # 1:4, 5:8
+b8 <- c(s, t) # 3:6, 7:10
 
-#agg_list <- c(m, n, o, r, q)
-#agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, a, b, c, d, e, f, g, h, k, l, t, v, w, zz, m, n, o, r, q)
-agg_list <- c(a, b, c, d, e, f, g, h, k, l, t, v, w, zz, m, n, o, r, q)
+b9 <- c(u, v) # 1:5, 6:10
 
+
+# 3. Create list of j pairs
+#spatialPairs <- list(b1, b2, b3, b4)
+spatialPairs <- list(b1, b2, b3, b4, b5, b6, b7, b8, b9)
+spatialPairs
 
 ```
 
@@ -278,7 +405,9 @@ CV_Area_func <- function(my_df, spatialGrouping){
 ####################################
 
 
-allCV <- CV_Area_func(shallowCPUEArea2, agg_list)
+allCV <- CV_Area_func(shallowCPUEArea2, myNums_agg_list_noSingles)
+save(allCV, file = "allCV.RData")
+load("allCV.RData")
 #View(allCV)
 
 ggplot(data=allCV, aes(x=Area, y = CV)) + 
@@ -297,7 +426,7 @@ ggplot(data=allCV, aes(x=Area, y = CV)) +
   
   geom_smooth(method = lm) +
   
-  labs(x = "Area (km^2)", y = "CV of Total Community CUE")
+  labs(x = "Area (km^2)", y = "CV (Total Community CUE)")
 
 
 
@@ -356,8 +485,10 @@ ggplot(data=plotting_df, aes(x=Area, y = CV, color = startingFrom)) +
 # Calculate and plot cumulative Species Richness vs Area
 
 # load occurrence data
+setwd("~/Google Drive/GoA project/pfx-groundfish")
 occDat <-read.csv("./diversity-data/All_sp_index_occurrenceByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
 #View(occDat)
+setwd("~/Google Drive/GoA project/pfx-groundfish/spatial-portfolio-project")
 
 area1 <- area %>%
   filter(area != "Region") %>%
@@ -377,49 +508,58 @@ Richness_Area_func <- function(my_df, spatialGrouping){
   for(i in seq_along(spatialGrouping)) {
     
     richness_agg_list[[i]] <- my_df %>%
-      filter(area %in% spatialGrouping[[i]]) %>%
+                              filter(area %in% spatialGrouping[[i]]) %>%
       
-      group_by(year.numb, Species) %>%
-      summarize(presenceBySpecies = max(Mean.avgPresence)) %>% # take maximum probability of occurrence of each species, in each year, for each spatialGrouping
-      ungroup() %>%
+                              group_by(year.numb, Species) %>%
+                              summarize(presenceBySpecies = max(Mean.avgPresence)) %>% # take maximum probability of occurrence of each species, in each year, for each spatialGrouping
+                              ungroup() %>%
       
-      group_by(year.numb) %>%
-      summarize(spPresenceByYear = sum(presenceBySpecies)) %>% # spRichness for each year = sum of all presenceBySpecies, across all species
-      ungroup() %>%
+                              group_by(year.numb) %>%
+                              summarize(spPresenceByYear = sum(presenceBySpecies)) %>% # spRichness for each year = sum of all presenceBySpecies, across all species
+                              ungroup() %>%
 
-      summarize(spRichness = mean(spPresenceByYear)) %>% # mean spRichness across all years for each spatialGrouping
-      ungroup()
+                              summarize(spRichness = mean(spPresenceByYear)) %>% # mean spRichness across all years for each spatialGrouping
+                              ungroup()
     
     
     Area_agg_list[[i]] <- my_df %>%
-      filter(area %in% spatialGrouping[[i]]) %>%
-      select(area, km2) %>%
-      
-      group_by(area) %>%
-      summarise(eachArea = first(km2)) %>%
-      ungroup() %>%
-      
-      summarise(area_agg = sum(eachArea))
+                          filter(area %in% spatialGrouping[[i]]) %>%
+                          select(area, km2) %>%
+                          group_by(area) %>%
+                          summarise(eachArea = first(km2)) %>%
+                          ungroup() %>%
+                          summarise(area_agg = sum(eachArea))
+    
     
   }
   
   df_list <- list(Area_agg_list, richness_agg_list)
   my_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
-  colnames(my_df) <- c("Area", "speciesRichness")
+  colnames(my_df) <- c("km2", "speciesRichness")
   return(my_df)
   
 }
 
+local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
+local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
+                    a, b, c, d, e, # 2s
+                    f, fa, fb, g, n, gb, h, o, # 3s
+                    m, k, u, v, w, z, za, zb, # 4s
+                    l, t, zc, w, r, s, zd, zz, q) # the rest
+agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
 
-richness1 <- Richness_Area_func(occDat1, agg_list)
+
+richness1 <- Richness_Area_func(occDat1, myNums_agg_list_noSingles)
 #View(richness1)
+save(richness1, file = "richness1.RData")
+load("richness1.RData")
 
 
 ############
 
 # plot the result
 
-ggplot(data=richness1, aes(x=Area, y = speciesRichness)) + 
+ggplot(data=richness1, aes(x=km2, y = speciesRichness)) + 
   geom_point(aes(y = speciesRichness), size=5) +
   
   theme(panel.background = element_blank(),
@@ -431,7 +571,7 @@ ggplot(data=richness1, aes(x=Area, y = speciesRichness)) +
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
-  scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
   labs(x = "Area (km^2)", 
        y = "Species Richness
@@ -439,6 +579,821 @@ ggplot(data=richness1, aes(x=Area, y = speciesRichness)) +
 
   
 
+```
+
+
+
+```{r, echo=FALSE, fig.height=5, fig.width=5}
+
+# Add asynchrony calcs
+
+# regional asynchrony between sites (species- and community-level)
+
+
+
+# local asynchrony within sites (species-level)
+sync_within_func <- function(my_df, spatialGrouping){
+  
+  AA_list <- list()
+  Area_agg_list <- list()
+  CV_agg_list <- list()
+  AAA_list <- list(); loreau_list <- list(); gross_list <- list()
+  AAAA_list <- list(); rMean_list <- list(); thibaut_list <- list()
+  
+    
+  for(j in 1:length(spatialGrouping)) {
+    
+    AA_list[[j]] <- my_df %>%
+                    filter(area %in% spatialGrouping[[j]]) 
+    
+    
+    # calculate summed area for each spatial grouping:
+    Area_agg_list[[j]] <- AA_list[[j]] %>%
+                          select(area, km2) %>%
+                          group_by(area) %>%
+                          summarise(eachArea = first(km2)) %>%
+                          ungroup() %>%
+                          summarise(area_agg = sum(eachArea))
+    
+    # calculate aggregate CV for each spatial grouping:
+    CV_agg_list[[j]] <- AA_list[[j]] %>%
+                        filter(area %in% spatialGrouping[[j]]) %>%
+                        group_by(year) %>%
+                        summarise(total = sum(Mean.totalDensity)) %>%
+                        ungroup() %>%
+                        summarise(CV = sd(total) / mean(total))
+  
+   
+    ###################### 
+    
+    AAA_list[[j]] <- AA_list[[j]] %>%
+                     select(year, common.name, Mean.totalDensity) %>%
+                     group_by(year, common.name) %>%
+                     summarize(totDensity = sum(Mean.totalDensity)) %>% # for each species in each year, sum its total density
+                     ungroup()
+        
+    
+    
+    # Loreau & de Mazancourt 2008 metric:
+    # *********** NOT independent of stability **********
+    # "This measure of synchrony is standardized between 0 (perfect asynchrony) and 1 (perfect synchrony).
+    # it will return similar values for communities shaped by different processes – for example, even if 
+    # species vary independently, the synchrony metric may be affected by the number of species and individual species variances."
+    # "The Loreau method is based on variances, and is therefore more heavily influenced by abundant species."
+    loreau_list[[j]] <- codyn::synchrony(AAA_list[[j]], 
+                                         time.var = "year", 
+                                         species.var = "common.name", 
+                                         abundance.var = "totDensity", 
+                                         metric = "Loreau")
+    
+    
+  
+    # Gross et al. 2014 metric:  
+    # mean synchrony = mean correlation coefficient r between the abundances A_i of each species i 
+    # versus the rest of the community (all A_j except i)
+    # syn = 1/S * sum(cor(A_i, sum(A_j excluding i)))
+    # where S = number of species
+    # "This measure of synchrony is standardized from -1 (perfect asynchrony) to 1 (perfect synchrony) 
+    # and is centered at 0 when species fluctuate independently. A virtue of this metric is it is 
+    # not sensitive to richness and has the potential for null-model significance testing."
+    # "... the Gross method is based on correlation and consequently weights species equally."
+    gross_list[[j]] <- codyn::synchrony(AAA_list[[j]], 
+                                        time.var = "year", 
+                                        species.var = "common.name", 
+                                        abundance.var = "totDensity", 
+                                        metric = "Gross")
+  
+      
+    
+    # Thibaut & Connolly 2013 metric:
+    #rho <- ((1 - mean r_ij) / S) + mean r_ij
+    # where mean r_ij = arithmetic mean correlation coefficient across all species pairs
+    # perfect asynchrony: rho = 0; synchrony: rho = 1
+    AAAA_list[[j]] <- AAA_list[[j]] %>%
+                      spread(common.name, totDensity) %>%
+                      select(-year)
+    rMean_list[[j]] <- synchrony::meancorr(AAAA_list[[j]])$obs
+    thibaut_list[[j]] <- ((1-rMean_list[[j]]) / ncol(AAAA_list[[j]])) + rMean_list[[j]]
+    
+    
+    
+    } # end of j
+  
+    ###################### 
+
+  # return dataframe of outputs
+  
+  syn_list <- list(Area_agg_list, CV_agg_list, loreau_list, gross_list, thibaut_list)
+  syn_df <- as.data.frame(matrix(unlist(syn_list), nrow=length(unlist(syn_list[1]))))
+  colnames(syn_df) <- c("km2", "CV", "loreauSync", "grossSync", "thibautSync")
+  return(syn_df)
+  
+}
+
+
+local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
+local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
+                    a, b, c, d, e, # 2s
+                    f, fa, fb, g, n, gb, h, o, # 3s
+                    m, k, u, v, w, z, za, zb, # 4s
+                    l, t, zc, w, r, s, zd, zz, q) # the rest
+agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
+
+
+sync_within <- sync_within_func(shallowCPUEArea2, myNums_agg_list_noSingles)
+View(sync_within)
+save(sync_within, file = "sync_within.RData")
+load("sync_within.RData")
+
+
+
+#######################
+
+# plot CV vs synchrony
+
+cvLoreau_within <- ggplot(data=sync_within, aes(x=loreauSync, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Loreau Synchrony
+       (Within-patch, between species)",
+       y = "CV")
+
+
+
+cvGross_within <- ggplot(data=sync_within, aes(x=grossSync, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Gross Synchrony
+       (Within-patch, between species)",
+       y = "CV")
+
+
+
+cvThibaut_within <- ggplot(data=sync_within, aes(x=thibautSync, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Thibaut Synchrony
+       (Within-patch, between species)",
+       y = "CV")
+
+
+grid.arrange(cvLoreau_within, cvGross_within, cvThibaut_within, ncol = 2)
+
+#######################
+
+# plot richness vs synchrony
+
+
+# join to richness1 (make sure it was run on agg_list with individual areas too)
+rich_sync_within_df <- full_join(richness1, sync_within, by = "km2")
+#View(rich_sync_within_df)
+
+
+
+CV_richness <- ggplot(data=rich_sync_within_df, aes(x=speciesRichness, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  geom_smooth(method = lm) +
+  
+  labs(x = "Species Richness
+       (sum of max. probability of occurrence)",
+       y = "CV")
+
+CV_richness
+
+summary(lm(rich_sync_within_df$CV ~ rich_sync_within_df$speciesRichness))
+# Coefficients:
+#                                      Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)                          0.1933799  0.0019456   99.39   <2e-16 ***
+#rich_sync_within_df$speciesRichness -0.0062465  0.0001178  -53.03   <2e-16 ***
+#---
+#Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#
+#Residual standard error: 0.01424 on 2471 degrees of freedom
+#Multiple R-squared:  0.5323,	Adjusted R-squared:  0.5321 
+#F-statistic:  2812 on 1 and 2471 DF,  p-value: < 2.2e-16
+
+
+
+
+richnessLoreau_within <- ggplot(data=rich_sync_within_df, aes(x=speciesRichness, y = loreauSync)) + 
+  geom_point(aes(y = loreauSync), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Species Richness
+       (sum of max. probability of occurrence)",
+       y = "Loreau Synchrony")
+
+
+
+richnessGross_within <- ggplot(data=rich_sync_within_df, aes(x=speciesRichness, y = grossSync)) + 
+  geom_point(aes(y = grossSync), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Species Richness
+       (sum of max. probability of occurrence)",
+       y = "Gross Synchrony")
+
+
+
+richnessThibaut_within <- ggplot(data=rich_sync_within_df, aes(x=speciesRichness, y = thibautSync)) + 
+  geom_point(aes(y = thibautSync), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Species Richness
+       (sum of max. probability of occurrence)",
+       y = "Thibaut Synchrony")
+
+
+
+grid.arrange(richnessLoreau_within, richnessGross_within, richnessThibaut_within, ncol = 2)
+
+###################################################
+###################################################
+###################################################
+
+# Synchrony between local communities (total community-level)
+
+# ********local asynchrony within sites (species-level)**********
+sync_between_func <- function(my_df, spatialGrouping){
+  
+  BB_list <- list()
+  Area_agg_list <- list()
+  CV_agg_list <- list()
+  BBB_list <- list(); loreau_list <- list(); gross_list <- list()
+  BBBB_list <- list(); rMean_list <- list(); thibaut_list <- list()
+  
+    
+  for(j in 1:length(spatialGrouping)) {
+    
+    BB_list[[j]] <- my_df %>%
+                    filter(area %in% spatialGrouping[[j]]) 
+    
+    
+    # calculate summed area for each spatial grouping:
+    Area_agg_list[[j]] <- BB_list[[j]] %>%
+                          select(area, km2) %>%
+                          group_by(area) %>%
+                          summarise(eachArea = first(km2)) %>%
+                          ungroup() %>%
+                          summarise(area_agg = sum(eachArea))
+    
+    
+    # calculate aggregate CV for each spatial grouping:
+    CV_agg_list[[j]] <- BB_list[[j]] %>%
+                        filter(area %in% spatialGrouping[[j]]) %>%
+                        group_by(year) %>%
+                        summarise(total = sum(Mean.totalDensity)) %>%
+                        ungroup() %>%
+                        summarise(CV = sd(total) / mean(total))
+  
+   
+    ###################### 
+    
+    BBB_list[[j]] <- BB_list[[j]] %>%
+                     select(area, year, common.name, Mean.totalDensity) %>%
+                     group_by(area, year) %>%
+                     summarize(totDensity = sum(Mean.totalDensity)) %>% # for aggregated community in each year, sum total density across all species
+                     ungroup()
+        
+    
+    
+    # Loreau & de Mazancourt 2008 metric:
+    # "This measure of synchrony is standardized between 0 (perfect asynchrony) and 1 (perfect synchrony).
+    # it will return similar values for communities shaped by different processes – for example, even if 
+    # species vary independently, the synchrony metric may be affected by the number of species and individual species variances."
+    loreau_list[[j]] <- codyn::synchrony(BBB_list[[j]], 
+                                         time.var = "year", 
+                                         species.var = "area", 
+                                         abundance.var = "totDensity", 
+                                         metric = "Loreau")
+    
+    
+  
+    # Gross et al. 2014 metric:  
+    # mean synchrony = mean correlation coefficient r between the abundances A_i of each species i 
+    # versus the rest of the community (all A_j except i)
+    # syn = 1/S * sum(cor(A_i, sum(A_j excluding i)))
+    # where S = number of species
+    # "This measure of synchrony is standardized from -1 (perfect asynchrony) to 1 (perfect synchrony) 
+    # and is centered at 0 when species fluctuate independently. A virtue of this metric is it is 
+    # not sensitive to richness and has the potential for null-model significance testing."
+    gross_list[[j]] <- codyn::synchrony(BBB_list[[j]], 
+                                        time.var = "year", 
+                                        species.var = "area", 
+                                        abundance.var = "totDensity", 
+                                        metric = "Gross")
+  
+      
+    
+    # Thibaut & Connolly 2013 metric:
+    #rho <- ((1 - mean r_ij) / S) + mean r_ij
+    # where mean r_ij = arithmetic mean correlation coefficient across all species pairs
+    # perfect asynchrony: rho = 0; synchrony: rho = 1
+    BBBB_list[[j]] <- BBB_list[[j]] %>%
+                      spread(area, totDensity) %>%
+                      select(-year)
+    rMean_list[[j]] <- synchrony::meancorr(BBBB_list[[j]])$obs
+    thibaut_list[[j]] <- ((1-rMean_list[[j]]) / ncol(BBBB_list[[j]])) + rMean_list[[j]]
+    
+    
+    
+    } # end of j
+  
+    ###################### 
+  
+  # return dataframe of outputs
+  
+  syn_list <- list(Area_agg_list, CV_agg_list, loreau_list, gross_list, thibaut_list)
+  syn_df <- as.data.frame(matrix(unlist(syn_list), nrow=length(unlist(syn_list[1]))))
+  colnames(syn_df) <- c("km2", "CV", "loreauSync", "grossSync", "thibautSync")
+  return(syn_df)
+  
+}
+
+
+local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
+local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
+                    a, b, c, d, e, # 2s
+                    f, fa, fb, g, n, gb, h, o, # 3s
+                    m, k, u, v, w, z, za, zb, # 4s
+                    l, t, zc, w, r, s, zd, zz, q) # the rest
+agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
+
+
+# note I must remove single local communities to look at synchrony between communities
+sync_between <- sync_between_func(shallowCPUEArea2, myNums_agg_list_noSingles)
+head(sync_between)
+save(sync_between, file = "sync_between.RData")
+
+#sync_between <- sync_between_func(shallowCPUEArea2, agg_2s)
+#sync_between <- sync_between_func(shallowCPUEArea2, agg_3s)
+#sync_between <- sync_between_func(shallowCPUEArea2, agg_4s)
+#sync_between
+#View(sync_between)
+# careful; synchrony will be conflated with with the number of local communities in the analysis
+
+
+
+#######################
+
+# plot CV vs synchrony
+
+cvLoreau_between <- ggplot(data=sync_between, aes(x=loreauSync, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Loreau Synchrony
+       (Between-Patch)",
+       y = "CV")
+
+
+
+cvGross_between <- ggplot(data=sync_between, aes(x=grossSync, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Gross Synchrony
+       (Between-Patch)",
+       y = "CV")
+
+
+
+cvThibaut_between <- ggplot(data=sync_between, aes(x=thibautSync, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Thibaut Synchrony
+       (Between-Patch)",
+       y = "CV")
+
+
+grid.arrange(cvLoreau_between, cvGross_between, cvThibaut_between, ncol = 2)
+
+
+#######################
+
+# plot stuff against Species Richness
+
+richness2s <- Richness_Area_func(occDat1, agg_2s)
+richness3s <- Richness_Area_func(occDat1, agg_3s)
+richness4s <- Richness_Area_func(occDat1, agg_4s)
+
+# join to richness1 (make sure it was run on agg_list with individual areas too)
+rich_sync_between_df <- full_join(richness1, sync_between, by = "km2")
+
+rich_sync_between_df_2 <- full_join(richness2s, sync_between2, by = "km2")
+rich_sync_between_df_3 <- full_join(richness3s, sync_between3, by = "km2")
+rich_sync_between_df_4 <- full_join(richness4s, sync_between4, by = "km2")
+View(rich_sync_between_df)
+
+
+
+richnessLoreau_between <- ggplot(data=rich_sync_between_df, aes(x=speciesRichness, y = loreauSync)) + 
+  geom_point(aes(y = loreauSync), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Species Richness
+       (sum of max. probability of occurrence)",
+       y = "Loreau Synchrony (between)")
+
+
+
+richnessGross_between <- ggplot(data=rich_sync_between_df, aes(x=speciesRichness, y = grossSync)) + 
+  geom_point(aes(y = grossSync), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Species Richness
+       (sum of max. probability of occurrence)",
+       y = "Gross Synchrony (between)")
+
+
+
+richnessThibaut_between <- ggplot(data=rich_sync_between_df, aes(x=speciesRichness, y = thibautSync)) + 
+  geom_point(aes(y = thibautSync), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Species Richness
+       (sum of max. probability of occurrence)",
+       y = "Thibaut Synchrony (between)")
+
+
+# *********CAREFUL; RESULT IS CONFLATED WITH NUMBER OF LOCAL COMMUNITIES INCLUDED IN THE ANALYSIS***********
+grid.arrange(richnessLoreau_between, richnessGross_between, richnessThibaut_between, ncol = 2)
+
+
+###################################################
+###################################################
+###################################################
+
+
+
+# Loreau & de Mazancourt's (2008) metric, using Tarik Gouthier's synchrony package:
+#community.sync()
+
+
+subdom1 <- shallowCPUEArea2 %>%
+  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut", "walleye pollock", "Pacific cod"))
+
+subdom2 <- shallowCPUEArea2 %>%
+  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut", "walleye pollock", "Pacific cod", "northern rockfish", "rock soles", "Pacific ocean perch", "flathead sole"))
+
+subdom3 <- shallowCPUEArea2 %>%
+  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut"))
+
+
+# for one local community:
+synDat <- #shallowCPUEArea2 %>%
+  #subdom2 %>%
+  subdom3 %>%
+  filter(area == 10) %>%
+  select(common.name, year, Mean.totalDensity) %>%
+  spread(common.name, Mean.totalDensity) %>%
+  select(-year)
+
+syn1 <- community.sync(synDat, nrands = 100, type = 1, alternative = c("greater"))
+syn1
+plot(syn1)
+
+# 1  0.07, 0.47, 0.25, 0.23
+# 2  0.17, 0.09, 0.05, 0.19
+# 3  0.12, 0.28, 0.05, 0.145
+# 4  0.085, 0.26, 0.06, 0.19 
+# 5  0.084, 0.15, 0.07, 0.29
+# 6  0.074, 0.38, 0.10, 0.22
+# 7  0.074, 0.22, 0.07, 0.16
+# 8  0.19, 0.16, 0.13, 0.11
+# 9  0.20, 0.04, 0.06, 0.06
+# 10 0.21, 0.11, 0.14, 0.07
+
+
+
+synDat2 <- #shallowCPUEArea2 %>%
+  #subdom1 %>%
+  subdom3 %>%
+  select(area, common.name, year, Mean.totalDensity) %>%
+  
+  group_by(area, year) %>%
+  summarize(totDensity = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  
+  spread(area, totDensity) %>%
+  select(-year)
+
+
+syn2 <- community.sync(synDat2, nrands = 100, type = 1, alternative = c("greater"))
+syn2
+plot(syn2)
+
+# 0.22, 0.38, 0.45, 0.48
+
+
+#################
+
+# Thibaut & Connolly's (2013) metric:
+# use meancorr function in T. Gouhier's synchrony package:
+# Compute mean column-wise correlation and determine its significance via Monte Carlo randomizations.
+# The Monte Carlo randomizations are performed by shuffling the columns of the community
+# matrix independently.
+
+
+# for one local community:
+synDat <- shallowCPUEArea2 %>%
+  #subdom1 %>%
+  #subdom2 %>%
+  #subdom3 %>%
+  filter(area == 10) %>%
+  select(common.name, year, Mean.totalDensity) %>%
+  spread(common.name, Mean.totalDensity) %>%
+  select(-year)
+
+
+rMean <- synchrony::meancorr(synDat)$obs
+rho <- ((1-rMean) / ncol(synDat)) + rMean
+rho
+
+
+
+
+synDat2 <- #shallowCPUEArea2 %>%
+  #subdom1 %>%
+  subdom3 %>%
+  select(area, common.name, year, Mean.totalDensity) %>%
+  
+  group_by(area, year) %>%
+  summarize(totDensity = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  
+  spread(area, totDensity) %>%
+  select(-year)
+
+
+rMean2 <- meancorr(synDat2)$obs
+rho2 <- ((1-rMean2) / ncol(synDat2)) + rMean2
+rho2
+
+# 0.17, 0.28, 0.44, 0.37
+
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+
+# Wang & Loreau's average species variability (within-patch):
+
+avSpeciesVar_within_func <- function(my_df, spatialGrouping){
+  
+  AA_list <- list()
+  Area_agg_list <- list()
+  CV_agg_list <- list()
+  AAA_list <- list()
+  A_list <- list(); B_list <- list(); C_list <- list()
+  
+    
+  for(j in 1:length(spatialGrouping)) {
+    
+    AA_list[[j]] <- my_df %>%
+                    filter(area %in% spatialGrouping[[j]]) 
+    
+    
+    # calculate summed area for each spatial grouping:
+    Area_agg_list[[j]] <- AA_list[[j]] %>%
+                          select(area, km2) %>%
+                          group_by(area) %>%
+                          summarise(eachArea = first(km2)) %>%
+                          ungroup() %>%
+                          summarise(area_agg = sum(eachArea))
+    
+    # calculate aggregate CV for each spatial grouping:
+    CV_agg_list[[j]] <- AA_list[[j]] %>%
+                        filter(area %in% spatialGrouping[[j]]) %>%
+                        group_by(year) %>%
+                        summarise(total = sum(Mean.totalDensity)) %>%
+                        ungroup() %>%
+                        summarise(CV = sd(total) / mean(total))
+  
+   
+    ###################### 
+    
+    AAA_list[[j]] <- AA_list[[j]] %>%
+                     select(year, common.name, Mean.totalDensity) %>%
+                     group_by(year, common.name) %>%
+                     summarize(spTotDensity = sum(Mean.totalDensity)) %>% # for each species in each year, sum its total density across all local communities in the spatial grouping
+                     ungroup()
+        
+    
+    
+    #Calculate averaged species variability (C_list$CV_species_i_squared):
+  
+    # calculate local community-level stuff
+    A_list[[j]] <- AAA_list[[j]] %>%
+      group_by(year) %>%
+      summarize(annual_total_i = sum(spTotDensity)) %>% # sum CUEs across all species for each local community i in each year
+      ungroup() %>%
+      summarize(var_i = var(annual_total_i),
+                stDev_i = sqrt(var(annual_total_i)),
+                u_i = mean(annual_total_i)) # mean total community CUE (across all years) for local community (or spatial grouping) i
+    
+    
+  # calculate species-level stuff
+    B_list[[j]] <- AAA_list[[j]] %>%
+      group_by(common.name) %>%
+      summarize(u_j_i = mean(spTotDensity), # mean CUE (across all years) of species j in local community (or spatial grouping) i
+                CV_j_i_squared = sqrt(var(spTotDensity)) / u_j_i, # CV of species j in local community i; CV = StDev / Mean
+                CV_species_j_i = u_j_i / A_list[[j]]$u_i * CV_j_i_squared) %>% # CV of species j in local community i, weighted for percent contribution of each species' abundance to total abundance of local community (or spatial grouping)
+      ungroup()
+    
+    
+  # calculate averaged species variability
+    C_list[[j]] <- B_list[[j]] %>%
+      summarise(CV_species_i_squared = sum(CV_species_j_i))
+    
+  }
+  
+  #return(C_list)
+  
+  avSpVar_list <- list(Area_agg_list, CV_agg_list, C_list)
+  avSpVar_df <- as.data.frame(matrix(unlist(avSpVar_list), nrow=length(unlist(avSpVar_list[1]))))
+  colnames(avSpVar_df) <- c("km2", "CV", "avSpVar")
+  return(avSpVar_df)
+
+}
+
+local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
+local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
+                    a, b, c, d, e, # 2s
+                    f, fa, fb, g, n, gb, h, o, # 3s
+                    m, k, u, v, w, z, za, zb, # 4s
+                    l, t, zc, w, r, s, zd, zz, q) # the rest
+agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
+
+
+avSpVar_within <- avSpeciesVar_within_func(shallowCPUEArea2, myNums_agg_list_noSingles)
+avSpVar_within
+save(avSpVar_within, file = "avSpVar_within.RData")
+
+
+#######################
+
+# plot average species variation (within patches) vs synchrony
+
+cv_AvSpVar_within <- ggplot(data=avSpVar_within, aes(x=avSpVar, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Averge Species Variability
+       (Within-Patch)",
+       y = "CV")
+
+cv_AvSpVar_within
+
+
+    
 ```
 
 
@@ -467,7 +1422,7 @@ WangLoreau_func <- function(this_df, spatialGrouping){
   
   # create single-level lists:
   Area_agg_list <- list()
-  AA_list <- list(); AAA_list <- list()
+  AA_list <- list()#; AAA_list <- list()
   another_df_list <- list(); covMatrix_m_list <- list(); w_ii_list <- list(); w_ih_list <- list()
   summed_w_ih_list <- list(); rho_list <- list(); Beta1_list <- list(); gamma_CV_list <- list()
   
@@ -632,7 +1587,7 @@ WangLoreau_func <- function(this_df, spatialGrouping){
 }
 
 
-WangLoreauResult <- WangLoreau_func(shallowCPUEArea2, agg_list)
+WangLoreauResult <- WangLoreau_func(shallowCPUEArea2, myNums_agg_list)
 WangLoreauResult
 
 
@@ -684,11 +1639,173 @@ b9 <- c(u, v) # 1:5, 6:10
 
 
 # 3. Create list of j pairs
+#spatialPairs <- list(b1, b2, b3, b4)
 spatialPairs <- list(b1, b2, b3, b4, b5, b6, b7, b8, b9)
 
 
 
-###############################
+##################################
+
+
+# Calculate Bray spatial turnover for list of random draws:
+
+
+# need nested list of paired lists
+# either split each list in half inside the function
+
+# or create a new nested list of paired lists (with random numbers)
+
+# or take random draws of elements of myNums4_list (or myNums_agg_list or myNums_agg_list_noSingles) to create paired lists:
+# 2. Create j pairs of k subgroupings (nested list)
+b1 <- c(a, b)  # 1:2, 3:4
+
+
+bray_func <- function(your_df, spatialGrouping){
+  
+  
+  # create flat lists:
+  pair_list <- list()
+  wisc_list <- list()
+  bray_list <- list()
+  #comm_agg_list <- list()
+  CV_list <- list()
+  Area_agg_list <- list()
+  
+  
+  # create nested lists with 2 levels:
+  subpair_list <- vector("list", length(spatialGrouping))
+  subpair_df_list <- vector("list", length(spatialGrouping)) 
+  
+  
+  ##############################
+  
+  # 1. Loop over list of j pairs to create pairs for Bray matrix
+    
+  for(j in 1:length(spatialGrouping)) { # ie for each of 801 elements in myNums_agg_list_noSingles
+    
+    # split each spatialGrouping in half:
+    subpair_list[[j]][[1]] <- spatialGrouping[[j]][1 : (ceiling(length(spatialGrouping[[j]])/2)) ]
+    subpair_list[[j]][[2]] <- spatialGrouping[[j]][ ((ceiling(length(spatialGrouping[[j]])/2))+1) : length(spatialGrouping[[j]])]
+    
+    
+    # now loop over subpair_list
+    subpair_df_list[[j]][[1]] <- your_df %>%
+                                filter(area %in% subpair_list[[j]][[1]]) %>%
+                                select(common.name, Mean.totalDensity, area, year) %>%
+                                group_by(common.name) %>%
+                                summarize(temporal.mean = mean(Mean.totalDensity)) %>%
+                                ungroup() %>%
+                                spread(common.name, temporal.mean)
+    
+     subpair_df_list[[j]][[2]] <- your_df %>%
+                                filter(area %in% subpair_list[[j]][[2]]) %>%
+                                select(common.name, Mean.totalDensity, area, year) %>%
+                                group_by(common.name) %>%
+                                summarize(temporal.mean = mean(Mean.totalDensity)) %>%
+                                ungroup() %>%
+                                spread(common.name, temporal.mean)
+    
+     # area groupings work as expected
+     
+     ##############################
+    
+    # 2. Calculate Bray dissimilarities
+    
+    pair_list[[j]] <- bind_rows(subpair_df_list[[j]]) # bind dfs in subpair_list with the same j
+    wisc_list[[j]] <- wisconsin(pair_list[[j]]) # Wisconsin transformation. Consider also wisconsin(sqrt(x)). Check that I'm combining these in the right way.
+    bray_list[[j]] <- vegdist(wisc_list[[j]], "bray") # calculate Bray-Curtis dissimilarities for each j pair of k local communities
+
+    
+    ##############################
+    
+    # 4. add calcs for cumulative species richness and CV for each j grouping of local communities
+    # note I need occurrence data for species Richness
+    
+    #comm_agg_list[[j]] <- unlist(subpair_list[[j]]) # unlist the nested list of site pairs
+    # can't I just use spatialGrouping[[j]]?
+    
+    # calculate CV and cumulative area
+    # should I be taking the mean CV of each subpair within each j, then take the mean CV of these two?
+    CV_list[[j]] <- your_df %>%
+                    filter(area %in% spatialGrouping[[j]]) %>%
+                    group_by(year) %>%
+                    summarise(total = sum(Mean.totalDensity)) %>%
+                    ungroup() %>%
+                    summarise(CV = sd(total) / mean(total))
+        
+    
+    # calculate summed area for each spatial grouping:
+    Area_agg_list[[j]] <- your_df %>%
+                          filter(area %in% spatialGrouping[[j]]) %>%
+                          select(area, km2) %>%
+                          group_by(area) %>%
+                          summarise(eachArea = first(km2)) %>%
+                          ungroup() %>%
+                          summarise(area_agg = sum(eachArea))
+    
+      
+    } # end of j
+  
+  
+    ##############################
+  
+    # 5. Return dataframe of outputs
+  
+    bray_list <- list(bray_list, CV_list, Area_agg_list)
+    bray_df <- as.data.frame(matrix(unlist(bray_list), nrow=length(unlist(bray_list[1]))))
+    colnames(bray_df) <- c("bray", "CV", "km2")
+    return(bray_df)
+    
+  
+}
+
+
+#brayResult <- bray_func(shallowCPUEArea2, myNums4_list)
+#brayResult
+
+brayResult <- bray_func(shallowCPUEArea2, myNums_agg_list_noSingles)
+brayResult
+save(brayResult, file = "brayResult.RData")
+
+#####################
+
+
+plot(brayResult$CV ~ brayResult$km2, pch=16, cex=2.5)
+plot(brayResult$bray ~ brayResult$km2, pch=16, cex=2.5)
+plot(brayResult$CV ~ brayResult$bray, pch=16, cex=2.5)
+summary(lm(brayResult$CV ~ brayResult$bray))
+
+
+
+# plot it
+# CAREFUL, how to remove effect of Area (km^2) and number of local communities on CV? Because lower bray is associated with greater number of local communities. 
+# And it's not really clear what Bray dissimilarities mean here for progressively aggregated communities.
+
+CV_bray_plot <- ggplot(data=brayResult, aes(x=bray, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  #scale_x_log10(breaks = c(5000, 10000, 20000, 30000, 40000), labels = c(5000, 10000, 20000, 30000, 40000)) +
+  
+  #scale_y_log10() +
+  
+  #geom_smooth(method = lm, se = FALSE) +
+  
+  labs(x = "Bray Dissimilarity", y = "CV (Total Community CUE)")
+
+
+
+##############################################################
+##############################################################
+##############################################################
 
 
 # Calculate Bray spatial turnover:
@@ -700,48 +1817,108 @@ bray_func <- function(your_df, pairs){
   pair_list <- list()
   wisc_list <- list()
   bray_list <- list()
+  comm_agg_list <- list()
+  CV_list <- list()
+  Area_agg_list <- list()
   
   
   # create nested lists with 2 levels:
   subpair_list <- vector("list", length(pairs))
   
   
+  ##############################
+  
   # 1. Loop over list of j pairs to create pairs for Bray matrix
     
   for(j in 1:length(pairs)) {
     
     
+  ##############################
+    
+  # 2. Create aggregated df's for each k sub-pair of local communities  
+    
     for(k in 1:length(pairs[[j]])) {
       
-       # create aggregated df's for each k sub-pair of local communities  
-       
+       # length(spatialPairs) == 4
+       # length(spatialPairs[[j]]) == 2
+       # length(spatialPairs[[j]][[k]]) == 2
+      
       subpair_list[[j]][[k]] <- your_df %>%
-         filter(area %in% pairs[[j]][[k]]) %>%
-         select(common.name, Mean.totalDensity, area, year) %>%
-         group_by(common.name) %>%
-         summarize(temporal.mean = mean(Mean.totalDensity)) %>%
-         ungroup() %>%
-         spread(common.name, temporal.mean)
+                                filter(area %in% pairs[[j]][[k]]) %>%
+                                select(common.name, Mean.totalDensity, area, year) %>%
+                                group_by(common.name) %>%
+                                summarize(temporal.mean = mean(Mean.totalDensity)) %>%
+                                ungroup() %>%
+                                spread(common.name, temporal.mean)
        
+      
+          
        } # end of k
     
     
+    ##############################
+    
+    # 3. Calculate Bray dissimilarities (back to loop for [[j]])
     
     pair_list[[j]] <- bind_rows(subpair_list[[j]]) # bind dfs in subpair_list with the same j
     wisc_list[[j]] <- wisconsin(pair_list[[j]]) # Wisconsin transformation. Consider also wisconsin(sqrt(x)). Check that I'm combining these in the right way.
     bray_list[[j]] <- vegdist(wisc_list[[j]], "bray") # calculate Bray-Curtis dissimilarities for each j pair of k local communities
-    
-    } # end of j
-
   
-                  
-    return(bray_list)
+    
+    
+    ##############################
+    
+    # 4. add calcs for cumulative species richness and CV for each j grouping of local communities
+    # note I need occurrence data for species Richness
+    
+    comm_agg_list[[j]] <- unlist(pairs[[j]])
+    
+    # calculate CV and cumulative area
+    # should I be taking the mean CV of each subpair within each j, then take the mean CV of these two?
+    CV_list[[j]] <- your_df %>%
+                    filter(area %in% comm_agg_list[[j]]) %>%
+                    group_by(year) %>%
+                    summarise(total = sum(Mean.totalDensity)) %>%
+                    ungroup() %>%
+                    summarise(CV = sd(total) / mean(total))
+        
+    
+    # calculate summed area for each spatial grouping:
+    Area_agg_list[[j]] <- your_df %>%
+                          filter(area %in% comm_agg_list[[j]]) %>%
+                          select(area, km2) %>%
+                          group_by(area) %>%
+                          summarise(eachArea = first(km2)) %>%
+                          ungroup() %>%
+                          summarise(area_agg = sum(eachArea))
+    
+      
+    } # end of j
+  
+  
+    ##############################
+  
+    # 5. Return dataframe of outputs
+  
+    bray_list <- list(bray_list, CV_list, Area_agg_list)
+    bray_df <- as.data.frame(matrix(unlist(bray_list), nrow=length(unlist(bray_list[1]))))
+    colnames(bray_df) <- c("bray", "CV", "km2")
+    return(bray_df)
+    
   
 }
 
 
 brayResult <- bray_func(shallowCPUEArea2, spatialPairs) 
-brayResult
+#brayResult
+
+
+
+
+#shallow_mat1 <- spatial_func(shallowCPUEArea2)  
+#shallow.dis.bray.wisc <- vegdist(shallow_mat1, "bray", upper = TRUE, lower=TRUE)  # get Bray-Curtis dissimilarities 
+#shallow_mean_spatial <- colSums(as.data.frame(as.matrix(shallow.dis.bray.wisc)))/9 # calculate mean dissimilarity between each local community and all other local communities
+
 
 
 ```
