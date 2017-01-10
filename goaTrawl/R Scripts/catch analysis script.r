@@ -42,7 +42,6 @@ catch.sum$final.OLE[catch.sum$final.OLE == "PWS"] <- "Prince William Sound"
 ###########################################################################
 
 COL <- viridis(4,begin=0,end=0.8)
-
 biomass.plot <- ggplot(catch.sum) +
                   geom_point(aes(year,met.ton.km2,shape=final.OLE),size=2.5) +
                   geom_line(aes(year,met.ton.km2,group=final.OLE)) +
@@ -59,7 +58,43 @@ biomass.plot
 
 
 quartz(file = "/Users/ole.shelton/GitHub/pfx-groundfish/goaTrawl/_fishing areas gfish/Plots/Catch by region.pdf",
-       type="pdf",width=6,height=4)
+                type="pdf",width=6,height=4,dpi=600)
+
+    NAME <-  unique(catch.sum$final.OLE) 
+    PCH  <-  c(21,24,22,3)
+    catch.sum <- catch.sum[order(catch.sum$year),]
+    
+    y.lim=c(0,1.5)
+    for(i in 1:length(NAME)){
+      plot(met.ton.km2~year,data=catch.sum[catch.sum$final.OLE == NAME[i],],pch=PCH[i],ylim=y.lim,axes=F,xlab="",ylab="") 
+      par(new=T)        
+      plot(met.ton.km2~year,data=catch.sum[catch.sum$final.OLE == NAME[i],],type="l",ylim=y.lim,axes=F,xlab="",ylab="") 
+      par(new=T)
+    }         
+     axis(1)
+     axis(2,las=2)
+     box(bty="o",lwd=2)
+         
+         
+         
+         
+dev.off()         
+         
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
   print(biomass.plot)
 dev.off()
 
