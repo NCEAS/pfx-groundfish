@@ -25,7 +25,8 @@ source("../diversity_scripts/Fishing_Pressure_calc.r")
 ```
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
-# source the 
+# source the diversity metrics csv file
+div_met <- read.csv("../diversity-data/DiversityMetrics.Shallow.Bootstrapped.Final.csv")
 
 ```
 
