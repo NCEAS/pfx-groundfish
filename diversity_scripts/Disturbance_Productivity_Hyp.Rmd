@@ -1,0 +1,36 @@
+---
+title: "Disturbance_Productivity_Hyp"
+author: "Rachael E. Blake"
+date: "January 31, 2017"
+output: html_document
+---
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load packages
+library(vegan)
+library(mvnormtest)
+library(plyr)
+library(tidyverse)
+library(forcats)
+library(gridExtra)
+library(ggplot2)
+
+```
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# source the fishing pressure calculation script
+source("../diversity_scripts/Fishing_Pressure_calc.r")
+# want the catch_sum dataframe from here
+
+```
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# source the 
+
+```
+
+
+
+
+
+
