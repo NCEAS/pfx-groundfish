@@ -14,7 +14,7 @@ library(gridExtra)
 
 # load the functional trait data from local source in our repository:
 #setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
-traits_df <- read.csv("diversity-data/Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
+traits_df <- read.csv("../diversity-data/Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
 
 # or load it from our google drive:
 #URL_traits <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7uV0h5SG1UeC1lbjg"
@@ -180,10 +180,10 @@ KL_df <- read.csv("../diversity-data/linf_k.csv", header=T, stringsAsFactors = F
 KL_df1 <- KL_df %>%
   dplyr::select(-X, -common.name) %>%
   dplyr::rename(Species = genus.species, estimate = value) %>%
-  dplyr::mutate(Species = revalue(Species, c("Clupea pallasii" = "Clupea pallasi", 
-                                      "Lepidopsetta spp." = "Lepidopsetta sp.", 
-                                      "Theragra chalcogramma" = "Gadus chalcogrammus",
-                                      "Sebastes group 1" = "Dusky and Dark Rockfish"))) %>%
+  # dplyr::mutate(Species = revalue(Species, c("Clupea pallasii" = "Clupea pallasi", 
+  #                                     "Lepidopsetta spp." = "Lepidopsetta sp.", 
+  #                                     "Theragra chalcogramma" = "Gadus chalcogrammus",
+  #                                     "Sebastes group 1" = "Dusky and Dark Rockfish"))) %>%
   mutate(Species = gsub(" ", ".", Species))
 
 for(i in 1:nrow(KL_df1)) { # add columns for gender & location
@@ -303,7 +303,7 @@ traits_wide[,categ] <- lapply(traits_wide[,categ] , factor)
 ##########################################################################
 
 
-traits_wide <- read.csv("traits_wide.csv", header=T)
+#traits_wide <- read.csv("traits_wide.csv", header=T)
 # which pairs of (log-transformed) quantitative traits are correlated?
 pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
 names(traits_wide[,quant])
@@ -339,7 +339,7 @@ ft_df <- traits_wide %>%
   arrange(Species)
 rownames(ft_df) <- ft_df$Species # create row names from Species column
 ft_df <- ft_df %>% dplyr::select(-Species)
-View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
+#View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
 
 #unique(sort(setdiff(ft_df$Species, SPCPUEArea$Species))) # sp in traits_df3 but not SPCPUEArea
 
@@ -510,26 +510,26 @@ deepRaoQ <- bind_cols(year, deepRao1)
 year3 <- unique(sort(SPCPUEArea$year))
 
 shallowRaoQ_temporal <- ggplot(data=shallowRaoQ, aes(x=year3, y = value)) + 
-  geom_point(aes(y = Area1), size=2) +         geom_line(aes(y = Area1), size=2) +
-  geom_point(aes(y = Area2), size=2) +         geom_line(aes(y = Area2), size=2) +
-  geom_point(aes(y = Area3), size=2, col=2) +  geom_line(aes(y = Area3), size=2, col=2) +
-  geom_point(aes(y = Area4), size=2, col=2) +  geom_line(aes(y = Area4), size=2, col=2) +
-  geom_point(aes(y = Area5), size=2, col=2) +  geom_line(aes(y = Area5), size=2, col=2) +
-  geom_point(aes(y = Area6), size=2) +         geom_line(aes(y = Area6), size=2) +
-  geom_point(aes(y = Area7), size=2) +         geom_line(aes(y = Area7), size=2) +
-  geom_point(aes(y = Area8), size=2) +         geom_line(aes(y = Area8), size=2) +
-  geom_point(aes(y = Area9), size=2) +         geom_line(aes(y = Area9), size=2) +
-  geom_point(aes(y = Area10), size=2) +        geom_line(aes(y = Area10), size=2) +
-  theme(axis.line=element_line('black'),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        axis.text.x = element_text(angle=90, size=18, colour = "black"),
-        axis.text.y = element_text(size=22))+
-  scale_x_continuous(breaks=c(year3), labels=c(year3)) +
-  labs(title = "Rao's Q for Shallow Areas", 
-       x = "Year", y = "Rao's Q")
+                        geom_point(aes(y = Area1), size=2) +         geom_line(aes(y = Area1), size=2) +
+                        geom_point(aes(y = Area2), size=2) +         geom_line(aes(y = Area2), size=2) +
+                        geom_point(aes(y = Area3), size=2, col=2) +  geom_line(aes(y = Area3), size=2, col=2) +
+                        geom_point(aes(y = Area4), size=2, col=2) +  geom_line(aes(y = Area4), size=2, col=2) +
+                        geom_point(aes(y = Area5), size=2, col=2) +  geom_line(aes(y = Area5), size=2, col=2) +
+                        geom_point(aes(y = Area6), size=2) +         geom_line(aes(y = Area6), size=2) +
+                        geom_point(aes(y = Area7), size=2) +         geom_line(aes(y = Area7), size=2) +
+                        geom_point(aes(y = Area8), size=2) +         geom_line(aes(y = Area8), size=2) +
+                        geom_point(aes(y = Area9), size=2) +         geom_line(aes(y = Area9), size=2) +
+                        geom_point(aes(y = Area10), size=2) +        geom_line(aes(y = Area10), size=2) +
+                        theme(axis.line=element_line('black'),
+                              panel.grid.major = element_blank(),
+                              panel.grid.minor = element_blank(),
+                              panel.border = element_blank(),
+                              panel.background = element_blank(),
+                              axis.text.x = element_text(angle=90, size=18, colour = "black"),
+                              axis.text.y = element_text(size=22))+
+                        scale_x_continuous(breaks=c(year3), labels=c(year3)) +
+                        labs(title = "Rao's Q for Shallow Areas", 
+                             x = "Year", y = "Rao's Q")
 
 
 
@@ -572,9 +572,9 @@ grid.arrange(shallowRaoQ_temporal, deepRaoQ_temporal, ncol=2)
 year <- as.data.frame(unique(sort(SPCPUEArea$year)))
 
 shallowRao2 <- shallowRaoQ %>% 
-  gather(key = area, value = RaosQ, Area1:Area10) %>%
-  mutate(area = gsub("Area", "", area), 
-         area = as.factor(area))
+               gather(key = area, value = RaosQ, Area1:Area10) %>%
+               mutate(area = gsub("Area", "", area), 
+                      area = as.factor(area))
 
 deepRao2 <- deepRaoQ %>% 
   gather(key = area, value = RaosQ, Area11:Area15) %>%
@@ -594,12 +594,12 @@ theme_boxplot <- function(base_size = 12){
           legend.background=element_rect(colour="white", fill="transparent"),
           plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
           panel.border=element_blank(),
-          panel.margin=unit(0,"lines"),
+          panel.spacing=unit(0,"lines"),
           panel.background=element_rect(fill=NA, colour=NA),
           panel.grid.major=element_blank(),
           panel.grid.minor=element_blank(),
-          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
-          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.line = element_line(colour = 'black', size=0.5, linetype='solid'),
+         # axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
           axis.ticks.length=unit(1,"mm"),
           axis.text.x = element_text(margin=margin(5,0,0,0), size=15), 
           axis.text.y = element_text(margin=margin(0,5,0,0), size=15),
