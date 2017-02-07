@@ -357,7 +357,7 @@ ft_df <- ft_df %>% dplyr::select(-Species)
 #View(SPCPUEArea)
 
 #setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
-SPCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE) # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
+SPCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
 str(SPCPUEArea)
 
 # NB  SPCPUEArea and deepCPUE both have only 53 taxa, not 57. Which ones are missing?
@@ -368,12 +368,12 @@ str(SPCPUEArea)
 # organize Shallow Areas CPUE data for analysis in FD package:
 # unique(sort(setdiff(SPCPUEArea$Species, ft_df$Species)))
 spShallow_df <- SPCPUEArea %>%
-  filter(area != "Total", area != "8") %>% # remove regional totals and Ole's area 8
-  mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting
-  dplyr::select(area, year, Species, Mean.totalDensity) %>%
-  filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
-                          "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
-                          "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
+                #filter(area != "Total", area != "8") %>% # remove regional totals and Ole's area 8
+                #mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting
+                dplyr::select(area, year, Species, Mean.totalDensity) %>%
+                filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
+                                        "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
+                                        "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
   mutate(area = as.numeric(area)) # convert to numeric class
 
 Sh <- spShallow_df %>% 
@@ -577,9 +577,9 @@ shallowRao2 <- shallowRaoQ %>%
                       area = as.factor(area))
 
 deepRao2 <- deepRaoQ %>% 
-  gather(key = area, value = RaosQ, Area11:Area15) %>%
-  mutate(area = gsub("Area", "", area),
-         area = as.factor(area))
+            gather(key = area, value = RaosQ, Area11:Area15) %>%
+            mutate(area = gsub("Area", "", area),
+            area = as.factor(area))
 
 #########################
 
