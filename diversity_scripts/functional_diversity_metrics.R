@@ -331,12 +331,14 @@ names(traits_wide[,quant])
 
 # Prep functional traits df to load into functional diversity analysis
 ft_df <- traits_wide %>%
-  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, depthRange, K, Linfinity) %>% # select all untransformed quantitative traits with sufficient data
-  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, depthRange, adultWaterColumnPosition, diet, guild) %>% # select all traits with sufficient data
-  #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos) %>% # select uncorrelated log-transformed quantitative traits
-  dplyr::select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, adultWaterColumnPosition, diet, guild) %>% # select uncorrelated log-transformed quantitative traits & categorical diet trait
-  filter(!(is.na(ageMaximum)), !(is.na(depthMax)), !is.na(depthCoefPos)) %>% # remove taxa for which trait data are missing
-  arrange(Species)
+         #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, depthRange, K, Linfinity) %>% # select all untransformed quantitative traits with sufficient data
+         #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, trophicPosition, depthRange, adultWaterColumnPosition, diet, guild) %>% # select all traits with sufficient data
+         #select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos) %>% # select uncorrelated log-transformed quantitative traits
+         dplyr::select(Species, lengthMaximum, ageMaximum, depthMax, depthCoefPos, adultWaterColumnPosition, diet, guild) %>% # select uncorrelated log-transformed quantitative traits & categorical diet trait
+         filter(!(is.na(ageMaximum)), !(is.na(depthMax)), !is.na(depthCoefPos)) %>% # remove taxa for which trait data are missing
+         arrange(Species)
+
+ft_df <- as.data.frame(ft_df)  # must coerce to dataframe since dplyr doesn't like row names
 rownames(ft_df) <- ft_df$Species # create row names from Species column
 ft_df <- ft_df %>% dplyr::select(-Species)
 #View(ft_df)  # this is the dataframe we'll use for functional diversity analyses
