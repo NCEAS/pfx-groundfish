@@ -28,8 +28,8 @@ library(ggplot2)
 common <- read.csv("../diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
-  select(database.name, common.name) %>%
-  dplyr::rename(Species = database.name)
+           select(database.name, common.name) %>%
+           dplyr::rename(Species = database.name)
 
 for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
   if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
@@ -43,8 +43,8 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 shallowCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
-  filter(area != "8") %>% # remove Ole's area 8
-  mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10")))
+                    filter(area != "8") %>% # remove Ole's area 8
+                    mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10")))
 
 ```
 
@@ -60,22 +60,31 @@ deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in com
 # source functional_diversity_metrics.R script
 source("../diversity_scripts/functional_diversity_metrics.R")
 
+shallowRao2$area <- as.character(shallowRao2$area)
+
 # get annual means
 shallowRao2_ann <- shallowRao2 %>%
-                   group_by(year) %>%
-                   summarize(RaosQmn = mean(RaosQ))
+                   group_by(area) %>%
+                   summarize(RaosQmn = mean(RaosQ)) %>%
+                   ungroup()
+
+shallowRao2_ann$area <- factor(shallowRao2_ann$area, levels = c("1","2","3","4","5","6",
+                                                                "7","8","9","10"))
+                  
 
 ```
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # prep data for analysis
-
 # add depth column
 # renumber deep areas
 
-shallowCPUEArea2$area<-as.factor(shallowCPUEArea2$area)
-deepCPUEArea2$area<-as.factor(deepCPUEArea2$area)
+shallowCPUEArea2 <- arrange(shallowCPUEArea2, area)
+
+shallowCPUEArea2$area <- factor(shallowCPUEArea2$area, levels = c("1","2","3","4","5","6",
+                                                                   "7","8","9","10"))
+#deepCPUEArea2$area<-as.factor(deepCPUEArea2$area)
 
 # deepCPUEArea3 <- deepCPUEArea2 %>%   # renumber deep areas
 #                  mutate(area = fct_recode(area, c("11" = "1", "12" = "2", "13" = "5", 
@@ -95,7 +104,8 @@ cpue <- shallowCPUEArea2 %>%
         group_by(area) %>%
         dplyr::summarize(annMean = mean(ann.Mean.totalDensity), 
                          annCV = sd(ann.Mean.totalDensity)/annMean) %>%
-        ungroup()
+        ungroup() %>%
+        dplyr::arrange(area)
   
 #View(cpue)
 
@@ -108,11 +118,11 @@ cpue <- shallowCPUEArea2 %>%
 
 ## Data for 10 shallow areas
 Div.Metrics <- read.csv("../diversity-data/DiversityMetrics.Shallow.Bootstrapped.Final.csv") 
-#Div.Metrics <- Div.Metrics[Div.Metrics$AREA!=10,]
-Sp.Richness <- read.csv("../diversity-data/Sp.Richness.Shallow.Bootstrapped.csv") # NB should this be updated to reflect splitting area 7? or is it is Shallow.Bootstrapped.Final loaded above?
+
+#Sp.Richness <- read.csv("../diversity-data/Sp.Richness.Shallow.Bootstrapped.csv") # NB should this be updated to reflect splitting area 7? or is it is Shallow.Bootstrapped.Final loaded above?
 #Sp.Richness <- Sp.Richness[Sp.Richness$AREA!=10,]
-shallowDat <- cbind(Div.Metrics,Sp.Richness)
-shallowDat <- shallowDat[,c(2:3,7:10,14)]
+#shallowDat <- cbind(Div.Metrics,Sp.Richness)
+#shallowDat <- shallowDat[,c(2:3,7:10,14)]
 
 ## Data for 5 deep areas
 #Div.Metrics <- read.csv("../diversity-data/DiversityMetrics.Deep.Bootstrapped.Final.csv") 
@@ -122,6 +132,7 @@ shallowDat <- shallowDat[,c(2:3,7:10,14)]
 # deepDat <- cbind(Div.Metrics,Sp.Richness)
 # deepDat <- deepDat[,c(2:3,7:10,14)]
 
+shallowDat <- Div.Metrics
 
 shallowDat$AREA <- as.factor(shallowDat$AREA)  # make AREA column a factor
 # deepDat$AREA <- as.factor(deepDat$AREA)
@@ -154,7 +165,8 @@ BootMean <- shallowDat %>%
             dplyr::mutate(CV_alpha = sd_alpha/Eff_Num_Sp,
                           CV_spRich = sd_spRich/Sp_rich,
                           CV_beta = sd_beta/Exp_B_Div) %>%
-            ungroup()
+            ungroup() %>%
+            arrange(area)
 
 #View(BootMean)
 #str(BootMean)
@@ -165,6 +177,9 @@ BootMean <- shallowDat %>%
 ```{r, echo=FALSE}
 # Bind the Bootstrapped Diversity metrics with the CPUE abundance data
 cpueBootDiv <- bind_cols(cpue, BootMean)
+
+# Bind in the Rao's Q metric
+cpueBootDivRao <- bind_cols(shallowRao2_ann, cpueBootDiv)
 
 ```
 
@@ -255,11 +270,11 @@ grid.arrange(sr4, ad4, bd4, ncol=2, nrow=2)
 # CV cpue vs Rao's Q
 # dataframe from Rao's Q script is shallowRao2
 
-rq1 <- ggplot(data = cpueBootDiv, aes(x = CV_spRich, y = annCV, colour = depth)) +
+rq1 <- ggplot(data = cpueBootDivRao, aes(x = RaosQmn, y = annCV, colour = depth)) +
        geom_point(size = 4) + theme_bw() +
-       ylab("CV annual density") + xlab("CV species richness")
+       ylab("CV annual density") + xlab("Rao's Q")
 
-shallowRao2_ann
+rq1
 
 
 ```
