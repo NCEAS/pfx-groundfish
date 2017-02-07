@@ -390,36 +390,36 @@ shallowByArea_list1 <- lapply(shallowByArea_list, function(x) x[!(names(x) %in% 
 
 #########################
 
-
-# load mean annual CPUE for Deep areas:
-URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
-deepCPUE_Get <- GET(URL_deepCPUE)
-deepCPUE_1 <- content(deepCPUE_Get, as='text')
-deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
-#View(deepCPUE)
-
-
-# organize Deep Areas CPUE data for analysis in FD package:
-# unique(sort(setdiff(deepCPUE$Species, ft_df$Species)))
-spDeep_df <- deepCPUE %>%
-  filter(area != "Total") %>%
-  mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 (but removing 8)
-  dplyr::select(area, year, Species, Mean.totalDensity) %>%
-  filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
-                          "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
-                          "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
-  mutate(area = as.numeric(area)) # convert to numeric class
-
-Dp <- spDeep_df %>% 
-  dplyr::select(Species, area, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df
-  spread(Species, Mean.totalDensity) %>%
-  dplyr::select(-year)
-
-deepByArea_list <- split(Dp, f = Dp$area) # create a list of dataframes (one for each area; NB area 6 is Total)
-
-deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
-
+# 
+# # load mean annual CPUE for Deep areas:
+# URL_deepCPUE <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-uVF9VWnNPX3Z3S3c"
+# deepCPUE_Get <- GET(URL_deepCPUE)
+# deepCPUE_1 <- content(deepCPUE_Get, as='text')
+# deepCPUE <- read.csv(file=textConnection(deepCPUE_1),stringsAsFactors=FALSE,head=TRUE)
+# #View(deepCPUE)
+# 
+# 
+# # organize Deep Areas CPUE data for analysis in FD package:
+# # unique(sort(setdiff(deepCPUE$Species, ft_df$Species)))
+# spDeep_df <- deepCPUE %>%
+#   filter(area != "Total") %>%
+#   mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 (but removing 8)
+#   dplyr::select(area, year, Species, Mean.totalDensity) %>%
+#   filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
+#                           "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
+#                           "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
+#   mutate(area = as.numeric(area)) # convert to numeric class
+# 
+# Dp <- spDeep_df %>% 
+#   dplyr::select(Species, area, year, Mean.totalDensity) %>%
+#   arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df
+#   spread(Species, Mean.totalDensity) %>%
+#   dplyr::select(-year)
+# 
+# deepByArea_list <- split(Dp, f = Dp$area) # create a list of dataframes (one for each area; NB area 6 is Total)
+# 
+# deepByArea_list1 <- lapply(deepByArea_list, function(x) x[!(names(x) %in% c("area", "year"))]) # drop area & year
+# 
 
 ######################################################
 ######################################################
@@ -460,12 +460,12 @@ for (i in seq_along(shallowByArea_list1)) {
 
 
 
-# Rao's Q for Deep Areas:
-fdDeep <- list()
-for (i in seq_along(deepByArea_list1)) {
-  #fdDeep[[i]] <- dbFD(ftMahalanobis, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using Mahalanobis distance matrix for all quantitative traits with sufficient data
-  fdDeep[[i]] <- dbFD(ft_df, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using only uncorrelated traits; note to self: adding stand.x = T when using only quantitative traits makes no difference becasue data were already log-transformed
-}
+# # Rao's Q for Deep Areas:
+# fdDeep <- list()
+# for (i in seq_along(deepByArea_list1)) {
+#   #fdDeep[[i]] <- dbFD(ftMahalanobis, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using Mahalanobis distance matrix for all quantitative traits with sufficient data
+#   fdDeep[[i]] <- dbFD(ft_df, deepByArea_list1[[i]], calc.FRic = F, calc.CWM = F, calc.FDiv = F) # using only uncorrelated traits; note to self: adding stand.x = T when using only quantitative traits makes no difference becasue data were already log-transformed
+# }
 # when quantitative & categorical traits are used:
 # "Species x species distance matrix was not Euclidean. 'sqrt' correction was applied."
 
@@ -486,18 +486,18 @@ year <- as.data.frame(unique(sort(SPCPUEArea$year))); colnames(year) <- "year"
 shallowRaoQ <- shallowRao1 %>% bind_cols(year)
 
 
-
-
-# Deep areas:
-colsDeep <- paste("Area", 11:15, sep="")
-deepRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 5)); colnames(deepRao1) <- colsDeep
-
-for (i in seq_along(fdDeep)) {
-  deepRao1[,i] <- data.frame(as.data.frame(fdDeep[[i]]$RaoQ))
-}
-
-year2 <- as.data.frame(unique(sort(deepCPUE$year))); colnames(year) <- "year"
-deepRaoQ <- bind_cols(year, deepRao1)
+# 
+# 
+# # Deep areas:
+# colsDeep <- paste("Area", 11:15, sep="")
+# deepRao1 <- data.frame(matrix(NA_real_, nrow = 14, ncol = 5)); colnames(deepRao1) <- colsDeep
+# 
+# for (i in seq_along(fdDeep)) {
+#   deepRao1[,i] <- data.frame(as.data.frame(fdDeep[[i]]$RaoQ))
+# }
+# 
+# year2 <- as.data.frame(unique(sort(deepCPUE$year))); colnames(year) <- "year"
+# deepRaoQ <- bind_cols(year, deepRao1)
 
 ######################################################
 ######################################################
@@ -534,31 +534,31 @@ shallowRaoQ_temporal <- ggplot(data=shallowRaoQ, aes(x=year3, y = value)) +
 
 
 #########################
-
-# 2. Deep Areas:
-year4 <- unique(sort(deepCPUE$year))
-
-deepRaoQ_temporal <- ggplot(data=deepRaoQ, aes(x=year4, y = value)) + 
-  geom_point(aes(y = Area11), size=2, col=2) +  geom_line(aes(y = Area11), size=2, col=2) +
-  geom_point(aes(y = Area12), size=2, col=2) +  geom_line(aes(y = Area12), size=2, col=2) +
-  geom_point(aes(y = Area13), size=2) +         geom_line(aes(y = Area13), size=2) +
-  geom_point(aes(y = Area14), size=2) +         geom_line(aes(y = Area14), size=2) +
-  geom_point(aes(y = Area15), size=2) +         geom_line(aes(y = Area15), size=2) +
-  
-  theme(axis.line=element_line('black'),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank())+
-  theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
-  theme(axis.text.y = element_text(size=22))+
-  scale_x_continuous(breaks=c(year4), labels=c(year4)) +
-  labs(title = "Rao's Q for Deep Areas", 
-       x = "Year", y = "Rao's Q")
-
-
-grid.arrange(shallowRaoQ_temporal, deepRaoQ_temporal, ncol=2)
-
+# 
+# # 2. Deep Areas:
+# year4 <- unique(sort(deepCPUE$year))
+# 
+# deepRaoQ_temporal <- ggplot(data=deepRaoQ, aes(x=year4, y = value)) + 
+#   geom_point(aes(y = Area11), size=2, col=2) +  geom_line(aes(y = Area11), size=2, col=2) +
+#   geom_point(aes(y = Area12), size=2, col=2) +  geom_line(aes(y = Area12), size=2, col=2) +
+#   geom_point(aes(y = Area13), size=2) +         geom_line(aes(y = Area13), size=2) +
+#   geom_point(aes(y = Area14), size=2) +         geom_line(aes(y = Area14), size=2) +
+#   geom_point(aes(y = Area15), size=2) +         geom_line(aes(y = Area15), size=2) +
+#   
+#   theme(axis.line=element_line('black'),
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.border = element_blank(),
+#         panel.background = element_blank())+
+#   theme(axis.text.x = element_text(angle=90, size=18, colour = "black"))+
+#   theme(axis.text.y = element_text(size=22))+
+#   scale_x_continuous(breaks=c(year4), labels=c(year4)) +
+#   labs(title = "Rao's Q for Deep Areas", 
+#        x = "Year", y = "Rao's Q")
+# 
+# 
+# grid.arrange(shallowRaoQ_temporal, deepRaoQ_temporal, ncol=2)
+# 
 
 ######################################################
 ######################################################
@@ -575,11 +575,11 @@ shallowRao2 <- shallowRaoQ %>%
                gather(key = area, value = RaosQ, Area1:Area10) %>%
                mutate(area = gsub("Area", "", area), 
                       area = as.factor(area))
-
-deepRao2 <- deepRaoQ %>% 
-            gather(key = area, value = RaosQ, Area11:Area15) %>%
-            mutate(area = gsub("Area", "", area),
-            area = as.factor(area))
+# 
+# deepRao2 <- deepRaoQ %>% 
+#             gather(key = area, value = RaosQ, Area11:Area15) %>%
+#             mutate(area = gsub("Area", "", area),
+#             area = as.factor(area))
 
 #########################
 
@@ -629,22 +629,22 @@ shallow_FD <- ggplot(data=shallowRao2, aes(x = area, y = RaosQ)) +
 shallow_FD
 
 
-
-deep_FD <- ggplot(data=deepRao2, aes(x = area, y = RaosQ)) + 
-  geom_boxplot() + theme_boxplot() +
-  xlab("Area (West <-> East)") + ylab("Rao's Q") +
-  xlim("15", "14", "13", "12", "11") + 
-  #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
-  ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
-  #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
-  #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
-  theme(legend.position="none", plot.background=element_blank(),
-        axis.text.x = element_text(size=15),
-        axis.title.x=element_blank(),
-        plot.title=element_text(colour="black", size=15,
-                                   hjust=0.04, vjust=0.5, face="bold"))
-deep_FD
-
+# 
+# deep_FD <- ggplot(data=deepRao2, aes(x = area, y = RaosQ)) + 
+#   geom_boxplot() + theme_boxplot() +
+#   xlab("Area (West <-> East)") + ylab("Rao's Q") +
+#   xlim("15", "14", "13", "12", "11") + 
+#   #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
+#   ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
+#   #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
+#   #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
+#   theme(legend.position="none", plot.background=element_blank(),
+#         axis.text.x = element_text(size=15),
+#         axis.title.x=element_blank(),
+#         plot.title=element_text(colour="black", size=15,
+#                                    hjust=0.04, vjust=0.5, face="bold"))
+# deep_FD
+# 
 
 #grid.arrange(shallow_FD, deep_FD, ncol=2)
 
@@ -683,23 +683,23 @@ TukeyHSD(shallowANOVA, conf.level = 0.95)
 
 
 
-
-plot(density(deepRao2$RaosQ))
-
-deepANOVA <- aov(RaosQ ~ area, data = deepRao2)
-summary(deepANOVA)
-#             Df   Sum Sq   Mean Sq F value Pr(>F)  
-# area         4 0.000617 1.542e-04   2.276 0.0705 .
-# Residuals   65 0.004405 6.776e-05 
-shapiro.test(deepANOVA$residuals) # p = 0.056 (residuals are almost not normal)
-
-#deepANOVA <- aov(RaosQ ~ area*year, data = deepRao2) # interaction is not significant
-deepANOVA1 <- aov(RaosQ ~ area + year, data = deepRao2)
-summary(deepANOVA1)
-#              Df   Sum Sq   Mean Sq F value   Pr(>F)    
-#  area         4 0.000617 0.0001542   2.866   0.0301 *  
-#  year         1 0.000961 0.0009612  17.866 7.68e-05 ***
-#  Residuals   64 0.003443 0.0000538 
-
-
+# 
+# plot(density(deepRao2$RaosQ))
+# 
+# deepANOVA <- aov(RaosQ ~ area, data = deepRao2)
+# summary(deepANOVA)
+# #             Df   Sum Sq   Mean Sq F value Pr(>F)  
+# # area         4 0.000617 1.542e-04   2.276 0.0705 .
+# # Residuals   65 0.004405 6.776e-05 
+# shapiro.test(deepANOVA$residuals) # p = 0.056 (residuals are almost not normal)
+# 
+# #deepANOVA <- aov(RaosQ ~ area*year, data = deepRao2) # interaction is not significant
+# deepANOVA1 <- aov(RaosQ ~ area + year, data = deepRao2)
+# summary(deepANOVA1)
+# #              Df   Sum Sq   Mean Sq F value   Pr(>F)    
+# #  area         4 0.000617 0.0001542   2.866   0.0301 *  
+# #  year         1 0.000961 0.0009612  17.866 7.68e-05 ***
+# #  Residuals   64 0.003443 0.0000538 
+# 
+# 
 
