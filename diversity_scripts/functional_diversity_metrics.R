@@ -613,7 +613,7 @@ theme_boxplot <- function(base_size = 12){
 
 #########################
 
-range(shallowRao2$RaosQ); range(deepRao2$RaosQ)
+range(shallowRao2$RaosQ) #; range(deepRao2$RaosQ)
 
 shallow_FD <- ggplot(data=shallowRao2, aes(x = area, y = RaosQ)) + 
   geom_boxplot() + theme_boxplot() + 

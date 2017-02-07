@@ -40,11 +40,11 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load mean annual CPUE data for Shallow Areas:
-shallowCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
+shallowCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
 
-shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
-                    filter(area != "8") %>% # remove Ole's area 8
-                    mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10")))
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") #%>% # merge common names onto SPCPUEArea
+                   # filter(area != "8") %>% # remove Ole's area 8
+                   # mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10")))
 
 ```
 
@@ -66,11 +66,10 @@ shallowRao2$area <- as.character(shallowRao2$area)
 shallowRao2_ann <- shallowRao2 %>%
                    group_by(area) %>%
                    summarize(RaosQmn = mean(RaosQ)) %>%
-                   ungroup()
-
-shallowRao2_ann$area <- factor(shallowRao2_ann$area, levels = c("1","2","3","4","5","6",
-                                                                "7","8","9","10"))
-                  
+                   ungroup() %>%
+                   mutate(area = factor(area, levels= c("1","2","3","4","5","6",
+                                                        "7","8","9","10"))) %>%
+                   arrange(area)
 
 ```
 
