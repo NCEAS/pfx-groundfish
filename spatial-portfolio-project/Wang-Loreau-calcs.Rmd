@@ -43,7 +43,7 @@ area <- read.csv("./spatial-portfolio-project/local-community-area.csv", header 
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
-# load mean annual CPUE data for Shallow Areas:
+# load & prep mean annual CPUE data for Shallow Areas:
 shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
@@ -54,6 +54,21 @@ shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # me
   left_join(area, by = "area") %>%
   filter(area != "Region") %>% # run as needed for analyses below
   mutate(area = as.numeric(area))
+
+
+# remove top 4 most numerically doominant species
+subdom1 <- shallowCPUEArea2 %>%
+  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut", "walleye pollock", "Pacific cod"))
+
+
+# remove top 8 most numerically doominant species
+subdom2 <- shallowCPUEArea2 %>%
+  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut", "walleye pollock", "Pacific cod", "northern rockfish", "rock soles", "Pacific ocean perch", "flathead sole"))
+
+
+# remove the 2 top predators from the group of the 4 most numerically doominant species
+subdom3 <- shallowCPUEArea2 %>%
+  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut"))
 
 ```
 
@@ -79,8 +94,10 @@ setwd("~/Google Drive/GoA project/pfx-groundfish/spatial-portfolio-project")
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
-# Create spatial groupings for shallow communities:
+# Create spatially-nested groupings for shallow communities:
+# *OLD incomplete list
 
+# 1:
 aa <- list(1)
 ab <- list(2)
 ac <- list(3)
@@ -91,10 +108,11 @@ ag <- list(7)
 ah <- list(8)
 ak <- list(9)
 al <- list(10)
-am <- list(1:4)
-an <- list(5:7)
-ao <- list(8:10)
-aq <- list(1:10)
+
+#am <- list(1:4)
+#an <- list(5:7)
+#ao <- list(8:10)
+#aq <- list(1:10)
 big_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, am, an, ao, aq)
 
 # 2:
@@ -125,20 +143,26 @@ za <- list(6:9)
 zb <- list(7:10)
 
 
+# 5:
+t <- list(1:5)
 l <- list(6:10)
 
-t <- list(1:5)
 
+#6:
 zc <- list(1:6)
 w <- list(5:10)
 
 
+# 7:
 r <- list(1:7)
 s <- list(2:8)
 zd <- list(3:9)
-zz <- list(4:10) 
+zz <- list(4:10)
 
+
+# 10:
 q <- list(1:10)
+
 
 #agg_list <- c(m, n, o, r, q)
 #agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, a, b, c, d, e, f, g, h, k, l, t, v, w, zz, m, n, o, r, q)
@@ -155,9 +179,126 @@ local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities,
                     l, t, zc, w, r, s, zd, zz, q) # the rest
 agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
 
+##################################################
+##################################################
+##################################################
 
 
-#########################
+# Create spatially-nested groupings for shallow communities:
+
+# 1:
+a1 <- list(1)
+a2 <- list(2)
+a3 <- list(3)
+a4 <- list(4)
+a5 <- list(5)
+a6 <- list(6)
+a7 <- list(7)
+a8 <- list(8)
+a9 <- list(9)
+a10 <- list(10)
+
+
+# 2:
+b1 <- list(1:2)
+b2 <- list(2:3)
+b3 <- list(3:4)
+b4 <- list(4:5)
+b5 <- list(5:6)
+b6 <- list(6:7)
+b7 <- list(7:8)
+b8 <- list(8:9)
+b9 <- list(9:10)
+
+
+# 3:
+c1 <- list(1:3)
+c2 <- list(2:4)
+c3 <- list(3:5)
+c4 <- list(4:6)
+c5 <- list(5:7)
+c6 <- list(6:8)
+c7 <- list(7:9)
+c8 <- list(8:10)
+
+
+# 4:
+d1 <- list(1:4)
+d2 <- list(2:5)
+d3 <- list(3:6)
+d4 <- list(4:7)
+d5 <- list(5:8)
+d6 <- list(6:9)
+d7 <- list(7:10)
+
+
+# 5:
+e1 <- list(1:5)
+e2 <- list(2:6)
+e3 <- list(3:7)
+e4 <- list(4:8)
+e5 <- list(5:9)
+e6 <- list(6:10)
+
+
+#6:
+f1 <- list(1:6)
+f2 <- list(2:7)
+f3 <- list(3:8)
+f4 <- list(4:9)
+f5 <- list(5:10)
+
+
+# 7:
+g1 <- list(1:7)
+g2 <- list(2:8)
+g3 <- list(3:9)
+g4 <- list(4:10) 
+
+
+# 8:
+h1 <- list(1:8)
+h2 <- list(2:9)
+h3 <- list(3:10)
+
+
+# 9:
+j1 <- list(1:9)
+j2 <- list(2:10)
+
+
+# 10:
+k1 <- list(1:10)
+
+
+spatially_nested_list <- c(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
+                           b1, b2, b3, b4, b5, b6, b7, b8, b9,
+                           c1, c2, c3, c4, c5, c6, c7, c8,
+                           d1, d2, d3, d4, d5, d6, d7,
+                           e1, e2, e3, e4, e5, e6,
+                           f1, f2, f3, f4, f5,
+                           g1, g2, g3, g4,
+                           h1, h2, h3,
+                           j1, j2,
+                           k1)
+
+spatially_nested_list_noSingles <- c(b1, b2, b3, b4, b5, b6, b7, b8, b9,
+                                     c1, c2, c3, c4, c5, c6, c7, c8,
+                                     d1, d2, d3, d4, d5, d6, d7,
+                                     e1, e2, e3, e4, e5, e6,
+                                     f1, f2, f3, f4, f5,
+                                     g1, g2, g3, g4,
+                                     h1, h2, h3,
+                                     j1, j2,
+                                     k1)
+
+
+
+##################################################
+##################################################
+##################################################
+
+# create 100 random draws of 2, 3, 4, ... 9 local communities
 
 myNums1_list <- list()
 myNums2_list <- list()
@@ -186,11 +327,12 @@ myNums_agg_list <- c(myNums1_list, myNums2_list, myNums3_list, myNums4_list, myN
 
 
 myNums_agg_list_noSingles <- c(myNums2_list, myNums3_list, myNums4_list, myNums5_list, myNums6_list, myNums7_list, myNums8_list, myNums9_list, myNums10_list)
-save(myNums_agg_list_noSingles, file = "myNums_agg_list_noSingles.RData")
+#save(myNums_agg_list_noSingles, file = "myNums_agg_list_noSingles.RData")
+load("myNums_agg_list_noSingles.RData")
 
 
 myNums_agg_list
-save(myNums_agg_list, file = "myNums_agg_list.RData")
+#save(myNums_agg_list, file = "myNums_agg_list.RData")
 load("myNums_agg_list.RData")
 
 
@@ -406,7 +548,7 @@ CV_Area_func <- function(my_df, spatialGrouping){
 
 
 allCV <- CV_Area_func(shallowCPUEArea2, myNums_agg_list_noSingles)
-save(allCV, file = "allCV.RData")
+#save(allCV, file = "allCV.RData")
 load("allCV.RData")
 #View(allCV)
 
@@ -486,7 +628,7 @@ ggplot(data=plotting_df, aes(x=Area, y = CV, color = startingFrom)) +
 
 # load occurrence data
 setwd("~/Google Drive/GoA project/pfx-groundfish")
-occDat <-read.csv("./diversity-data/All_sp_index_occurrenceByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
+occDat <-read.csv("../diversity-data/All_sp_index_occurrenceByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
 #View(occDat)
 setwd("~/Google Drive/GoA project/pfx-groundfish/spatial-portfolio-project")
 
@@ -540,18 +682,26 @@ Richness_Area_func <- function(my_df, spatialGrouping){
   
 }
 
-local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
-local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
-                    a, b, c, d, e, # 2s
-                    f, fa, fb, g, n, gb, h, o, # 3s
-                    m, k, u, v, w, z, za, zb, # 4s
-                    l, t, zc, w, r, s, zd, zz, q) # the rest
-agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
+
+# old spatial lists:
+#local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
+#local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
+#                    a, b, c, d, e, # 2s
+#                    f, fa, fb, g, n, gb, h, o, # 3s
+#                    m, k, u, v, w, z, za, zb, # 4s
+#                    l, t, zc, w, r, s, zd, zz, q) # the rest
+#agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
 
 
+# run function for spatially nested aggregations of local communities:
+richness2 <- Richness_Area_func(occDat1, spatially_nested_list_noSingles)
+View(richness2)
+
+
+# run function for random aggregations of local communities:
 richness1 <- Richness_Area_func(occDat1, myNums_agg_list_noSingles)
 #View(richness1)
-save(richness1, file = "richness1.RData")
+#save(richness1, file = "richness1.RData")
 load("richness1.RData")
 
 
@@ -575,8 +725,31 @@ ggplot(data=richness1, aes(x=km2, y = speciesRichness)) +
   
   labs(x = "Area (km^2)", 
        y = "Species Richness
-       (sum of max. probability of occurrence)")
+       (sum of max. probability of occurrence)", 
+       main = "Random Aggregations of Local Communities")
 
+
+
+
+spRich_Area_spatNested_plot <- ggplot(data=richness2, aes(x=km2, y = speciesRichness)) + 
+  geom_point(aes(y = speciesRichness), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
+  
+  labs(x = "Area (km^2)", 
+       y = "Species Richness
+       (sum of max. probability of occurrence)", 
+       title = "Spatially-Nested Aggregations of Local Communities")
+spRich_Area_spatNested_plot
   
 
 ```
@@ -587,9 +760,6 @@ ggplot(data=richness1, aes(x=km2, y = speciesRichness)) +
 
 # Add asynchrony calcs
 
-# regional asynchrony between sites (species- and community-level)
-
-
 
 # local asynchrony within sites (species-level)
 sync_within_func <- function(my_df, spatialGrouping){
@@ -597,8 +767,22 @@ sync_within_func <- function(my_df, spatialGrouping){
   AA_list <- list()
   Area_agg_list <- list()
   CV_agg_list <- list()
-  AAA_list <- list(); loreau_list <- list(); gross_list <- list()
-  AAAA_list <- list(); rMean_list <- list(); thibaut_list <- list()
+  loreau_means_list <- list()
+  gross_means_list <- list()
+  thibaut_means_list <- list()
+  
+  
+  # create nested lists with 2 levels:
+  AAA_list <- vector("list", length(spatialGrouping))
+  loreau_list <- vector("list", length(spatialGrouping))
+  gross_list <- vector("list", length(spatialGrouping))
+  AAAA_list <- vector("list", length(spatialGrouping))
+  rMean_list <- vector("list", length(spatialGrouping))
+  thibaut_list <- vector("list", length(spatialGrouping))
+  
+  
+#  AAA_list <- list(); loreau_list <- list(); gross_list <- list()
+#  AAAA_list <- list(); rMean_list <- list(); thibaut_list <- list()
   
     
   for(j in 1:length(spatialGrouping)) {
@@ -624,6 +808,114 @@ sync_within_func <- function(my_df, spatialGrouping){
                         summarise(CV = sd(total) / mean(total))
   
    
+    
+    
+    
+    
+    
+        ######################    
+      
+    for(k in 1:length(spatialGrouping[[j]])) {
+      
+      AAA_list[[j]][[k]] <- my_df %>%
+                            filter(area %in% spatialGrouping[[j]]) %>%
+                            filter(area == spatialGrouping[[j]][k]) %>%
+         
+                            select(year, common.name, Mean.totalDensity) %>%
+                            group_by(year, common.name) %>%
+                            summarize(totDensity = sum(Mean.totalDensity)) %>% # for each species in each year, sum its total density
+                            ungroup()
+      
+       
+      
+   ###################### 
+      
+      
+      loreau_list[[j]][[k]] <- codyn::synchrony(AAA_list[[j]][[k]], 
+                                         time.var = "year", 
+                                         species.var = "common.name", 
+                                         abundance.var = "totDensity", 
+                                         metric = "Loreau")
+      
+      
+      gross_list[[j]][[k]] <- codyn::synchrony(AAA_list[[j]][[k]], 
+                                         time.var = "year", 
+                                         species.var = "common.name", 
+                                         abundance.var = "totDensity", 
+                                         metric = "Gross")     
+      
+      
+      # Thibaut & Connolly 2013 metric:
+      #rho <- ((1 - mean r_ij) / S) + mean r_ij
+      # where mean r_ij = arithmetic mean correlation coefficient across all species pairs
+      # perfect asynchrony: rho = 0; synchrony: rho = 1
+      AAAA_list[[j]][[k]] <- AAA_list[[j]][[k]] %>%
+                             spread(common.name, totDensity) %>%
+                             select(-year)
+      
+      rMean_list[[j]][[k]] <- synchrony::meancorr(AAAA_list[[j]][[k]])$obs
+      thibaut_list[[j]][[k]] <- ((1-rMean_list[[j]][[k]]) / ncol(AAAA_list[[j]][[k]])) + rMean_list[[j]][[k]]
+      
+      
+      
+      # do sums here (sum [[j]] over all [[j]][[k]])
+      loreau_means_list[[j]] <- mean(loreau_list[[j]][[k]])
+      
+      gross_means_list[[j]] <- mean(gross_list[[j]][[k]])
+      
+      thibaut_means_list[[j]] <- mean(thibaut_list[[j]][[k]])
+      
+      
+    } # end of k
+    
+  } # end of j
+  
+  
+  ###################### 
+
+  #return(gross_means_list)
+  
+  
+  # return dataframe of outputs
+  
+  syn_list <- list(Area_agg_list, CV_agg_list, loreau_means_list, gross_means_list, thibaut_means_list)
+  syn_df <- as.data.frame(matrix(unlist(syn_list), nrow=length(unlist(syn_list[1]))))
+  colnames(syn_df) <- c("km2", "CV", "loreauSync", "grossSync", "thibautSync")
+  return(syn_df)
+  
+}    
+      
+
+# run for random aggregations of local communities:
+sync_within <- sync_within_func(shallowCPUEArea2, myNums_agg_list_noSingles)
+sync_within
+head(sync_within)
+      
+#save(sync_within, file = "sync_within_16Jan2016.RData")
+load("sync_within_16Jan2016.RData")
+      
+#load("myNums_agg_list_noSingles.RData")
+sync_within_Subdom1 <- sync_within_func(subdom1, myNums_agg_list_noSingles)
+sync_within_Subdom2 <- sync_within_func(subdom2, myNums_agg_list_noSingles)
+sync_within_Subdom3 <- sync_within_func(subdom3, myNums_agg_list_noSingles)
+save(sync_within_Subdom1, file = "sync_within_Subdom1.RData")
+save(sync_within_Subdom2, file = "sync_within_Subdom2.RData")
+save(sync_within_Subdom3, file = "sync_within_Subdom3.RData")
+      
+    
+
+
+
+# run for spatially-nested aggregations of local communities:
+sync_within2 <- sync_within_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+sync_within2
+head(sync_within2)  
+      
+      
+      
+
+# from here to line 985 is old, incorrect code which combined all local communities before evaluating between-species asynchrony:
+
     ###################### 
     
     AAA_list[[j]] <- AA_list[[j]] %>%
@@ -632,6 +924,8 @@ sync_within_func <- function(my_df, spatialGrouping){
                      summarize(totDensity = sum(Mean.totalDensity)) %>% # for each species in each year, sum its total density
                      ungroup()
         
+    
+    # need synchrony within each local community, THEN averaged over all local communities in the spatial grouping
     
     
     # Loreau & de Mazancourt 2008 metric:
@@ -702,7 +996,7 @@ agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, z
 
 sync_within <- sync_within_func(shallowCPUEArea2, myNums_agg_list_noSingles)
 View(sync_within)
-save(sync_within, file = "sync_within.RData")
+#save(sync_within, file = "sync_within.RData")
 load("sync_within.RData")
 
 
@@ -711,7 +1005,7 @@ load("sync_within.RData")
 
 # plot CV vs synchrony
 
-cvLoreau_within <- ggplot(data=sync_within, aes(x=loreauSync, y = CV)) + 
+cvLoreau_within <- ggplot(data=sync_within2, aes(x=loreauSync, y = CV)) + 
   geom_point(aes(y = CV), size=5) +
   
   theme(panel.background = element_blank(),
@@ -723,35 +1017,47 @@ cvLoreau_within <- ggplot(data=sync_within, aes(x=loreauSync, y = CV)) +
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
+  scale_x_reverse() +
+  
+  geom_smooth(method = lm) +
+  
   #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Loreau Synchrony
+  labs(x = "Loreau Asynchrony
        (Within-patch, between species)",
        y = "CV")
 
 
 
-cvGross_within <- ggplot(data=sync_within, aes(x=grossSync, y = CV)) + 
+cvGross_within <- ggplot(data=sync_within2, aes(x=grossSync, y = CV)) + 
   geom_point(aes(y = CV), size=5) +
   
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
         axis.line.y = element_line(color="black"),
-        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
-        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=16), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=16),
         axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
+  scale_x_reverse(breaks = c(0.05, 0.0, -0.05, -0.1, -0.15), labels = c(0.05, 0.0, -0.05, -0.1, -0.15)) +
+  
+  geom_smooth(method = lm, col = "red", size = 2) +
+  
   #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Gross Synchrony
-       (Within-patch, between species)",
+  labs(x = "Gross Asynchrony
+       (within-patch, between species)",
        y = "CV")
 
+#summary(lm(sync_within$CV ~ sync_within$grossSync))
 
 
-cvThibaut_within <- ggplot(data=sync_within, aes(x=thibautSync, y = CV)) + 
+
+
+
+cvThibaut_within <- ggplot(data=sync_within2, aes(x=thibautSync, y = CV)) + 
   geom_point(aes(y = CV), size=5) +
   
   theme(panel.background = element_blank(),
@@ -763,9 +1069,13 @@ cvThibaut_within <- ggplot(data=sync_within, aes(x=thibautSync, y = CV)) +
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
+  scale_x_reverse() +
+  
+  geom_smooth(method = lm) +
+  
   #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Thibaut Synchrony
+  labs(x = "Thibaut Asynchrony
        (Within-patch, between species)",
        y = "CV")
 
@@ -789,15 +1099,15 @@ CV_richness <- ggplot(data=rich_sync_within_df, aes(x=speciesRichness, y = CV)) 
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
         axis.line.y = element_line(color="black"),
-        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
-        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=16), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=16),
         axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
   #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
-  geom_smooth(method = lm) +
+  geom_smooth(method = lm, col = "red", size = 2) +
   
   labs(x = "Species Richness
        (sum of max. probability of occurrence)",
@@ -882,9 +1192,11 @@ richnessThibaut_within <- ggplot(data=rich_sync_within_df, aes(x=speciesRichness
 
 grid.arrange(richnessLoreau_within, richnessGross_within, richnessThibaut_within, ncol = 2)
 
-###################################################
-###################################################
-###################################################
+```
+
+
+
+```{r, echo=FALSE, fig.height=5, fig.width=5}
 
 # Synchrony between local communities (total community-level)
 
@@ -986,19 +1298,29 @@ sync_between_func <- function(my_df, spatialGrouping){
 }
 
 
-local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
-local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
-                    a, b, c, d, e, # 2s
-                    f, fa, fb, g, n, gb, h, o, # 3s
-                    m, k, u, v, w, z, za, zb, # 4s
-                    l, t, zc, w, r, s, zd, zz, q) # the rest
-agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
+# run function for incomplete list of spatially-nested aggregations:
+#local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
+#local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
+#                    a, b, c, d, e, # 2s
+#                    f, fa, fb, g, n, gb, h, o, # 3s
+#                    m, k, u, v, w, z, za, zb, # 4s
+#                    l, t, zc, w, r, s, zd, zz, q) # the rest
+#agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
 
 
+
+# run function for spatially-nested aggregations of local communities:
+# note I must remove single local communities to look at synchrony between communities
+sync_between2 <- sync_between_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+
+
+
+# run function for random aggregations of local communities:
 # note I must remove single local communities to look at synchrony between communities
 sync_between <- sync_between_func(shallowCPUEArea2, myNums_agg_list_noSingles)
 head(sync_between)
-save(sync_between, file = "sync_between.RData")
+#save(sync_between, file = "sync_between.RData")
+load("sync_between.RData")
 
 #sync_between <- sync_between_func(shallowCPUEArea2, agg_2s)
 #sync_between <- sync_between_func(shallowCPUEArea2, agg_3s)
@@ -1008,13 +1330,21 @@ save(sync_between, file = "sync_between.RData")
 # careful; synchrony will be conflated with with the number of local communities in the analysis
 
 
+sync_between_subdom1 <- sync_between_func(subdom1, myNums_agg_list_noSingles)
+#save(sync_between_subdom1, file = "sync_between_subdom1.RData")
+sync_between_subdom2 <- sync_between_func(subdom2, myNums_agg_list_noSingles)
+#save(sync_between_subdom2, file = "sync_between_subdom2.RData")
+sync_between_subdom3 <- sync_between_func(subdom3, myNums_agg_list_noSingles)
+#save(sync_between_subdom3, file = "sync_between_subdom3.RData")
+
+
 
 #######################
 
 # plot CV vs synchrony
 
-cvLoreau_between <- ggplot(data=sync_between, aes(x=loreauSync, y = CV)) + 
-  geom_point(aes(y = CV), size=5) +
+cvLoreau_between <- ggplot(data=sync_between2, aes(x=loreauSync, y = CV)) + 
+  geom_point(aes(y = CV), size=2) +
   
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
@@ -1025,36 +1355,68 @@ cvLoreau_between <- ggplot(data=sync_between, aes(x=loreauSync, y = CV)) +
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
+  scale_x_reverse() +
+  
+  geom_smooth(method = lm) +
+  
   #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Loreau Synchrony
+  labs(x = "Loreau Asynchrony
        (Between-Patch)",
        y = "CV")
 
 
 
-cvGross_between <- ggplot(data=sync_between, aes(x=grossSync, y = CV)) + 
+cvGross_between <- ggplot(data=sync_between2, aes(x=grossSync, y = CV)) + 
   geom_point(aes(y = CV), size=5) +
   
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
         axis.line.y = element_line(color="black"),
-        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
-        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=16), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=16),
         axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
+  scale_x_reverse() +
+  
+  geom_smooth(method = lm, col = "red", size = 2) +
+  
   #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Gross Synchrony
-       (Between-Patch)",
+  labs(x = "Gross Asynchrony, Subdominant Species
+       (between-patch)",
        y = "CV")
 
+summary(lm(sync_between$CV ~ sync_between$grossSync))
+# Coefficients:
+#                        Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)            0.0861918  0.0008774   98.23   <2e-16 ***
+# sync_between$grossSync 0.0532341  0.0031809   16.73   <2e-16 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#
+# Residual standard error: 0.01923 on 799 degrees of freedom
+# Multiple R-squared:  0.2596,	Adjusted R-squared:  0.2586 
+# F-statistic: 280.1 on 1 and 799 DF,  p-value: < 2.2e-16
+
+summary(lm(sync_between_subdom1$CV ~ sync_between_subdom1$grossSync))
+# Coefficients:
+#                                Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                    0.186551   0.003213   58.06   <2e-16 ***
+# sync_between_subdom1$grossSync 0.107676   0.007851   13.71   <2e-16 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.04564 on 799 degrees of freedom
+# Multiple R-squared:  0.1905,	Adjusted R-squared:  0.1895 
+# F-statistic: 188.1 on 1 and 799 DF,  p-value: < 2.2e-16
 
 
-cvThibaut_between <- ggplot(data=sync_between, aes(x=thibautSync, y = CV)) + 
-  geom_point(aes(y = CV), size=5) +
+
+cvThibaut_between <- ggplot(data=sync_between2, aes(x=thibautSync, y = CV)) + 
+  geom_point(aes(y = CV), size=2) +
   
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
@@ -1065,9 +1427,13 @@ cvThibaut_between <- ggplot(data=sync_between, aes(x=thibautSync, y = CV)) +
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
+  scale_x_reverse() +
+  
+  geom_smooth(method = lm) +
+  
   #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Thibaut Synchrony
+  labs(x = "Thibaut Asynchrony
        (Between-Patch)",
        y = "CV")
 
@@ -1155,12 +1521,11 @@ richnessThibaut_between <- ggplot(data=rich_sync_between_df, aes(x=speciesRichne
 # *********CAREFUL; RESULT IS CONFLATED WITH NUMBER OF LOCAL COMMUNITIES INCLUDED IN THE ANALYSIS***********
 grid.arrange(richnessLoreau_between, richnessGross_between, richnessThibaut_between, ncol = 2)
 
-
-###################################################
-###################################################
-###################################################
+```
 
 
+
+```{r, echo=FALSE, fig.height=5, fig.width=5}
 
 # Loreau & de Mazancourt's (2008) metric, using Tarik Gouthier's synchrony package:
 #community.sync()
@@ -1273,7 +1638,6 @@ rho2
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 
-
 # Wang & Loreau's average species variability (within-patch):
 
 avSpeciesVar_within_func <- function(my_df, spatialGrouping){
@@ -1354,46 +1718,85 @@ avSpeciesVar_within_func <- function(my_df, spatialGrouping){
 
 }
 
-local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
-local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
-                    a, b, c, d, e, # 2s
-                    f, fa, fb, g, n, gb, h, o, # 3s
-                    m, k, u, v, w, z, za, zb, # 4s
-                    l, t, zc, w, r, s, zd, zz, q) # the rest
-agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, zc, w, r, s, zd, zz, q)
+
+# run function for incomplete list of spatially-nested aggregations of local communities:
+#local_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al)
+#local_agg_list <- c(aa, ab, ac, ad, ae, af, ag, ah, ak, al, # local communities, no aggregation
+#                    a, b, c, d, e, # 2s
+#                    f, fa, fb, g, n, gb, h, o, # 3s
+#                    m, k, u, v, w, z, za, zb, # 4s
+#                    l, t, zc, w, r, s, zd, zz, q) # the rest
+#agg_only_list <- c(a, b, c, d, e, f, fa, fb, g, n, gb, h, o, m, k, u, v, w, z, za, zb, l, t, #zc, w, r, s, zd, zz, q)
 
 
+# run function for spatially-nested aggregations of local communities:
+avSpVar_within2 <- avSpeciesVar_within_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+
+
+# run function for random aggregations of local communities:
 avSpVar_within <- avSpeciesVar_within_func(shallowCPUEArea2, myNums_agg_list_noSingles)
 avSpVar_within
-save(avSpVar_within, file = "avSpVar_within.RData")
+#save(avSpVar_within, file = "avSpVar_within.RData")
+load("avSpVar_within.RData")
 
+avSpVar_within_subdom1 <- avSpeciesVar_within_func(subdom1, myNums_agg_list_noSingles)
+#save(avSpVar_within_subdom1, file = "avSpVar_within_subdom1.RData")
+avSpVar_within_subdom2 <- avSpeciesVar_within_func(subdom2, myNums_agg_list_noSingles)
+#save(avSpVar_within_subdom2, file = "avSpVar_within_subdom2.RData")
+avSpVar_within_subdom3 <- avSpeciesVar_within_func(subdom3, myNums_agg_list_noSingles)
+#save(avSpVar_within_subdom3, file = "avSpVar_within_subdom3.RData")
 
 #######################
 
-# plot average species variation (within patches) vs synchrony
+# plot CV vs average species variation (within patches)
 
-cv_AvSpVar_within <- ggplot(data=avSpVar_within, aes(x=avSpVar, y = CV)) + 
+cv_AvSpVar_within <- ggplot(data=avSpVar_within2, aes(x=avSpVar, y = CV)) + 
   geom_point(aes(y = CV), size=5) +
   
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
         axis.line.y = element_line(color="black"),
-        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
-        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=16), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=16),
         axis.title.x=element_text(size=14, margin=margin(15,0,0,0)),
         axis.title.y=element_text(size=14, angle=90, margin=margin(0,15,0,0)),
         plot.title = element_text(size=18)) +
   
+  geom_smooth(method = lm, col = "red", size = 2) +
+  
   #scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   
-  labs(x = "Averge Species Variability
-       (Within-Patch)",
+  labs(x = "Mean Species Variability (Within-Patch)",
        y = "CV")
 
 cv_AvSpVar_within
 
+grid.arrange(cv_AvSpVar_within_subdom1, cv_AvSpVar_within_subdom2, cv_AvSpVar_within_subdom3, ncol=2)
 
-    
+summary(lm(avSpVar_within$CV ~ avSpVar_within$avSpVar))
+# Coefficients:
+#                        Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)            -0.070121   0.006215  -11.28   <2e-16 ***
+# avSpVar_within$avSpVar  0.414962   0.015507   26.76   <2e-16 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#
+# Residual standard error: 0.01623 on 799 degrees of freedom
+# Multiple R-squared:  0.4726,	Adjusted R-squared:  0.472 
+# F-statistic: 716.1 on 1 and 799 DF,  p-value: < 2.2e-16
+
+summary(lm(avSpVar_within_subdom1$CV ~ avSpVar_within_subdom1$avSpVar))
+# Coefficients:
+#                                Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                    -0.25257    0.01153  -21.91   <2e-16 ***
+# avSpVar_within_subdom1$avSpVar  0.87944    0.02116   41.56   <2e-16 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#
+# Residual standard error: 0.02853 on 799 degrees of freedom
+# Multiple R-squared:  0.6837,	Adjusted R-squared:  0.6833 
+# F-statistic:  1727 on 1 and 799 DF,  p-value: < 2.2e-16
+
 ```
 
 
@@ -1598,7 +2001,7 @@ WangLoreauResult
 
 
 
-```{r,  include=FALSE, echo=FALSE, results='hide'}
+```{r,  echo=FALSE, fig.height=4, fig.width=5}
 
 # Create spatial groupings for pairwise dissimilarity indices:
 
@@ -1763,9 +2166,26 @@ bray_func <- function(your_df, spatialGrouping){
 #brayResult <- bray_func(shallowCPUEArea2, myNums4_list)
 #brayResult
 
+
+# run function for spatially-nested aggregations of local communities:
+brayResult2 <- bray_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+brayResult2_subdom1 <- bray_func(subdom1, spatially_nested_list_noSingles)
+brayResult2_subdom2 <- bray_func(subdom2, spatially_nested_list_noSingles)
+brayResult2_subdom3 <- bray_func(subdom3, spatially_nested_list_noSingles)
+
+
+# run function for random aggregations of local communities:
 brayResult <- bray_func(shallowCPUEArea2, myNums_agg_list_noSingles)
 brayResult
-save(brayResult, file = "brayResult.RData")
+#save(brayResult, file = "brayResult.RData")
+load("brayResult.RData")
+
+brayResult_subdom1 <- bray_func(subdom1, myNums_agg_list_noSingles)
+#save(brayResult_subdom1, file = "brayResult_subdom1.RData")
+brayResult_subdom2 <- bray_func(subdom2, myNums_agg_list_noSingles)
+#save(brayResult_subdom2, file = "brayResult_subdom2.RData")
+brayResult_subdom3 <- bray_func(subdom3, myNums_agg_list_noSingles)
+#save(brayResult_subdom3, file = "brayResult_subdom3.RData")
 
 #####################
 
@@ -1781,8 +2201,8 @@ summary(lm(brayResult$CV ~ brayResult$bray))
 # CAREFUL, how to remove effect of Area (km^2) and number of local communities on CV? Because lower bray is associated with greater number of local communities. 
 # And it's not really clear what Bray dissimilarities mean here for progressively aggregated communities.
 
-CV_bray_plot <- ggplot(data=brayResult, aes(x=bray, y = CV)) + 
-  geom_point(aes(y = CV), size=5) +
+CV_bray_plot_subdom3 <- ggplot(data=brayResult2_subdom3, aes(x=bray, y = CV)) + 
+  geom_point(aes(y = CV), size=2) +
   
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
@@ -1797,16 +2217,54 @@ CV_bray_plot <- ggplot(data=brayResult, aes(x=bray, y = CV)) +
   
   #scale_y_log10() +
   
-  #geom_smooth(method = lm, se = FALSE) +
+  geom_smooth(method = lm, col = "red", size = 2) +
   
-  labs(x = "Bray Dissimilarity", y = "CV (Total Community CUE)")
+  labs(x = "Bray Dissimilarity", y = "CV (Total Community CUE)", title = "Subdom3")
+
+grid.arrange(CV_bray_plot_subdom1, CV_bray_plot_subdom2, CV_bray_plot_subdom3, ncol=2)
+
+summary(lm(brayResult$CV ~ brayResult$bray))
+# Coefficients:
+#                 Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)     0.086474   0.002500  34.592  < 2e-16 ***
+# brayResult$bray 0.033955   0.008952   3.793  0.00016 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#
+# Residual standard error: 0.02215 on 799 degrees of freedom
+# Multiple R-squared:  0.01769,	Adjusted R-squared:  0.01646 
+# F-statistic: 14.39 on 1 and 799 DF,  p-value: 0.0001601
 
 
+summary(lm(brayResult_subdom1$CV ~ brayResult_subdom1$bray))
+# Coefficients:
+#                         Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              0.20512    0.00588  34.886  < 2e-16 ***
+# brayResult_subdom1$bray  0.07200    0.02065   3.488 0.000514 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#
+# Residual standard error: 0.05035 on 799 degrees of freedom
+# Multiple R-squared:  0.01499,	Adjusted R-squared:  0.01376 
+# F-statistic: 12.16 on 1 and 799 DF,  p-value: 0.0005141
 
-##############################################################
-##############################################################
-##############################################################
 
+summary(lm(brayResult2$CV ~ brayResult2$bray))
+# Coefficients:
+#                  Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)       0.16073    0.01665   9.652  2.5e-12 ***
+# brayResult2$bray -0.17231    0.05780  -2.981  0.00471 ** 
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.03208 on 43 degrees of freedom
+# Multiple R-squared:  0.1713,	Adjusted R-squared:  0.152 
+# F-statistic: 8.887 on 1 and 43 DF,  p-value: 0.004713
+
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
 
 # Calculate Bray spatial turnover:
 
