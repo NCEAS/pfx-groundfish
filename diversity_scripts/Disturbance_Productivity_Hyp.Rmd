@@ -14,23 +14,75 @@ library(tidyverse)
 library(forcats)
 library(gridExtra)
 library(ggplot2)
-
-```
-
-```{r, include=FALSE, echo=FALSE, results='hide'}
-# source the fishing pressure calculation script
-source("../diversity_scripts/Fishing_Pressure_calc.r")
-# want the catch_sum dataframe from here
+library(psych)
 
 ```
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # source the diversity metrics csv file
 div_met <- read.csv("../diversity-data/DiversityMetrics.Shallow.Bootstrapped.Final.csv")
+#head(div_met)
+
+```
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# source the fishing pressure calculation script
+source("../diversity_scripts/Fishing_Pressure_calc.r")
+
+# want the catch_sum dataframe from here
+#head(catch_sum)
+
+```
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# source the chlorophyll a calculation script
 
 ```
 
 
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# clean the data
+catch_sum2 <- catch_sum %>%
+              dplyr::rename(Catch_area = final.OLE,
+                            Year = year) %>%
+              select(Catch_area, Year, met_ton_km2) %>%
+              arrange(Catch_area, Year)
+
+div_met2 <- div_met %>%
+            rename(Year = YEAR) %>%
+            mutate(Catch_area = plyr::mapvalues(AREA, c("1","2","3","4","5","6","7","8","9","10"), 
+                                                c("Prince William Sound","Prince William Sound",
+                                                  "Prince William Sound","Cook Inlet","Cook Inlet",
+                                                  "Kodiak","Kodiak","Kodiak","Kodiak","Alaska Peninsula")))
+
+# make one large dataframe
+dist_df <- merge(div_met2, catch_sum2, all.x=T)
+
+# filter for complete cases
+dist_df <- dist_df %>% filter(complete.cases(.))
+
+# average to catch area for each year...
+dist_df_cat_ar <- dist_df %>%
+                  select(-AREA, -Simp, -Invsimp) %>%
+                  group_by(Catch_area, Year) %>%
+                  summarize(Eff_Num_Sp_ca = mean(Eff_Num_Sp),
+                            Sp_rich_ca = mean(Sp_rich),
+                            Exp_B_Div_ca = mean(Exp_B_Div),
+                            met_ton_km2_ca = mean(met_ton_km2)) %>%
+                  ungroup() %>%
+                  arrange(Catch_area, Year)
+           
+```
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# visualizing some data
+#pairs.panels(dist_df[,-c(1:3)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
+
+div_plot1 <- ggplot(dist_df_cat_ar, aes(y=met_ton_km2_ca, x=Sp_rich_ca)) + geom_point() +
+             
+
+
+```
 
 
 
