@@ -74,16 +74,58 @@ dist_df_cat_ar <- dist_df %>%
            
 ```
 
-```{r, include=FALSE, echo=FALSE, results='hide'}
+```{r, include=FALSE, echo=FALSE}
 # visualizing some data
 #pairs.panels(dist_df[,-c(1:3)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
 
-div_plot1 <- ggplot(dist_df_cat_ar, aes(y=met_ton_km2_ca, x=Sp_rich_ca)) + geom_point() +
-             
+lmfit1 <- lm(met_ton_km2_ca~Sp_rich_ca, data=dist_df_cat_ar)  # lm() fit 
 
+div_plot1 <- ggplot(dist_df_cat_ar, aes(y=met_ton_km2_ca, x=Sp_rich_ca)) + geom_point() +
+             stat_smooth(method="lm", col="blue") + 
+             labs(title=paste("Adj R2 =",signif(summary(lmfit1)$adj.r.squared, 5),
+                              #"Intercept =",signif(lmfit1$coef[[1]],5 ),
+                              #" Slope =",signif(lmfit1$coef[[2]], 5),
+                              " P =",signif(summary(lmfit1)$coef[2,4], 5)))
+
+anova(lmfit1) # anova table of above lm() fit
 
 ```
 
+```{r, include=FALSE, echo=FALSE}
+# visualizing some data
 
+lmfit2 <- lm(met_ton_km2_ca~Eff_Num_Sp_ca, data=dist_df_cat_ar)  # lm() fit 
 
+div_plot2 <- ggplot(dist_df_cat_ar, aes(y=met_ton_km2_ca, x=Eff_Num_Sp_ca)) + geom_point() +
+             stat_smooth(method="lm", col="blue") + 
+             labs(title=paste("Adj R2 =",signif(summary(lmfit2)$adj.r.squared, 5),
+                              #"Intercept =",signif(lmfit2$coef[[1]],5 ),
+                              #" Slope =",signif(lmfit2$coef[[2]], 5),
+                              " P =",signif(summary(lmfit2)$coef[2,4], 5)))
+
+anova(lmfit2) # anova table of above lm() fit
+
+```
+
+```{r, include=FALSE, echo=FALSE}
+# visualizing some data
+
+lmfit3 <- lm(met_ton_km2_ca~Exp_B_Div_ca, data=dist_df_cat_ar)  # lm() fit 
+
+div_plot3 <- ggplot(dist_df_cat_ar, aes(y=met_ton_km2_ca, x=Exp_B_Div_ca)) + geom_point() +
+             stat_smooth(method="lm", col="blue") + 
+             labs(title=paste("Adj R2 =",signif(summary(lmfit3)$adj.r.squared, 5),
+                              #"Intercept =",signif(lmfit3$coef[[1]],5 ),
+                              #" Slope =",signif(lmfit3$coef[[2]], 5),
+                              " P =",signif(summary(lmfit3)$coef[2,4], 5)))
+
+anova(lmfit3) # anova table of above lm() fit
+
+```
+
+```{r, include=FALSE, echo=FALSE}
+# arranging above plots
+grid.arrange(div_plot1, div_plot2, div_plot3, ncol=2, nrow=2)
+
+```
 
