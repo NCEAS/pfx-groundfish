@@ -1,5 +1,5 @@
 ##############################################################################################
-###  Script for Catch and Temperature data                                                 ###
+###  Script for Fishing Pressure Analysis                                                  ###
 ###  Originally written by Ole Shelton for PFX Groundfish paper #1                         ###
 ###       located pfx-groundfish/Scripts and plots for pubs/Catch and Temperature Script.r ###
 ###  Modified by Rachael E. Blake in January 2017 for                                      ###
