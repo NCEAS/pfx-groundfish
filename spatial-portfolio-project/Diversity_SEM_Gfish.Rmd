@@ -1,0 +1,47 @@
+---
+title: "Diversity_SEM_Gfish"
+author: "Rachael E. Blake"
+date: "March 3, 2017"
+output: html_document
+---
+# SEM for Diversity metrics - Gfish Paper #3
+```{r , echo=FALSE}
+
+library(tidyverse) ; library(lavaan) ; library(semPlot)
+
+```
+
+
+```{r, echo=FALSE}
+# read in the data
+
+
+```
+
+```{r, echo=FALSE}
+# Define the model
+mod1 <- 'Regional_Stability ~ Mean_Sp_Var + Asyn_In_Patch + Asyn_Betwn_Patch + Spat_Turn
+         Mean_Sp_Var ~ Alpha_div + Sp_Rich
+         Asyn_In_Patch ~ Sp_Rich
+         Asyn_Betwn_Patch ~ Alpha_div
+         Spat_Turn ~ Alpha_div + Sp_Rich
+        '
+
+# Fit the model (estimate the parameters)
+mod1_fit <- sem(mod1, data=, missing="ml")
+
+# Output a summary of the computed results
+summary(mod1_fit, rsq=T, standardized=T)  # rsq=T means output the r-sqr
+fitMeasures(mod1_fit)
+mi1 <- modindices(mod1_fit) 
+print(mi1[mi1$op == "~",])# extracts mod indicies with "~" operator suggesting adding a path
+
+# plot with standardized coefficients
+semPaths(mod1_fit, "std", layout="tree3", style="lisrel", curvePivot=TRUE)
+
+
+
+
+```
+
+
