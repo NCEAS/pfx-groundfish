@@ -48,6 +48,7 @@ catch_sum$final.OLE <- as.character(catch_sum$final.OLE)
 catch_sum$final.OLE[catch_sum$final.OLE == "PWS"] <- "Prince William Sound"
 
 ###########################################################################
+# OLE's Figure for Groundfish Paper #1
 # Plotting time series of catch by region
 COL <- viridis(4,begin=0,end=0.8)
 biomass_plot <- ggplot(catch_sum) +
@@ -60,6 +61,15 @@ biomass_plot <- ggplot(catch_sum) +
                		labs(x="Year", y=expression("Catch (mt km"^-2*")")) +
                   theme_bw()
 #biomass_plot
+#############################################################################
+
+# GLM Analysis
+
+fp <- glm(met_ton_km2 ~ final.OLE, data=catch_sum, family=gaussian)
+summary(fp)
+
+
+
 
 
 
