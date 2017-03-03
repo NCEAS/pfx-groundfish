@@ -36,11 +36,11 @@ library(gridExtra)
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prep look-up table of common names
-common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
+common <- read.csv("../diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
-  select(database.name, common.name) %>%
-  dplyr::rename(Species = database.name)
+           select(database.name, common.name) %>%
+           dplyr::rename(Species = database.name)
 
 for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
   if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
@@ -54,23 +54,24 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 # load mean annual CPUE data:
 
 # 1. Shallow areas:
-shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
-shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
-  filter(area != "8") %>% # remove Ole's area 8
-  mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 but removing 8
-  mutate(area = revalue(area, c("Total" = "Region")))
+shallowCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", 
+                            header = T, stringsAsFactors = FALSE)
 
+shallowCPUEArea$area <- as.factor(shallowCPUEArea$area) # make area a factor
 
+shallowCPUEArea2 <- shallowCPUEArea %>%
+                    left_join(common1, by = "Species")  # merge common names onto SPCPUEArea
+               
 
 
 # 2. Deep areas:
-deepCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.final.csv", header = T, stringsAsFactors = FALSE) # this is the latest file created by Mary Oct 26 2016
+deepCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.final.csv", 
+                         header = T, stringsAsFactors = FALSE) # this is the latest file created by Mary Oct 26 2016
 deepCPUEArea$area <- as.factor(deepCPUEArea$area) # make area a factor
 
-deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") # merge in common names
-deepCPUEArea2 <- deepCPUEArea2 %>%    # renumber deep areas
-                 mutate(area = fct_recode(area, c("11" = "1", "12" = "2", "13" = "5", "14" = "3", "15" = "4"))) # renumbering areas
-
+deepCPUEArea2 <- deepCPUEArea %>%    
+                 left_join(common1, by = "Species")  # merge in common names
+              
 
 #3. Combined shallow and deep areas:
 shallowCPUEArea2$depth <- "shallow"    # add depth column
@@ -149,19 +150,19 @@ temporal_func <- function(your_df, area_number){
 
 temporal_func(shallowCPUEArea2, 1)#testing the function
 
-areas_shallow <- c(1:9)
+areas_shallow <- c(1:10)
 # produces Wisconsin-transformed matrices for each study area
 shallow_mats <- lapply(areas_shallow, FUN = temporal_func, your_df=shallowCPUEArea2)
 # get Bray-Curtis dissimilarities
 bray_shallow_mats <- lapply(shallow_mats, FUN=vegdist, method="bray")   
 
 
-areas_deep <- c(10:14)
+areas_deep <- c(11:15)
 deep_mats <- lapply(areas_deep, FUN = temporal_func, your_df=deepCPUEArea2)   
 bray_deep_mats <- lapply(deep_mats, FUN=vegdist, method="bray") 
 
 
-areas_all <- c(1:14)
+areas_all <- c(1:15)
 all_mats <- lapply(areas_all, FUN=temporal_func, your_df=allCPUEArea)
 bray_all_mats <- lapply(all_mats, FUN=vegdist, method="bray") 
 
@@ -174,12 +175,14 @@ bray_all_mats <- lapply(all_mats, FUN=vegdist, method="bray")
 
 # create list of all pairs of years
 library(caTools)
+
 yr_pairs <- as.data.frame(combs(yrs, 2)) %>%
-  #rename(start = V1, end = V2) #%>%
-  #mutate(interval = end - start)
-  mutate(yrs = paste(start, end, sep = ",")) %>%
-  #mutate(yrs = paste(c, \\(, start, ",", end, \\), sep = "")) %>%
-  select(yrs)
+            #rename(start = V1, end = V2) #%>%
+            #mutate(interval = end - start)
+            mutate(yrs = paste(start, end, sep = ",")) %>%
+            #mutate(yrs = paste(c, \\(, start, ",", end, \\), sep = "")) %>%
+            select(yrs)
+
 yrs_list <- dlply(yr_pairs, 1, c) # make this into a list of lists
 yrs_list
 str(yrs_list)
