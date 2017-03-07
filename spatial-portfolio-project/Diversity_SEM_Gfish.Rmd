@@ -1,6 +1,6 @@
 ---
 title: "Diversity_SEM_Gfish"
-author: "Rachael E. Blake"
+author: "Rachael E. Blake and Colette Ward"
 date: "March 3, 2017"
 output: html_document
 ---
@@ -16,23 +16,20 @@ library(lavaan) ; library(semPlot) ; library(AICcmodavg)
 
 ```{r, echo=FALSE}
 
-# set working directory
-setwd("~/Google Drive/GoA project/pfx-groundfish/spatial-portfolio-project")
-
 # read in the data
-load("randomAgg.RData")
-load("spatNested.RData")
+load("../spatial-portfolio-project/randomAgg.RData")   # This produces an object called randomAgg
+load("../spatial-portfolio-project/spatNested.RData")  # This produces an object called spatNested
 
 ```
 
 ```{r, echo=FALSE}
 # Define the model
 mod1 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween + bray
-         #avSpVar ~ Alpha_div + speciesRichness # need to calculate Alpha first
          grossSyncWithin ~ speciesRichness
+        '
          #grossSyncBetween ~ Alpha_div # need to calculate Alpha
          #bray ~ Alpha_div + speciesRichness # need to calculate Alpha
-        '
+         #avSpVar ~ Alpha_div + speciesRichness # need to calculate Alpha first
 
 # Fit the model (estimate the parameters)
 mod1_fit <- sem(mod1, data=randomAgg, missing="ml")
