@@ -83,9 +83,10 @@ dist_df_cat_ar <- dist_df %>%
 
 lmfit1 <- lm(met_ton_km2_ca~Sp_rich_ca, data=dist_df_cat_ar)  # lm() fit 
 
-div_plot1 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca)) + geom_point() +
+div_plot1 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + geom_point() +
              stat_smooth(method="lm", col="blue") + ylab("Species Richness") + 
              xlab("Fishing Pressure (metric tonnes km-2)") + 
+             theme(legend.position = "top") +
              labs(title=paste("Adj R^2 =",signif(summary(lmfit1)$adj.r.squared, 5),
                               #"Intercept =",signif(lmfit1$coef[[1]],5 ),
                               #" Slope =",signif(lmfit1$coef[[2]], 5),
@@ -100,9 +101,10 @@ anova(lmfit1) # anova table of above lm() fit
 
 lmfit2 <- lm(met_ton_km2_ca~Eff_Num_Sp_ca, data=dist_df_cat_ar)  # lm() fit 
 
-div_plot2 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca)) + geom_point() +
+div_plot2 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) + geom_point() +
              stat_smooth(method="lm", col="blue") + ylab("Effective # of Species") +
              xlab("Fishing Pressure (metric tonnes km-2)") + 
+             theme(legend.position = "top") +
              labs(title=paste("Adj R^2 =",signif(summary(lmfit2)$adj.r.squared, 5),
                               #"Intercept =",signif(lmfit2$coef[[1]],5 ),
                               #" Slope =",signif(lmfit2$coef[[2]], 5),
@@ -117,9 +119,10 @@ anova(lmfit2) # anova table of above lm() fit
 
 lmfit3 <- lm(met_ton_km2_ca~Exp_B_Div_ca, data=dist_df_cat_ar)  # lm() fit 
 
-div_plot3 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca)) + geom_point() +
+div_plot3 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + geom_point() +
              stat_smooth(method="lm", col="blue") + ylab("Beta Diversity ") + 
              xlab("Fishing Pressure (metric tonnes km-2)") + 
+             theme(legend.position = "top") +
              labs(title=paste("Adj R^2 =", signif(summary(lmfit3)$adj.r.squared, 5),
                               #"Intercept =",signif(lmfit3$coef[[1]],5 ),
                               #" Slope =",signif(lmfit3$coef[[2]], 5),
@@ -137,16 +140,19 @@ grid.arrange(div_plot1, div_plot2, div_plot3, ncol=2, nrow=2)
 
 ###with Loess fits
 ```{r, echo=FALSE, fig.height=9, fig.width=10}
-div_plotA <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca)) + geom_point() +
+div_plotA <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + geom_point() +
              stat_smooth(method="loess", col="blue") + ylab("Species Richness") + 
+             theme(legend.position = "top") +
              xlab("Fishing Pressure (metric tonnes km-2)")
 
-div_plotB <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca)) + geom_point() +
+div_plotB <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) + geom_point() +
              stat_smooth(method="loess", col="blue") + ylab("Effective # of Species") +
+             theme(legend.position = "top") +
              xlab("Fishing Pressure (metric tonnes km-2)") 
 
-div_plotC <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca)) + geom_point() +
+div_plotC <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + geom_point() +
              stat_smooth(method="loess", col="blue") + ylab("Beta Diversity ") + 
+             theme(legend.position = "top") +
              xlab("Fishing Pressure (metric tonnes km-2)")
 
 grid.arrange(div_plotA, div_plotB, div_plotC, ncol=2, nrow=2)
