@@ -21,7 +21,7 @@ library(gridExtra)
 ```
 
 
-# Jump to line 828
+# Jump to line 745
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
@@ -48,21 +48,6 @@ area <- read.csv("./spatial-portfolio-project/local-community-area.csv", header 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
 # load & prep mean annual CPUE data for Shallow Areas:
-#shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
-
-#shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
-#  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
-#  filter(area != "8", # remove Ole's area 8
-#         area != "Total") %>%
-#  mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 but removing 8
-#  #mutate(area = revalue(area, c("Total" = "Region"))) %>%
-#  left_join(area, by = "area") %>% # merge in area (km^2) of each local community
-#  #filter(area != "Region") %>% # run as needed for analyses below
-#  mutate(area = as.numeric(area))
-
-
-
-
 shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # note areas have been renumbered here
 
 
@@ -70,22 +55,6 @@ shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # me
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
   left_join(area, by = "area") # merge in area (km^2) of each local community
 
-
-##########
-
-# remove top 4 most numerically doominant species
-subdom1 <- shallowCPUEArea2 %>%
-  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut", "walleye pollock", "Pacific cod"))
-
-
-# remove top 8 most numerically doominant species
-subdom2 <- shallowCPUEArea2 %>%
-  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut", "walleye pollock", "Pacific cod", "northern rockfish", "rock soles", "Pacific ocean perch", "flathead sole"))
-
-
-# remove the 2 top predators from the group of the 4 most numerically doominant species
-subdom3 <- shallowCPUEArea2 %>%
-  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut"))
 
 ```
 
@@ -96,7 +65,7 @@ deepCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Deep.MH.f
 
 deepCPUEArea2 <- left_join(deepCPUEArea, common1, by = "Species") %>% # merge in common names
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
-  mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13", "Total" = "Region")))  %>% # renumbering areas
+  mutate(area = revalue(area, c("1"="11", "2"="12", "3"="14", "4"="15", "5"="13", "Total" = "Region")))  %>% # renumbering areas - check this, did Mary already renumber the areas?
   left_join(area, by = "area")
 
 ```
@@ -253,7 +222,6 @@ for (i in 1:100) {
 random10_list <- list(1:10)
 
 random_agg_list <- c(random1_list, random2_list, random3_list, random4_list, random5_list, random6_list, random7_list, random8_list, random9_list, random10_list)
-random_agg_list
 #save(random_agg_list, file = "random_agg_list.RData")
 load("random_agg_list.RData")
 
@@ -316,7 +284,6 @@ CV_Area_spatNested <- CV_Area_func(shallowCPUEArea2, spatially_nested_list_noSin
 # run function for random aggregations of local communities:
 CV_Area_randomAgg <- CV_Area_func(shallowCPUEArea2, random_agg_list_noSingles)
 #save(CV_Area_randomAgg, file = "CV_Area_randomAgg.RData")
-save(CV_Area_randomAgg, file = "CV_Area_randomAgg_3Apr.RData")
 
 
 ```
@@ -331,7 +298,7 @@ save(CV_Area_randomAgg, file = "CV_Area_randomAgg_3Apr.RData")
 # load occurrence data
 setwd("~/Google Drive/GoA project/pfx-groundfish")
 occDat <-read.csv("./diversity-data/All_sp_index_occurrenceByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
-#View(occDat)
+
 setwd("~/Google Drive/GoA project/pfx-groundfish/spatial-portfolio-project")
 
 
@@ -380,7 +347,6 @@ richness_spatNested <- Richness_Area_func(occDat1, spatially_nested_list_noSingl
 # run function for random aggregations of local communities:
 richness_randomAgg <- Richness_Area_func(occDat1, random_agg_list_noSingles)
 #save(richness_randomAgg, file = "richness_randomAgg.RData")
-#load("richness_randomAgg.RData")
 
 
 ```
@@ -503,17 +469,7 @@ sync_within_spatNested <- sync_within_func(shallowCPUEArea2, spatially_nested_li
 # run for random aggregations of local communities:
 sync_within_randomAgg <- sync_within_func(shallowCPUEArea2, random_agg_list_noSingles)
 #save(sync_within_randomAgg, file = "sync_within_randomAgg.RData")
-save(sync_within_randomAgg, file = "sync_within_randomAgg_3Apr.RData")
-#load("sync_within_randomAgg.RData")
-      
 
-#load("myNums_agg_list_noSingles.RData")
-sync_within_Subdom1 <- sync_within_func(subdom1, myNums_agg_list_noSingles)
-sync_within_Subdom2 <- sync_within_func(subdom2, myNums_agg_list_noSingles)
-sync_within_Subdom3 <- sync_within_func(subdom3, myNums_agg_list_noSingles)
-save(sync_within_Subdom1, file = "sync_within_Subdom1.RData")
-save(sync_within_Subdom2, file = "sync_within_Subdom2.RData")
-save(sync_within_Subdom3, file = "sync_within_Subdom3.RData")
 
 ```
 
@@ -596,23 +552,6 @@ sync_between_spatNested <- sync_between_func(shallowCPUEArea2, spatially_nested_
 # note I must remove single local communities to look at synchrony between communities
 sync_between_randomAgg <- sync_between_func(shallowCPUEArea2, random_agg_list_noSingles)
 #save(sync_between_randomAgg, file = "sync_between_randomAgg.RData")
-save(sync_between_randomAgg, file = "sync_between_randomAgg_3Apr.RData")
-#load("sync_between_randomAgg.RData")
-
-#sync_between <- sync_between_func(shallowCPUEArea2, agg_2s)
-#sync_between <- sync_between_func(shallowCPUEArea2, agg_3s)
-#sync_between <- sync_between_func(shallowCPUEArea2, agg_4s)
-#sync_between
-#View(sync_between)
-# careful; synchrony will be conflated with with the number of local communities in the analysis
-
-
-sync_between_subdom1 <- sync_between_func(subdom1, myNums_agg_list_noSingles)
-#save(sync_between_subdom1, file = "sync_between_subdom1.RData")
-sync_between_subdom2 <- sync_between_func(subdom2, myNums_agg_list_noSingles)
-#save(sync_between_subdom2, file = "sync_between_subdom2.RData")
-sync_between_subdom3 <- sync_between_func(subdom3, myNums_agg_list_noSingles)
-#save(sync_between_subdom3, file = "sync_between_subdom3.RData")
 
 ```
 
@@ -688,15 +627,6 @@ avSpVar_within_spatNested <- avSpeciesVar_within_func(shallowCPUEArea2, spatiall
 # run function for random aggregations of local communities:
 avSpVar_within_randomAgg <- avSpeciesVar_within_func(shallowCPUEArea2, random_agg_list_noSingles)
 #save(avSpVar_within_randomAgg, file = "avSpVar_within_randomAgg.RData")
-save(avSpVar_within_randomAgg, file = "avSpVar_within_randomAgg_3Apr.RData")
-#load("avSpVar_within_randomAgg.RData")
-
-avSpVar_within_subdom1 <- avSpeciesVar_within_func(subdom1, myNums_agg_list_noSingles)
-#save(avSpVar_within_subdom1, file = "avSpVar_within_subdom1.RData")
-avSpVar_within_subdom2 <- avSpeciesVar_within_func(subdom2, myNums_agg_list_noSingles)
-#save(avSpVar_within_subdom2, file = "avSpVar_within_subdom2.RData")
-avSpVar_within_subdom3 <- avSpeciesVar_within_func(subdom3, myNums_agg_list_noSingles)
-#save(avSpVar_within_subdom3, file = "avSpVar_within_subdom3.RData")
 
 ```
 
@@ -777,23 +707,10 @@ bray_func <- function(your_df, spatialGrouping){
 # run function for spatially-nested aggregations of local communities:
 brayResult_spatNested <- bray_func(shallowCPUEArea2, spatially_nested_list_noSingles)
 
-brayResult2_subdom1 <- bray_func(subdom1, spatially_nested_list_noSingles)
-brayResult2_subdom2 <- bray_func(subdom2, spatially_nested_list_noSingles)
-brayResult2_subdom3 <- bray_func(subdom3, spatially_nested_list_noSingles)
-
 
 # run function for random aggregations of local communities:
 brayResult_randomAgg <- bray_func(shallowCPUEArea2, random_agg_list_noSingles)
 #save(brayResult_randomAgg, file = "brayResult_randomAgg.RData")
-save(brayResult_randomAgg, file = "brayResult_randomAgg_3Apr.RData")
-#load("brayResult_randomAgg.RData")
-
-brayResult_subdom1 <- bray_func(subdom1, myNums_agg_list_noSingles)
-#save(brayResult_subdom1, file = "brayResult_subdom1.RData")
-brayResult_subdom2 <- bray_func(subdom2, myNums_agg_list_noSingles)
-#save(brayResult_subdom2, file = "brayResult_subdom2.RData")
-brayResult_subdom3 <- bray_func(subdom3, myNums_agg_list_noSingles)
-#save(brayResult_subdom3, file = "brayResult_subdom3.RData")
 
 ```
 
@@ -1085,8 +1002,6 @@ SN_cvGross_within <- ggplot(data=spatNested, aes(x=grossSyncWithin, y = CV, colo
        (within-patch, between species)",
        y = "CV (Total Community CUE)")
 
-#summary(lm(spatNested$CV ~ spatNested$grossSyncWithin))
-
 
 
 
@@ -1276,8 +1191,6 @@ RA_cvGross_within <- ggplot(data=randomAgg, aes(x=grossSyncWithin, y = CV, color
        (within-patch, between species)",
        y = "CV (Total Community CUE)")
 
-#summary(lm(spatNested$CV ~ spatNested$grossSyncWithin))
-
 
 
 
@@ -1449,165 +1362,7 @@ RA_Bray_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = bray, color 
 grid.arrange(RA_GrossAsynWithin_SpRich, RA_GrossAsynBetween_SpRich, RA_avSpVar_SpRich,  RA_Bray_SpRich, ncol=2)
 
 
-
-
-
-summary(lm(rich_sync_within_df$CV ~ rich_sync_within_df$speciesRichness))
-# Coefficients:
-#                                      Estimate Std. Error t value Pr(>|t|)    
-#(Intercept)                          0.1933799  0.0019456   99.39   <2e-16 ***
-#rich_sync_within_df$speciesRichness -0.0062465  0.0001178  -53.03   <2e-16 ***
-#---
-#Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#
-#Residual standard error: 0.01424 on 2471 degrees of freedom
-#Multiple R-squared:  0.5323,	Adjusted R-squared:  0.5321 
-#F-statistic:  2812 on 1 and 2471 DF,  p-value: < 2.2e-16
-
-
-
-
-
-
-############################################
-############################################
-############################################
-
-# CV vs synchrony between local communities
-
-summary(lm(sync_between$CV ~ sync_between$grossSync))
-# Coefficients:
-#                        Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)            0.0861918  0.0008774   98.23   <2e-16 ***
-# sync_between$grossSync 0.0532341  0.0031809   16.73   <2e-16 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#
-# Residual standard error: 0.01923 on 799 degrees of freedom
-# Multiple R-squared:  0.2596,	Adjusted R-squared:  0.2586 
-# F-statistic: 280.1 on 1 and 799 DF,  p-value: < 2.2e-16
-
-summary(lm(sync_between_subdom1$CV ~ sync_between_subdom1$grossSync))
-# Coefficients:
-#                                Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)                    0.186551   0.003213   58.06   <2e-16 ***
-# sync_between_subdom1$grossSync 0.107676   0.007851   13.71   <2e-16 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 0.04564 on 799 degrees of freedom
-# Multiple R-squared:  0.1905,	Adjusted R-squared:  0.1895 
-# F-statistic: 188.1 on 1 and 799 DF,  p-value: < 2.2e-16
-
-
-grid.arrange(cvLoreau_between, cvGross_between, cvThibaut_between, ncol = 2)
-
-
-#######################
-
-# plot stuff against Species Richness
-
-
-############################################
-############################################
-############################################
-
-
-
-cv_AvSpVar_within
-
-grid.arrange(cv_AvSpVar_within_subdom1, cv_AvSpVar_within_subdom2, cv_AvSpVar_within_subdom3, ncol=2)
-
-
-# CV vs average species variation (within patches)
-summary(lm(avSpVar_within$CV ~ avSpVar_within$avSpVar))
-# Coefficients:
-#                        Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)            -0.070121   0.006215  -11.28   <2e-16 ***
-# avSpVar_within$avSpVar  0.414962   0.015507   26.76   <2e-16 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#
-# Residual standard error: 0.01623 on 799 degrees of freedom
-# Multiple R-squared:  0.4726,	Adjusted R-squared:  0.472 
-# F-statistic: 716.1 on 1 and 799 DF,  p-value: < 2.2e-16
-
-summary(lm(avSpVar_within_subdom1$CV ~ avSpVar_within_subdom1$avSpVar))
-# Coefficients:
-#                                Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)                    -0.25257    0.01153  -21.91   <2e-16 ***
-# avSpVar_within_subdom1$avSpVar  0.87944    0.02116   41.56   <2e-16 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#
-# Residual standard error: 0.02853 on 799 degrees of freedom
-# Multiple R-squared:  0.6837,	Adjusted R-squared:  0.6833 
-# F-statistic:  1727 on 1 and 799 DF,  p-value: < 2.2e-16
-
-
-############################################
-############################################
-############################################
-
-# CV vs Spatial Turnover:
-# CAREFUL, how to remove effect of Area (km^2) and number of local communities on CV? Because lower bray is associated with greater number of local communities. 
-# And it's not really clear what Bray dissimilarities mean here for progressively aggregated communities.
-
-
-grid.arrange(CV_bray_plot_subdom1, CV_bray_plot_subdom2, CV_bray_plot_subdom3, ncol=2)
-
-
-
-summary(lm(brayResult$CV ~ brayResult$bray))
-# Coefficients:
-#                 Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     0.086474   0.002500  34.592  < 2e-16 ***
-# brayResult$bray 0.033955   0.008952   3.793  0.00016 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#
-# Residual standard error: 0.02215 on 799 degrees of freedom
-# Multiple R-squared:  0.01769,	Adjusted R-squared:  0.01646 
-# F-statistic: 14.39 on 1 and 799 DF,  p-value: 0.0001601
-
-
-summary(lm(brayResult_subdom1$CV ~ brayResult_subdom1$bray))
-# Coefficients:
-#                         Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)              0.20512    0.00588  34.886  < 2e-16 ***
-# brayResult_subdom1$bray  0.07200    0.02065   3.488 0.000514 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#
-# Residual standard error: 0.05035 on 799 degrees of freedom
-# Multiple R-squared:  0.01499,	Adjusted R-squared:  0.01376 
-# F-statistic: 12.16 on 1 and 799 DF,  p-value: 0.0005141
-
-
-summary(lm(brayResult2$CV ~ brayResult2$bray))
-# Coefficients:
-#                  Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)       0.16073    0.01665   9.652  2.5e-12 ***
-# brayResult2$bray -0.17231    0.05780  -2.981  0.00471 ** 
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 0.03208 on 43 degrees of freedom
-# Multiple R-squared:  0.1713,	Adjusted R-squared:  0.152 
-# F-statistic: 8.887 on 1 and 43 DF,  p-value: 0.004713
-
-
-
 ```
-
-
-
-
-
-
-
-
-
 
 
 
