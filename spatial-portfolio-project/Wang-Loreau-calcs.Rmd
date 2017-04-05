@@ -361,7 +361,47 @@ richness_randomAgg <- Richness_func(occDat1, random_agg_list_noSingles)
 
 # Calculate alpha diversity
 
+alphaDiv_func <- function(my_df, spatialGrouping){
+  
+  alpha_list <- list()
+  
+  for(j in 1:length(spatialGrouping)) {
+  
+    alpha_list[[j]] <- my_df %>%
+                   filter(area %in% spatialGrouping[[j]]) %>%
+    
+      
+    group_by(year, Species) %>% # take mean abund across all sites? summed abund?  
+    summarize(totDensity = sum(Mean.totalDensity)) %>%
+    ungroup() %>%
+    
+    
+    group_by(year) %>%
+    summarize(SW_Div = diversity(totDensity, index="shannon"), 
+              Exp_A_Div = exp(SW_Div)) %>% # calculate alpha for each year ... should this be calculated on raw or log abundances???
+    ungroup() %>% # note Exp_A_Div varies between years
+    
+    summarize(meanExp_A_Div = mean(Exp_A_Div)) # calculate mean alpha across all years
+    
+  }
+  
+  
+  df_list <- list(alpha_list)
+  alpha_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
+  colnames(alpha_df) <- c("expAlpha")
+  alpha_df <- mutate(alpha_df, id = rownames(alpha_df)) # add column with unique number
+  
+  return(alpha_df)
+  
+}
 
+
+# run for spatially-nested aggregations of local communities:
+alphaDiv_spatNested <- alphaDiv_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+
+# run for random aggregations of local communities:
+alphaDiv_randomAgg <- alphaDiv_func(shallowCPUEArea2, random_agg_list_noSingles)
+#save(alphaDiv_randomAgg, file = "alphaDiv_randomAgg.RData")
 
 ```
 
@@ -735,6 +775,7 @@ brayResult_randomAgg <- bray_func(shallowCPUEArea2, random_agg_list_noSingles)
 
 randomAgg <- CV_Area_randomAgg %>%
   left_join(richness_randomAgg, by = "id") %>%
+  left_join(alphaDiv_randomAgg, by = "id") %>%
   left_join(sync_within_randomAgg, by = "id") %>%
   left_join(sync_between_randomAgg, by = "id") %>%
   left_join(avSpVar_within_randomAgg, by = "id") %>%
@@ -745,6 +786,7 @@ randomAgg <- CV_Area_randomAgg %>%
 
 spatNested <- CV_Area_spatNested %>%
   left_join(richness_spatNested, by = "id") %>%
+  left_join(alphaDiv_spatNested, by = "id") %>%
   left_join(sync_within_spatNested, by = "id") %>%
   left_join(sync_between_spatNested, by = "id") %>%
   left_join(avSpVar_within_spatNested, by = "id") %>%
