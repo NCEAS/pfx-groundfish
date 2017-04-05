@@ -306,51 +306,64 @@ occDat1 <- occDat %>%
   select(area, year.numb, Species, Mean.avgPresence)
 
 
-Richness_Area_func <- function(my_df, spatialGrouping){
+
+Richness_func <- function(my_df, spatialGrouping){
   
   richness_agg_list <- list()
-  df_list <- list()
   
-  for(i in seq_along(spatialGrouping)) {
+  
+  for(j in 1:length(spatialGrouping)) {
     
-    richness_agg_list[[i]] <- my_df %>%
-                              filter(area %in% spatialGrouping[[i]]) %>%
+    richness_agg_list[[j]] <- my_df %>%
+                   filter(area %in% spatialGrouping[[j]]) %>%
+                   
+                   mutate(pAbsence = 1-Mean.avgPresence, # for each species in each year and in each patch, calculate probability of species absence
+                          year.numb = as.character(year.numb)) %>%
+                   
+                   group_by(year.numb, Species) %>%
+                   summarize(probAbsenceAll = prod(pAbsence)) %>% # for each species in each year, calculate probability of species absence from ALL sites
+                   ungroup() %>%
       
-                              group_by(year.numb, Species) %>%
-                              summarize(presenceBySpecies = max(Mean.avgPresence)) %>% # take maximum probability of occurrence of each species, in each year, for each spatialGrouping
-                              ungroup() %>%
+                   mutate(probAtLeastOnePresence = 1-probAbsenceAll) %>% # for each species in each year, calculate probability of presence in AT LEAST one patch
       
-                              group_by(year.numb) %>%
-                              summarize(spPresenceByYear = sum(presenceBySpecies)) %>% # spRichness for each year = sum of all presenceBySpecies, across all species
-                              ungroup() %>%
-
-                              summarize(spRichness = mean(spPresenceByYear)) %>% # mean spRichness across all years for each spatialGrouping
-                              ungroup()
+                   group_by(year.numb) %>%
+                   summarize(annSpRich = sum(probAtLeastOnePresence)) %>% # calculate species richness for each year
+                   ungroup() %>%
+      
+                   summarize(meanSpRich = mean(annSpRich)) # calculate mean Species Richness across all years for aggregation j
+                    
     
-    
-  }
+    } # end of j
   
   df_list <- list(richness_agg_list)
-  my_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
-  colnames(my_df) <- c("speciesRichness")
-  my_df <- mutate(my_df, id = rownames(my_df)) # add column with unique number
+  spRichness_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
+  colnames(spRichness_df) <- c("speciesRichness")
+  spRichness_df <- mutate(spRichness_df, id = rownames(spRichness_df)) # add column with unique number
   
-  return(my_df)
+  return(spRichness_df)
   
-}
+  }
 
 
 # run function for spatially nested aggregations of local communities:
-richness_spatNested <- Richness_Area_func(occDat1, spatially_nested_list_noSingles)
-
+richness_spatNested <- Richness_func(occDat1, spatially_nested_list_noSingles)
+#richness_spatNested_withSingles <- Richness_func(occDat1, spatially_nested_list); richness_spatNested_withSingles
 
 # run function for random aggregations of local communities:
-richness_randomAgg <- Richness_Area_func(occDat1, random_agg_list_noSingles)
+richness_randomAgg <- Richness_func(occDat1, random_agg_list_noSingles)
 #save(richness_randomAgg, file = "richness_randomAgg.RData")
 
 
 ```
 
+
+``` {r, echo = FALSE}
+
+# Calculate alpha diversity
+
+
+
+```
 
 
 ```{r, echo=FALSE, fig.height=5, fig.width=5}
@@ -377,6 +390,7 @@ sync_within_func <- function(my_df, spatialGrouping){
     
     AA_list[[j]] <- my_df %>%
                     filter(area %in% spatialGrouping[[j]]) 
+    # NOTE THAT AA_list IS NEVER USED BELOW ... ???
   
       
     for(k in 1:length(spatialGrouping[[j]])) {
@@ -973,10 +987,8 @@ grid.arrange(RA_cor_grossSyncWithin_Between, RA_cor_grossSyncWithin_avSpVar, RA_
 ```
 
 
-
+Plot 'Regional' CV vs Hypothesized drivers of CV
 ``` {r, echo=FALSE, fig.height=3.5, fig.width=8}
- 
-# Plot stuff
 
 
 # 1. Create categories for plotting by number of local communities in the aggregation:
@@ -988,7 +1000,7 @@ catN <- c("2", "3", "4", "5", "6", "7", "8", "9", "10")
 ############################################
 
 
-# 1. Spatially Nested Aggregations:
+# 2. Spatially Nested Aggregations:
 
 # plot CV vs synchrony within local communities (between species)
 SN_cvGross_within <- ggplot(data=spatNested, aes(x=grossSyncWithin, y = CV, color = n, shape = n)) + 
@@ -1177,7 +1189,7 @@ grid.arrange(SN_GrossAsynWithin_SpRich, SN_GrossAsynBetween_SpRich, SN_avSpVar_S
 ############################################
 
 
-# 2. Random draws of local communities:
+# 3. Random draws of local communities:
 
 # plot CV vs synchrony within local communities (between species)
 RA_cvGross_within <- ggplot(data=randomAgg, aes(x=grossSyncWithin, y = CV, color = n, shape = n)) + 
