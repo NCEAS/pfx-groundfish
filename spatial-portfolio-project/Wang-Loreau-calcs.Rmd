@@ -21,7 +21,7 @@ library(gridExtra)
 ```
 
 
-# Jump to line 745
+# Jump to line 803
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
@@ -293,7 +293,7 @@ CV_Area_randomAgg <- CV_Area_func(shallowCPUEArea2, random_agg_list_noSingles)
 
 ```{r, echo=FALSE, fig.height=3.5, fig.width=8}
 
-# Calculate cumulative Species Richness vs Area
+# Calculate cumulative Species Richness
 
 # load occurrence data
 setwd("~/Google Drive/GoA project/pfx-groundfish")
@@ -337,7 +337,7 @@ Richness_func <- function(my_df, spatialGrouping){
   
   df_list <- list(richness_agg_list)
   spRichness_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
-  colnames(spRichness_df) <- c("speciesRichness")
+  colnames(spRichness_df) <- c("regionalSpRichness")
   spRichness_df <- mutate(spRichness_df, id = rownames(spRichness_df)) # add column with unique number
   
   return(spRichness_df)
@@ -359,7 +359,7 @@ richness_randomAgg <- Richness_func(occDat1, random_agg_list_noSingles)
 
 ``` {r, echo = FALSE}
 
-# Calculate alpha diversity
+# Calculate alpha diversity (at the aggregated regional scale)
 
 alphaDiv_func <- function(my_df, spatialGrouping){
   
@@ -371,15 +371,15 @@ alphaDiv_func <- function(my_df, spatialGrouping){
                    filter(area %in% spatialGrouping[[j]]) %>%
     
       
-    group_by(year, Species) %>% # take mean abund across all sites? summed abund?  
-    summarize(totDensity = sum(Mean.totalDensity)) %>%
+    group_by(year, Species) %>%  
+    summarize(totDensity = sum(Mean.totalDensity)) %>% # consider whether to take summed or mean abundance across all patches in the aggregation
     ungroup() %>%
     
     
     group_by(year) %>%
     summarize(SW_Div = diversity(totDensity, index="shannon"), 
               Exp_A_Div = exp(SW_Div)) %>% # calculate alpha for each year ... should this be calculated on raw or log abundances???
-    ungroup() %>% # note Exp_A_Div varies between years
+    ungroup() %>% # note between-year variation in Exp_A_Div
     
     summarize(meanExp_A_Div = mean(Exp_A_Div)) # calculate mean alpha across all years
     
@@ -388,7 +388,7 @@ alphaDiv_func <- function(my_df, spatialGrouping){
   
   df_list <- list(alpha_list)
   alpha_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
-  colnames(alpha_df) <- c("expAlpha")
+  colnames(alpha_df) <- c("regionalExpAlpha")
   alpha_df <- mutate(alpha_df, id = rownames(alpha_df)) # add column with unique number
   
   return(alpha_df)
@@ -437,14 +437,13 @@ sync_within_func <- function(my_df, spatialGrouping){
       
       AAA_list[[j]][[k]] <- my_df %>%
                             filter(area %in% spatialGrouping[[j]]) %>%
-                            filter(area == spatialGrouping[[j]][k]) %>%
+                            filter(area == spatialGrouping[[j]][k]) #%>%
          
-                            select(year, common.name, Mean.totalDensity) %>%
-                            group_by(year, common.name) %>%
-                            summarize(totDensity = sum(Mean.totalDensity)) %>% # for each species in each year, sum its total density
-                            ungroup()
-      
-       
+                            #select(year, common.name, Mean.totalDensity) %>%
+                            #group_by(year, common.name) %>%
+                            #summarize(totDensity = sum(Mean.totalDensity)) %>% # for each species in each year, sum its total density ... this does nothing, as everything is already summarized by year & common.name
+                            #ungroup()
+                
       
    ###################### 
       
@@ -457,7 +456,7 @@ sync_within_func <- function(my_df, spatialGrouping){
       loreau_list[[j]][[k]] <- codyn::synchrony(AAA_list[[j]][[k]], 
                                          time.var = "year", 
                                          species.var = "common.name", 
-                                         abundance.var = "totDensity", 
+                                         abundance.var = "Mean.totalDensity", 
                                          metric = "Loreau")
       
       # Gross et al. 2014 metric:  
@@ -472,23 +471,33 @@ sync_within_func <- function(my_df, spatialGrouping){
       gross_list[[j]][[k]] <- codyn::synchrony(AAA_list[[j]][[k]], 
                                          time.var = "year", 
                                          species.var = "common.name", 
-                                         abundance.var = "totDensity", 
+                                         abundance.var = "Mean.totalDensity", 
                                          metric = "Gross")     
-      
+ 
       
       # Thibaut & Connolly 2013 metric:
       #rho <- ((1 - mean r_ij) / S) + mean r_ij
       # where mean r_ij = arithmetic mean correlation coefficient across all species pairs
       # perfect asynchrony: rho = 0; synchrony: rho = 1
       AAAA_list[[j]][[k]] <- AAA_list[[j]][[k]] %>%
-                             spread(common.name, totDensity) %>%
+                             spread(common.name, Mean.totalDensity) %>%
                              select(-year)
+      # note there are many NAs in each df after this step; only some fish species have some numbers
+
       
       rMean_list[[j]][[k]] <- synchrony::meancorr(AAAA_list[[j]][[k]])$obs
       thibaut_list[[j]][[k]] <- ((1-rMean_list[[j]][[k]]) / ncol(AAAA_list[[j]][[k]])) + rMean_list[[j]][[k]]
       
       
-      
+    } # end of k
+    
+    
+  } # end of j
+  
+  return(thibaut_list)
+  
+}  
+
       # sum [[j]] over all [[j]][[k]]
       loreau_means_list[[j]] <- mean(loreau_list[[j]][[k]])
       
@@ -518,7 +527,7 @@ sync_within_func <- function(my_df, spatialGrouping){
 
 # run for spatially-nested aggregations of local communities:
 sync_within_spatNested <- sync_within_func(shallowCPUEArea2, spatially_nested_list_noSingles)
-
+sync_within_spatNested[[1]][[1]]
 
 # run for random aggregations of local communities:
 sync_within_randomAgg <- sync_within_func(shallowCPUEArea2, random_agg_list_noSingles)
@@ -527,6 +536,67 @@ sync_within_randomAgg <- sync_within_func(shallowCPUEArea2, random_agg_list_noSi
 
 ```
 
+
+``` {r, echo = FALSE}
+
+# Calculate biomass uneveness between patches
+# (mean between-patch difference in total CPUE)
+
+
+spat_uneveness_func <- function(my_df, spatialGrouping){
+  
+  unlisted_list <- list()
+  diffs_list <- list()
+  mean_pairwise_diffs_list <- list()
+  
+  # create nested lists with 2 levels:
+  indivCPUE_list <- vector("list", length(spatialGrouping))
+  
+  
+  for(j in 1:length(spatialGrouping)) {
+    
+    
+    for(k in 1:length(spatialGrouping[[j]])) {
+      
+      # for each individual patch within the aggregation, calculate mean annual CPUE (all species summed)
+      indivCPUE_list[[j]][[k]] <- my_df %>%
+                                  filter(area %in% spatialGrouping[[j]]) %>%
+                                  filter(area == spatialGrouping[[j]][k]) %>%
+        
+                                  group_by(year) %>%
+                                  summarize(annCPUE = sum(Mean.totalDensity)) %>%
+                                  ungroup() %>%
+                                  summarize(meanAnnCPUE = mean(annCPUE))
+    
+    } # end of k
+    
+    
+    unlisted_list[[j]] <- unlist(indivCPUE_list[[j]]) # flatten each j list to a vector
+    diffs_list[[j]] <- abs(apply(combn(unlisted_list[[j]], 2), 2, diff)) # for each pair of patches within the aggregation (excluding self pairs), calculate the pairwise difference in total CPUE (absolute value)
+    mean_pairwise_diffs_list[[j]] <- mean(diffs_list[[j]]) # for each aggregation, calculate mean of all pairwise differences
+    
+    
+  } # end of j
+  
+  
+  # return dataframe of outputs:
+  unev_list <- list(mean_pairwise_diffs_list)
+  unev_df <- as.data.frame(matrix(unlist(unev_list), nrow=length(unlist(unev_list[1]))))
+  colnames(unev_df) <- c("meanUnevenessCPUE")
+  unev_df <- mutate(unev_df, id = rownames(unev_df)) # add column with unique number
+  
+}
+  
+
+# run for spatially-nested aggregations of local communities:
+uneveness_spatNested <- spat_uneveness_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+
+# run for random aggregations of local communities:
+uneveness_randomAgg <- spat_uneveness_func(shallowCPUEArea2, random_agg_list_noSingles)
+#save(uneveness_randomAgg, file = "uneveness_randomAgg.RData")
+
+
+```
 
 
 ```{r, echo=FALSE, fig.height=5, fig.width=5}
@@ -779,6 +849,7 @@ randomAgg <- CV_Area_randomAgg %>%
   left_join(sync_within_randomAgg, by = "id") %>%
   left_join(sync_between_randomAgg, by = "id") %>%
   left_join(avSpVar_within_randomAgg, by = "id") %>%
+  left_join(uneveness_randomAgg, by = "id") %>%
   left_join(brayResult_randomAgg, by = "id") %>%
   mutate(n = as.character(n))
 #save(randomAgg, file = "randomAgg.RData")
@@ -790,6 +861,7 @@ spatNested <- CV_Area_spatNested %>%
   left_join(sync_within_spatNested, by = "id") %>%
   left_join(sync_between_spatNested, by = "id") %>%
   left_join(avSpVar_within_spatNested, by = "id") %>%
+  left_join(uneveness_spatNested, by = "id") %>%
   left_join(brayResult_spatNested, by = "id") %>%
   mutate(n = as.character(n))
 #save(spatNested, file = "spatNested.RData")
@@ -815,7 +887,6 @@ spatNested_indepVar <- spatNested %>%
   select(Area, grossSyncWithin, grossSyncBetween, avSpVar, bray)
 pairs.panels(spatNested_indepVar,smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T, cor = T, rug=T, main = "Spatially Nested Aggregations of Local Communities")
 # REMEMBER TO INVERT SYNCHRONY METRICS BEFORE DRAWING CONCLUSIONS ABOUT CORRELATIONS WITH OTHER VARIABLES
-cor.plot()
 
 
 randomAgg_indepVar <- randomAgg %>%
@@ -1127,7 +1198,7 @@ SN_CV_Area_plot <- ggplot(data=spatNested, aes(x=Area, y = CV, color = n, shape 
 ################
 
 # Cumulative Species Richness vs Area:
-SN_SpRich_Area_plot <- ggplot(data=spatNested, aes(x=Area, y = speciesRichness, color = n, shape = n)) + 
+SN_SpRich_Area_plot <- ggplot(data=spatNested, aes(x=Area, y = regionalSpRichness, color = n, shape = n)) + 
   geom_point(size=5, show.legend = FALSE) +
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
@@ -1143,14 +1214,14 @@ SN_SpRich_Area_plot <- ggplot(data=spatNested, aes(x=Area, y = speciesRichness, 
   scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   labs(x = "Area (km^2)", 
        y = "Species Richness
-       (sum of max. probability of occurrence)", 
+       (Probability of occurrence in at least one patch)", 
        main = "Random Aggregations of Local Communities")
 
 
 ################
 
 # Cumulative Species Richness vs CV:
-SN_CV_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y = CV, color = n, shape = n)) + 
+SN_CV_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = CV, color = n, shape = n)) + 
   geom_point(size=5, show.legend = FALSE) +
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
@@ -1164,7 +1235,7 @@ SN_CV_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y = CV, color = n
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "CV")
 
 
@@ -1176,7 +1247,7 @@ SN_CV_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y = CV, color = n
 
 
 # *** See also plots for Loreau & Thibaut metrics of synchrony
-SN_GrossAsynWithin_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y = grossSyncWithin, color = n, shape = n)) + 
+SN_GrossAsynWithin_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = grossSyncWithin, color = n, shape = n)) + 
   geom_point(size=3, show.legend = F) +
   theme_1_withLegend() +
   scale_y_reverse() +
@@ -1184,11 +1255,11 @@ SN_GrossAsynWithin_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y = 
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "Gross Asynchrony Within")
 
 
-SN_GrossAsynBetween_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y = grossSyncBetween, color = n, shape = n)) + 
+SN_GrossAsynBetween_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = grossSyncBetween, color = n, shape = n)) + 
   geom_point(size=3, show.legend = F) +
   theme_1_noLegend() +
   scale_y_reverse() +
@@ -1196,31 +1267,31 @@ SN_GrossAsynBetween_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y =
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "Gross Asynchrony Between")
 
 
     
-SN_avSpVar_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y = avSpVar, color = n, shape = n)) + 
+SN_avSpVar_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = avSpVar, color = n, shape = n)) + 
   geom_point(size=3, show.legend = F) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "Mean Species Variability")
 
 
 
-SN_Bray_SpRich <- ggplot(data=spatNested, aes(x=speciesRichness, y = bray, color = n, shape = n)) + 
+SN_Bray_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = bray, color = n, shape = n)) + 
   geom_point(size=3, show.legend = F) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "Bray Dissimilarity")
 
 
@@ -1316,7 +1387,7 @@ RA_CV_Area_plot <- ggplot(data=randomAgg, aes(x=Area, y = CV, color = n, shape =
 ################
 
 # Cumulative Species Richness vs Area:
-RA_SpRich_Area_plot <- ggplot(data=randomAgg, aes(x=Area, y = speciesRichness, color = n, shape = n)) + 
+RA_SpRich_Area_plot <- ggplot(data=randomAgg, aes(x=Area, y = regionalSpRichness, color = n, shape = n)) + 
   geom_point(size=3, show.legend = FALSE) +
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
@@ -1332,14 +1403,14 @@ RA_SpRich_Area_plot <- ggplot(data=randomAgg, aes(x=Area, y = speciesRichness, c
   scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   labs(x = "Area (km^2)", 
        y = "Species Richness
-       (sum of max. probability of occurrence)", 
+       (Probability of occurrence in at least one patch)", 
        main = "Random Aggregations of Local Communities")
 
 
 ################
 
 # Cumulative Species Richness vs CV:
-RA_CV_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = CV, color = n, shape = n)) + 
+RA_CV_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = CV, color = n, shape = n)) + 
   geom_point(size=3, show.legend = FALSE) +
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
@@ -1353,7 +1424,7 @@ RA_CV_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = CV, color = n,
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "CV")
 
 
@@ -1365,7 +1436,7 @@ RA_CV_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = CV, color = n,
 
 
 # *** See also plots for Loreau & Thibaut metrics of synchrony
-RA_GrossAsynWithin_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = grossSyncWithin, color = n, shape = n)) + 
+RA_GrossAsynWithin_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = grossSyncWithin, color = n, shape = n)) + 
   geom_point(size=2, show.legend = F) +
   theme_1_withLegend() +
   scale_y_reverse() +
@@ -1373,11 +1444,11 @@ RA_GrossAsynWithin_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = g
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "Gross Asynchrony Within")
 
 
-RA_GrossAsynBetween_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = grossSyncBetween, color = n, shape = n)) + 
+RA_GrossAsynBetween_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = grossSyncBetween, color = n, shape = n)) + 
   geom_point(size=2, show.legend = F) +
   theme_1_noLegend() +
   scale_y_reverse() +
@@ -1385,31 +1456,31 @@ RA_GrossAsynBetween_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = 
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "Gross Asynchrony Between")
 
 
     
-RA_avSpVar_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = avSpVar, color = n, shape = n)) + 
+RA_avSpVar_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = avSpVar, color = n, shape = n)) + 
   geom_point(size=2, show.legend = F) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "Mean Species Variability")
 
 
 
-RA_Bray_SpRich <- ggplot(data=randomAgg, aes(x=speciesRichness, y = bray, color = n, shape = n)) + 
+RA_Bray_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = bray, color = n, shape = n)) + 
   geom_point(size=2, show.legend = F) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Species Richness
-       (sum of max. probability of occurrence)",
+       (Probability of occurrence in at least one patch)",
        y = "Bray Dissimilarity")
 
 
