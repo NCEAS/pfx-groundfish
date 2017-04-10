@@ -816,8 +816,8 @@ bray_func <- function(your_df, spatialGrouping){
   
     # 5. Return dataframe of outputs
   
-    bray_list <- list(bray_list)
-    bray_df <- as.data.frame(matrix(unlist(bray_list), nrow=length(unlist(bray_list[1]))))
+    my_list <- list(bray_list)
+    bray_df <- as.data.frame(matrix(unlist(my_list), nrow=length(unlist(my_list[1]))))
     colnames(bray_df) <- c("bray")
     bray_df <- mutate(bray_df, id = rownames(bray_df)) # add column with unique number
     
@@ -827,14 +827,77 @@ bray_func <- function(your_df, spatialGrouping){
 }
 
 
-
 # run function for spatially-nested aggregations of local communities:
 brayResult_spatNested <- bray_func(shallowCPUEArea2, spatially_nested_list_noSingles)
-
 
 # run function for random aggregations of local communities:
 brayResult_randomAgg <- bray_func(shallowCPUEArea2, random_agg_list_noSingles)
 #save(brayResult_randomAgg, file = "brayResult_randomAgg.RData")
+
+
+
+################
+
+
+# alternate function for Bray dissimilarity (mean of all pairwise dissimilarities, intead of splitting dataset in 2 groups and taking dissimilarity between 2 mean communities, as above):
+
+alt_bray_func <- function(your_df, spatialGrouping){
+  
+  agg_list <- list()
+  wisc_list <- list()
+  bray_list <- list()
+  mean_bray_list <- list()
+  
+  # create nested lists with 2 levels:
+  patch_list <- vector("list", length(spatialGrouping))
+  
+  
+    for(j in 1:length(spatialGrouping)) {
+            
+
+      for(k in 1:length(spatialGrouping[[j]])) {
+        
+        
+        # prep data for Bray:
+        patch_list[[j]][[k]] <- your_df %>%
+                                filter(area %in% spatialGrouping[[j]]) %>%
+                                filter(area == spatialGrouping[[j]][k]) %>%
+        
+                                select(common.name, Mean.totalDensity, area, year) %>%
+                                group_by(common.name) %>%
+                                summarize(temporal.mean = mean(Mean.totalDensity)) %>% # mean annual density of each species
+                                ungroup() %>%
+                                spread(common.name, temporal.mean)
+        
+      } # end of k
+      
+      
+      agg_list[[j]] <- bind_rows(patch_list[[j]]) # bind dfs in patch_list with the same j
+      wisc_list[[j]] <- wisconsin(agg_list[[j]]) # Wisconsin transformation. Consider also wisconsin(sqrt(x)). Check that I'm combining these in the right way.
+      bray_list[[j]] <- vegdist(wisc_list[[j]], "bray") # calculate Bray-Curtis dissimilarities for all pairs of k patches within each aggregation j
+      mean_bray_list[[j]] <- mean(bray_list[[j]]) # calculate mean dissimilarity between all k patches in aggregation j
+      
+    } # end of j
+
+  
+  my_list <- list(mean_bray_list)
+  bray_df <- as.data.frame(matrix(unlist(my_list), nrow=length(unlist(my_list[1]))))
+  # returns df with 2 columns
+  colnames(bray_df) <- c("meanBray")
+  bray_df <- mutate(bray_df, id = rownames(bray_df)) # add column with unique number
+    
+  return(bray_df)
+  
+}
+
+
+# run function for spatially-nested aggregations of local communities:
+altBrayResult_spatNested <- alt_bray_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+
+# run function for random aggregations of local communities:
+altBrayResult_randomAgg <- alt_bray_func(shallowCPUEArea2, random_agg_list_noSingles)
+#save(altBrayResult_randomAgg, file = "altBrayResult_randomAgg.RData")
+
 
 ```
 
@@ -850,7 +913,8 @@ randomAgg <- CV_Area_randomAgg %>%
   left_join(sync_between_randomAgg, by = "id") %>%
   left_join(avSpVar_within_randomAgg, by = "id") %>%
   left_join(uneveness_randomAgg, by = "id") %>%
-  left_join(brayResult_randomAgg, by = "id") %>%
+  #left_join(brayResult_randomAgg, by = "id") %>%
+  left_join(altBrayResult_randomAgg, by = "id") %>%
   mutate(n = as.character(n))
 #save(randomAgg, file = "randomAgg.RData")
 
@@ -862,7 +926,8 @@ spatNested <- CV_Area_spatNested %>%
   left_join(sync_between_spatNested, by = "id") %>%
   left_join(avSpVar_within_spatNested, by = "id") %>%
   left_join(uneveness_spatNested, by = "id") %>%
-  left_join(brayResult_spatNested, by = "id") %>%
+  #left_join(brayResult_spatNested, by = "id") %>%
+  left_join(altBrayResult_spatNested, by = "id") %>%
   mutate(n = as.character(n))
 #save(spatNested, file = "spatNested.RData")
 
