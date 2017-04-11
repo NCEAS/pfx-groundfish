@@ -521,7 +521,9 @@ meanAlpha_randomAgg <- meanAlpha_func(shallowCPUEArea2, random_agg_list_noSingle
 # Calculate local asynchrony within sites (species-level)
 sync_within_func <- function(my_df, spatialGrouping){
   
-  AA_list <- list()
+  unlisted_loreau_list <- list()
+  unlisted_gross_list <- list()
+  unlisted_thibaut_list <- list()
   loreau_means_list <- list()
   gross_means_list <- list()
   thibaut_means_list <- list()
@@ -538,10 +540,6 @@ sync_within_func <- function(my_df, spatialGrouping){
     
   for(j in 1:length(spatialGrouping)) {
     
-    AA_list[[j]] <- my_df %>%
-                    filter(area %in% spatialGrouping[[j]]) 
-    # NOTE THAT AA_list IS NEVER USED BELOW ... ???
-  
       
     for(k in 1:length(spatialGrouping[[j]])) {
       
@@ -590,37 +588,30 @@ sync_within_func <- function(my_df, spatialGrouping){
       # where mean r_ij = arithmetic mean correlation coefficient across all species pairs
       # perfect asynchrony: rho = 0; synchrony: rho = 1
       AAAA_list[[j]][[k]] <- AAA_list[[j]][[k]] %>%
+                             select(-area, -SD.totalDensity, -km2, -Species) %>%
                              spread(common.name, Mean.totalDensity) %>%
                              select(-year)
-      # note there are many NAs in each df after this step; only some fish species have some numbers
 
       
       rMean_list[[j]][[k]] <- synchrony::meancorr(AAAA_list[[j]][[k]])$obs
       thibaut_list[[j]][[k]] <- ((1-rMean_list[[j]][[k]]) / ncol(AAAA_list[[j]][[k]])) + rMean_list[[j]][[k]]
       
       
-    } # end of k
+
+      } # end of k
+      
+      unlisted_loreau_list[[j]] <- as.matrix(unlist(loreau_list[[j]]))
+      loreau_means_list[[j]] <- apply(unlisted_loreau_list[[j]], 2, mean) # calculate mean across all local patches in aggregation j
+      
+      unlisted_gross_list[[j]] <- as.matrix(unlist(gross_list[[j]]))
+      gross_means_list[[j]] <- apply(unlisted_gross_list[[j]], 2, mean) # calculate mean across all local patches in aggregation j
+      
+      unlisted_thibaut_list[[j]] <- as.matrix(unlist(thibaut_list[[j]]))
+      thibaut_means_list[[j]] <- apply(unlisted_thibaut_list[[j]], 2, mean) # calculate mean across all local patches in aggregation j
     
     
   } # end of j
   
-  return(thibaut_list)
-  
-}  
-
-      # sum [[j]] over all [[j]][[k]]
-
-      # **** CHECK THIS! I THINK IT'S RETURNING THE FINAL K VALUE INSTEAD OF A MEAN!!! ***
-
-      loreau_means_list[[j]] <- mean(loreau_list[[j]][[k]])
-      gross_means_list[[j]] <- mean(gross_list[[j]][[k]])
-      thibaut_means_list[[j]] <- mean(thibaut_list[[j]][[k]])
-      
-      
-    } # end of k
-    
-    
-  } # end of j
   
   ###################### 
 
@@ -633,12 +624,11 @@ sync_within_func <- function(my_df, spatialGrouping){
   
   return(syn_df)
   
-}    
-      
+}  
+    
 
 # run for spatially-nested aggregations of local communities:
 sync_within_spatNested <- sync_within_func(shallowCPUEArea2, spatially_nested_list_noSingles)
-sync_within_spatNested[[1]][[1]]
 
 # run for random aggregations of local communities:
 sync_within_randomAgg <- sync_within_func(shallowCPUEArea2, random_agg_list_noSingles)
