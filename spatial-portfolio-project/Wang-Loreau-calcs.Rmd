@@ -21,7 +21,7 @@ library(gridExtra)
 ```
 
 
-# Jump to line 803
+# Jump to line 1018
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
@@ -354,6 +354,61 @@ richness_randomAgg <- Richness_func(occDat1, random_agg_list_noSingles)
 #save(richness_randomAgg, file = "richness_randomAgg.RData")
 
 
+
+#######################################
+
+# Mean local species richness for each aggregation
+
+
+meanRichness_func <- function(my_df, spatialGrouping){
+  
+  unlisted_list <- list()
+  mean_richness_list <- list()
+  
+  # create nested lists with 2 levels:
+  loc_rich_list <- vector("list", length(spatialGrouping))
+  
+  
+  for(j in 1:length(spatialGrouping)) {
+    
+    for(k in 1:length(spatialGrouping[[j]])) {
+    
+      # calculate sp richness for each local area
+      loc_rich_list[[j]][[k]] <- my_df %>%
+                                 filter(area %in% spatialGrouping[[j]]) %>%
+                                 filter(area == spatialGrouping[[j]][k]) %>%
+      
+                                 group_by(year.numb) %>%
+                                 summarize(annProbOcc = sum(Mean.avgPresence)) %>% # calculate total prob of occurrence for each year
+                                 ungroup() %>%
+        
+                                 summarize(meanAnnProbOcc = mean(annProbOcc)) # calculate mean across all years
+      
+    } # end of k
+    
+    unlisted_list[[j]] <- as.matrix(unlist(loc_rich_list[[j]]))
+    mean_richness_list[[j]] <- apply(unlisted_list[[j]], 2, mean) # calculate mean sp richness across all local patches in aggregation j
+    
+  } # end of j
+  
+  df_list <- list(mean_richness_list)
+  meanRichness_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
+  colnames(meanRichness_df) <- c("meanLocalRichness")
+  meanRichness_df <- mutate(meanRichness_df, id = rownames(meanRichness_df)) # add column with unique number
+  
+  return(meanRichness_df)
+   
+}
+
+
+# run function for spatially nested aggregations of local communities:
+meanRichness_spatNested <- meanRichness_func(occDat1, spatially_nested_list_noSingles)
+#meanRichness_spatNested_withSingles <- meanRichness_func(occDat1, spatially_nested_list); meanRichness_spatNested_withSingles
+
+# run function for random aggregations of local communities:
+meanRichness_randomAgg <- meanRichness_func(occDat1, random_agg_list_noSingles)
+#save(meanRichness_randomAgg, file = "meanRichness_randomAgg.RData")
+
 ```
 
 
@@ -368,20 +423,18 @@ alphaDiv_func <- function(my_df, spatialGrouping){
   for(j in 1:length(spatialGrouping)) {
   
     alpha_list[[j]] <- my_df %>%
-                   filter(area %in% spatialGrouping[[j]]) %>%
-    
+                       filter(area %in% spatialGrouping[[j]]) %>%
       
-    group_by(year, Species) %>%  
-    summarize(totDensity = sum(Mean.totalDensity)) %>% # consider whether to take summed or mean abundance across all patches in the aggregation
-    ungroup() %>%
+                       group_by(year, Species) %>%  
+                       summarize(totDensity = sum(Mean.totalDensity)) %>% # consider whether to take summed or mean abundance across all patches in the aggregation
+                       ungroup() %>%
     
+                       group_by(year) %>%
+                       summarize(SW_Div = diversity(totDensity, index="shannon"), 
+                                 Exp_A_Div = exp(SW_Div)) %>% # calculate alpha for each year ... should this be calculated on raw or log abundances???
+                       ungroup() %>% # note between-year variation in Exp_A_Div
     
-    group_by(year) %>%
-    summarize(SW_Div = diversity(totDensity, index="shannon"), 
-              Exp_A_Div = exp(SW_Div)) %>% # calculate alpha for each year ... should this be calculated on raw or log abundances???
-    ungroup() %>% # note between-year variation in Exp_A_Div
-    
-    summarize(meanExp_A_Div = mean(Exp_A_Div)) # calculate mean alpha across all years
+                       summarize(meanExp_A_Div = mean(Exp_A_Div)) # calculate mean alpha across all years
     
   }
   
@@ -402,6 +455,63 @@ alphaDiv_spatNested <- alphaDiv_func(shallowCPUEArea2, spatially_nested_list_noS
 # run for random aggregations of local communities:
 alphaDiv_randomAgg <- alphaDiv_func(shallowCPUEArea2, random_agg_list_noSingles)
 #save(alphaDiv_randomAgg, file = "alphaDiv_randomAgg.RData")
+
+
+
+##############################
+
+# Calculate mean local Alpha Diversity
+
+meanAlpha_func <- function(my_df, spatialGrouping){
+  
+  unlisted_list <- list()
+  mean_alpha_list <- list()
+  
+  # create nested lists with 2 levels:
+  loc_alpha_list <- vector("list", length(spatialGrouping))
+  
+  
+  for(j in 1:length(spatialGrouping)) {
+    
+    for(k in 1:length(spatialGrouping[[j]])) {
+    
+      # calculate alpha for each local area (mean across all years)
+      loc_alpha_list[[j]][[k]] <- my_df %>%
+                                  filter(area %in% spatialGrouping[[j]]) %>%
+                                  filter(area == spatialGrouping[[j]][k]) %>%
+        
+                                  group_by(year) %>%
+                                  summarize(SW_Div = diversity(Mean.totalDensity, index="shannon"), 
+                                            Exp_A_Div = exp(SW_Div)) %>% # calculate alpha for each year ... should this be calculated on raw or log abundances???
+                                  ungroup() %>% # note between-year variation in Exp_A_Div
+    
+                                  summarize(meanExp_A_Div = mean(Exp_A_Div)) # calculate mean alpha across all years
+      
+    } # end of k
+    
+    unlisted_list[[j]] <- as.matrix(unlist(loc_alpha_list[[j]]))
+    mean_alpha_list[[j]] <- apply(unlisted_list[[j]], 2, mean) # calculate mean alpha across all local patches in aggregation j
+    
+  } # end of j
+  
+  
+  df_list <- list(mean_alpha_list)
+  meanAlpha_df <- as.data.frame(matrix(unlist(df_list), nrow=length(unlist(df_list[1]))))
+  colnames(meanAlpha_df) <- c("meanLocalExpAlpha")
+  meanAlpha_df <- mutate(meanAlpha_df, id = rownames(meanAlpha_df)) # add column with unique number
+  
+  return(meanAlpha_df)
+  
+}
+
+
+# run for spatially-nested aggregations of local communities:
+meanAlpha_spatNested <- meanAlpha_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+
+# run for random aggregations of local communities:
+meanAlpha_randomAgg <- meanAlpha_func(shallowCPUEArea2, random_agg_list_noSingles)
+#save(meanAlpha_randomAgg, file = "meanAlpha_randomAgg.RData")
+
 
 ```
 
@@ -499,10 +609,11 @@ sync_within_func <- function(my_df, spatialGrouping){
 }  
 
       # sum [[j]] over all [[j]][[k]]
+
+      # **** CHECK THIS! I THINK IT'S RETURNING THE FINAL K VALUE INSTEAD OF A MEAN!!! ***
+
       loreau_means_list[[j]] <- mean(loreau_list[[j]][[k]])
-      
       gross_means_list[[j]] <- mean(gross_list[[j]][[k]])
-      
       thibaut_means_list[[j]] <- mean(thibaut_list[[j]][[k]])
       
       
@@ -907,8 +1018,10 @@ altBrayResult_randomAgg <- alt_bray_func(shallowCPUEArea2, random_agg_list_noSin
 # bind dataframes together
 
 randomAgg <- CV_Area_randomAgg %>%
-  left_join(richness_randomAgg, by = "id") %>%
-  left_join(alphaDiv_randomAgg, by = "id") %>%
+  #left_join(richness_randomAgg, by = "id") %>%
+  eft_join(meanRichness_randomAgg, by = "id") %>%
+  #left_join(alphaDiv_randomAgg, by = "id") %>%
+  left_join(meanAlpha_randomAgg, by = "id") %>%
   left_join(sync_within_randomAgg, by = "id") %>%
   left_join(sync_between_randomAgg, by = "id") %>%
   left_join(avSpVar_within_randomAgg, by = "id") %>%
@@ -920,8 +1033,10 @@ randomAgg <- CV_Area_randomAgg %>%
 
 
 spatNested <- CV_Area_spatNested %>%
-  left_join(richness_spatNested, by = "id") %>%
-  left_join(alphaDiv_spatNested, by = "id") %>%
+  #left_join(richness_spatNested, by = "id") %>%
+  left_join(meanRichness_spatNested, by = "id") %>%
+  #left_join(alphaDiv_spatNested, by = "id") %>%
+  left_join(meanAlpha_spatNested, by = "id") %>%
   left_join(sync_within_spatNested, by = "id") %>%
   left_join(sync_between_spatNested, by = "id") %>%
   left_join(avSpVar_within_spatNested, by = "id") %>%
