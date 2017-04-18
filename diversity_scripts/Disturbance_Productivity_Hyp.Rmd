@@ -9,14 +9,10 @@ output:
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load packages
-library(vegan)
-library(mvnormtest)
-library(plyr)
-library(tidyverse)
-library(forcats)
-library(gridExtra)
-library(ggplot2)
-library(psych)
+library(vegan) ; library(mvnormtest) ; library(plyr)
+library(tidyverse) ; library(forcats) ; library(gridExtra)
+library(ggplot2) ; library(psych) ; library(mgcv)
+library(AICcmodavg)
 
 ```
 
@@ -158,5 +154,39 @@ div_plotC <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=
 grid.arrange(div_plotA, div_plotB, div_plotC, ncol=2, nrow=2)
 
 ```
+
+###With GAM fits
+```{r, echo=FALSE}
+#assumes normally distributed data 
+model1 <- gam(Sp_rich~s(met_ton_km2, k=3), data=dist_df, family=gaussian) 
+
+#assumes normally distributed data 
+model2 <- gam(Sp_rich~s(met_ton_km2, k=30), data=dist_df, family=gaussian) 
+
+#assumes normally distributed data
+model3 <- gam(Sp_rich~s(met_ton_km2, k=40), data=dist_df, family=gaussian) 
+
+#assumes normally distributed data
+model4 <- gam(Sp_rich~s(met_ton_km2, k=45), data=dist_df, family=gaussian) 
+
+model3
+model4
+plot(model3, pages=1, residuals=TRUE)
+plot(model4, pages=1, residuals=TRUE)
+
+gam.check(model3)
+
+anova(model3, model4, test="F")
+
+AICc(model1)
+AICc(model2)
+AICc(model3)
+AICc(model4)
+
+```
+
+
+
+
 
 
