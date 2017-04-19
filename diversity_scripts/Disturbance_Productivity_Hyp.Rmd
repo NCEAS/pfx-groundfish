@@ -12,7 +12,7 @@ output:
 library(vegan) ; library(mvnormtest) ; library(plyr)
 library(tidyverse) ; library(forcats) ; library(gridExtra)
 library(ggplot2) ; library(psych) ; library(mgcv)
-library(AICcmodavg)
+library(AICcmodavg) ; library(visreg)
 
 ```
 
@@ -36,6 +36,37 @@ source("../diversity_scripts/Fishing_Pressure_calc.r")
 # source the chlorophyll a calculation script
 
 ```
+
+```{r, echo=FALSE}
+#######################################
+### MAKE MY OWN THEME TO SAVE LINES OF CODE
+theme_boxplot <- function(base_size = 12){
+  theme_bw(base_size) %+replace%
+    theme(legend.key.size=unit(13,"points"),
+          legend.text=element_text(size=I(11)),
+          legend.key=element_blank(),
+          legend.title=element_blank(),
+          #legend.position="none",
+          plot.margin=unit(c(0.75,1,0.75,1), "cm"), # respectively: top, right, bottom, left; refers to margin *outside* labels; default is c(1,1,0.5,0.5)
+          panel.border=element_blank(),
+          panel.spacing=unit(0,"lines"),
+          axis.ticks.length=unit(1,"mm"),
+          axis.text.x = element_text(margin=margin(5,0,0,0)),
+          axis.text.y = element_text(margin=margin(0,5,0,0)),
+          axis.text=element_text(size=11),
+          axis.title.x=element_text(size=13, margin=margin(15,0,0,0)), 
+          axis.title.y=element_text(size=13, angle=90, margin=margin(0,15,0,0)), 
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          strip.text.x=element_text(size=14),
+          strip.background=element_rect(colour='black', fill='white'),
+          #axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.line = element_line(colour = 'black', size=0.5, linetype='solid')
+          )
+}
+
+```
+
 
 # Fishing Pressure effects on Diversity Metrics
 ```{r, echo=FALSE, results='hide'}
@@ -181,6 +212,9 @@ gam.check(gam1b)
 
 AIC(gam1, gam1a, gam1b, gam1c, gam1d, gam1e)
 
+# ggplot
+
+
 ```
 
 ```{r}
@@ -200,6 +234,31 @@ plot(gam2b, pages=1, residuals=TRUE, shade=T)
 #summary(gam2) ; summary(gam2a)
 AIC(gam2, gam2a, gam2b, gam2c, gam2d)
 
+# ggplot
+# use plot = FALSE to get plot data from visreg without plotting
+plotdata2 <- visreg(gam2b, type="contrast", plot=FALSE)
+
+# The output from visreg is a list of the same length as the number of 'x' variables,
+#   so we use ldply to pick the objects we want from the each list part and make a dataframe: 
+smooths2 <- data.frame(Variable = plotdata2$meta$x, 
+                       x=plotdata2$fit[[plotdata2$meta$x]], 
+                       smooth=plotdata2$fit$visregFit, 
+                       lower=plotdata2$fit$visregLwr, 
+                       upper=plotdata2$fit$visregUpr)
+
+resid2 <- data.frame(Variable=plotdata2$meta$x,
+                     x=plotdata2$res[[plotdata2$meta$x]],
+                     y=plotdata2$res$visregRes)
+
+# The ggplot:
+gam2_plot <- ggplot(smooths2, aes(x, smooth)) + 
+             geom_line() + theme_boxplot() +
+             geom_line(aes(y=lower), linetype="dashed") + 
+             geom_line(aes(y=upper), linetype="dashed") #+
+             #geom_point(data=resid2, aes(x, y)) +
+
+gam2_plot
+
 ```
 
 ```{r}
@@ -214,10 +273,35 @@ gam3c <- gam(Exp_B_Div~s(met_ton_km2, k=4), data=dist_df, family=gaussian)
 
 gam3d <- gam(Exp_B_Div~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
 
-plot(gam3b, pages=1, residuals=TRUE, shade=T)
+plot(gam3b, pages=1, shade=T)
 
 #summary(gam3) ; summary(gam3a)
 AIC(gam3, gam3a, gam3b, gam3c, gam3d)
+
+# ggplot
+# use plot = FALSE to get plot data from visreg without plotting
+plotdata3 <- visreg(gam3b, type="contrast", plot=FALSE)
+
+# The output from visreg is a list of the same length as the number of 'x' variables,
+#   so we use ldply to pick the objects we want from the each list part and make a dataframe: 
+smooths3 <- data.frame(Variable = plotdata3$meta$x, 
+                       x=plotdata3$fit[[plotdata3$meta$x]], 
+                       smooth=plotdata3$fit$visregFit, 
+                       lower=plotdata3$fit$visregLwr, 
+                       upper=plotdata3$fit$visregUpr)
+
+resid3 <- data.frame(Variable=plotdata3$meta$x,
+                     x=plotdata3$res[[plotdata3$meta$x]],
+                     y=plotdata3$res$visregRes)
+
+# The ggplot:
+gam3_plot <- ggplot(smooths3, aes(x, smooth)) + 
+             geom_line() + theme_boxplot() +
+             geom_line(aes(y=lower), linetype="dashed") + 
+             geom_line(aes(y=upper), linetype="dashed") #+
+             #geom_point(data=resid3, aes(x, y)) +
+
+gam3_plot
 
 ```
 
