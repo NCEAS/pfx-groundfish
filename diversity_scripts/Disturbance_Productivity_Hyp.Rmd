@@ -157,36 +157,50 @@ grid.arrange(div_plotA, div_plotB, div_plotC, ncol=2, nrow=2)
 
 ###With GAM fits
 ```{r, echo=FALSE}
+# Species Richness 
 #assumes normally distributed data 
-model1 <- gam(Sp_rich~s(met_ton_km2, k=3), data=dist_df, family=gaussian) 
+gam1 <- gam(Sp_rich~met_ton_km2, data=dist_df, family=gaussian) # essentially equal to glm()
 
-#assumes normally distributed data 
-model2 <- gam(Sp_rich~s(met_ton_km2, k=30), data=dist_df, family=gaussian) 
+gam1a <- gam(Sp_rich~s(met_ton_km2, k=3), data=dist_df, family=gaussian) 
 
-#assumes normally distributed data
-model3 <- gam(Sp_rich~s(met_ton_km2, k=40), data=dist_df, family=gaussian) 
+gam1b <- gam(Sp_rich~s(met_ton_km2, k=40), data=dist_df, family=gaussian) 
 
-#assumes normally distributed data
-model4 <- gam(Sp_rich~s(met_ton_km2, k=45), data=dist_df, family=gaussian) 
+gam1c <- gam(Sp_rich~s(met_ton_km2, k=45), data=dist_df, family=gaussian) 
 
-model3
-model4
-plot(model3, pages=1, residuals=TRUE)
-plot(model4, pages=1, residuals=TRUE)
+#summary(gam1)
+#summary(gam1c)
 
-gam.check(model3)
+#plot(gam1b, pages=1, residuals=TRUE, shade=T)
+plot(gam1c, pages=1, residuals=TRUE, shade=T)
 
-anova(model3, model4, test="F")
+#gam.check(gam1b)
 
-AICc(model1)
-AICc(model2)
-AICc(model3)
-AICc(model4)
+AIC(gam1, gam1a, gam1b, gam1c)
+```
+
+```{r}
+# Alpha Diversity
+gam2 <- gam(Eff_Num_Sp~met_ton_km2, data=dist_df, family=gaussian)  # essentially equal to glm()
+gam2a <- gam(Eff_Num_Sp~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
+
+plot(gam2a, pages=1, residuals=TRUE, shade=T)
+
+#summary(gam2) ; summary(gam2a)
+AIC(gam2, gam2a)
 
 ```
 
+```{r}
+# Beta Diversity
+gam3 <- gam(Exp_B_Div~met_ton_km2, data=dist_df, family=gaussian)  # essentially equal to glm()
+gam3a <- gam(Exp_B_Div~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
 
+plot(gam3a, pages=1, residuals=TRUE, shade=T)
 
+#summary(gam3) ; summary(gam3a)
+AIC(gam3, gam3a)
+
+```
 
 
 
