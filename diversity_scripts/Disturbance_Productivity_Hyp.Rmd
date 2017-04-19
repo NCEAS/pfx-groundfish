@@ -161,44 +161,63 @@ grid.arrange(div_plotA, div_plotB, div_plotC, ncol=2, nrow=2)
 #assumes normally distributed data 
 gam1 <- gam(Sp_rich~met_ton_km2, data=dist_df, family=gaussian) # essentially equal to glm()
 
-gam1a <- gam(Sp_rich~s(met_ton_km2, k=3), data=dist_df, family=gaussian) 
+gam1a <- gam(Sp_rich~s(met_ton_km2, k=1), data=dist_df, family=gaussian) 
 
-gam1b <- gam(Sp_rich~s(met_ton_km2, k=40), data=dist_df, family=gaussian) 
+gam1b <- gam(Sp_rich~s(met_ton_km2, k=2), data=dist_df, family=gaussian) 
 
-gam1c <- gam(Sp_rich~s(met_ton_km2, k=45), data=dist_df, family=gaussian) 
+gam1c <- gam(Sp_rich~s(met_ton_km2, k=4), data=dist_df, family=gaussian) 
+
+gam1d <- gam(Sp_rich~s(met_ton_km2, k=40), data=dist_df, family=gaussian) 
+
+gam1e <- gam(Sp_rich~s(met_ton_km2, k=45), data=dist_df, family=gaussian) 
 
 #summary(gam1)
 #summary(gam1c)
 
-#plot(gam1b, pages=1, residuals=TRUE, shade=T)
-plot(gam1c, pages=1, residuals=TRUE, shade=T)
+plot(gam1a, pages=1, residuals=TRUE, shade=T)
+plot(gam1b, pages=1, residuals=TRUE, shade=T)
 
-#gam.check(gam1b)
+gam.check(gam1b)
 
-AIC(gam1, gam1a, gam1b, gam1c)
+AIC(gam1, gam1a, gam1b, gam1c, gam1d, gam1e)
+
 ```
 
 ```{r}
 # Alpha Diversity
 gam2 <- gam(Eff_Num_Sp~met_ton_km2, data=dist_df, family=gaussian)  # essentially equal to glm()
-gam2a <- gam(Eff_Num_Sp~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
 
-plot(gam2a, pages=1, residuals=TRUE, shade=T)
+gam2a <- gam(Eff_Num_Sp~s(met_ton_km2, k=1), data=dist_df, family=gaussian)
+
+gam2b <- gam(Eff_Num_Sp~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
+
+gam2c <- gam(Eff_Num_Sp~s(met_ton_km2, k=4), data=dist_df, family=gaussian)
+
+gam2d <- gam(Eff_Num_Sp~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
+
+plot(gam2b, pages=1, residuals=TRUE, shade=T)
 
 #summary(gam2) ; summary(gam2a)
-AIC(gam2, gam2a)
+AIC(gam2, gam2a, gam2b, gam2c, gam2d)
 
 ```
 
 ```{r}
 # Beta Diversity
 gam3 <- gam(Exp_B_Div~met_ton_km2, data=dist_df, family=gaussian)  # essentially equal to glm()
-gam3a <- gam(Exp_B_Div~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
 
-plot(gam3a, pages=1, residuals=TRUE, shade=T)
+gam3a <- gam(Exp_B_Div~s(met_ton_km2, k=1), data=dist_df, family=gaussian)
+
+gam3b <- gam(Exp_B_Div~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
+
+gam3c <- gam(Exp_B_Div~s(met_ton_km2, k=4), data=dist_df, family=gaussian)
+
+gam3d <- gam(Exp_B_Div~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
+
+plot(gam3b, pages=1, residuals=TRUE, shade=T)
 
 #summary(gam3) ; summary(gam3a)
-AIC(gam3, gam3a)
+AIC(gam3, gam3a, gam3b, gam3c, gam3d)
 
 ```
 
