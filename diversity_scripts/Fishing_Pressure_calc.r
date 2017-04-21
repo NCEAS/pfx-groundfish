@@ -52,14 +52,14 @@ catch_sum$final.OLE[catch_sum$final.OLE == "PWS"] <- "Prince William Sound"
 # Plotting time series of catch by region
 COL <- viridis(4,begin=0,end=0.8)
 biomass_plot <- ggplot(catch_sum) +
-                  geom_point(aes(x=year, y=met_ton_km2, shape=final.OLE), size=2.5) +
-                  geom_line(aes(x=year, y=met_ton_km2, group=final.OLE)) +
-                  scale_shape(name="Region",solid=F) +
-                  coord_cartesian(xlim=c(min(catch_sum$year)-0.75,max(catch_sum$year)+0.75),
-                                  ylim=c(0,max(catch_sum$met_ton_km2)*1.05),
-                                  expand=c(0)) +
-               		labs(x="Year", y=expression("Catch (mt km"^-2*")")) +
-                  theme_bw()
+                geom_point(aes(x=year, y=met_ton_km2, shape=final.OLE), size=2.5) +
+                geom_line(aes(x=year, y=met_ton_km2, group=final.OLE)) +
+                scale_shape(name="Region",solid=F) +
+                coord_cartesian(xlim=c(min(catch_sum$year)-0.75,max(catch_sum$year)+0.75),
+                                ylim=c(0,max(catch_sum$met_ton_km2)*1.05),
+                                expand=c(0)) +
+               	labs(x="Year", y=expression("Catch (mt km"^-2*")")) +
+                theme_bw()
 #biomass_plot
 #############################################################################
 
