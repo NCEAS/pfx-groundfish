@@ -110,7 +110,7 @@ ak_areas_all <- akmap2 +
               #         legend.justification=c(1,0), 
               #         legend.position=c(1,0)) +
               #   guides(color=guide_legend(ncol=2))
-#ak_areas_all
+ak_areas_all
 
 
 
