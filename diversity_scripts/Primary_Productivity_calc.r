@@ -56,21 +56,65 @@ pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
 
 
 
-# read in the MODIS data
-MODIS_chl <- read.csv("./diversity-data/MODIS_erdMH1chlamday_632a_18ce_f111.csv", header=TRUE)
-head(MODIS_chl)
+# read in the MODIS data  ## NOTE: This file is 4 GB !!!
+# MODIS_chl <- read.csv("./diversity-data/MODIS_erdMH1chlamday_632a_18ce_f111.csv", 
+#                       skip=1, header=TRUE)
+# head(MODIS_chl)
+# 
+# MODIS_chl1 <- MODIS_chl %>%
+#               dplyr::rename(time_UTC = UTC, 
+#                      latitude_degrees_north = degrees_north,
+#                      longitude_degrees_east = degrees_east,
+#                      chlorophyll_mg_m3 = mg.m..3) %>%
+#               mutate(Year = str_sub(time_UTC, 1,4),
+#                      Month = str_sub(time_UTC, 6,7),
+#                      Day = str_sub(time_UTC, 9,10)) %>%
+#               filter(latitude_degrees_north < 62 & latitude_degrees_north > 54) %>%
+#               filter(longitude_degrees_east < -142 & longitude_degrees_east > -165) %>%
+#               filter(!chlorophyll_mg_m3 == "NaN")
+# 
+# write.csv(MODIS_chl1, "./diversity-data/MODIS_Big_Box_Clipped.csv", row.names=F)
 
-MODIS_chl1 <- MODIS_chl %>%
-              dplyr::rename(time_UTC = UTC, 
-                     latitude_degrees_north = degrees_north,
-                     longitude_degrees_east = degrees_east,
-                     chlorophyll_mg_m3 = mg.m..3) %>%
-              mutate(Year = str_sub(time_UTC, 1,4),
-                     Month = str_sub(time_UTC, 6,7),
-                     Day = str_sub(time_UTC, 9,10)) %>%
-              filter(latitude_degrees_north < 62 & latitude_degrees_north > 54) %>%
-              filter(longitude_degrees_east < -142 & longitude_degrees_east > -165) %>%
-              filter(!chlorophyll_mg_m3 == "NaN")
+MODIS_chl_box <- read.csv("./diversity-data/MODIS_Big_Box_Clipped.csv", header=TRUE)
+head(MODIS_chl_box)
+
+
+
+
+
+
+
+library(grDevices) # load grDevices package
+df <- data.frame(X = c(-62,  -40,   9,  13,  26,  27,  27),
+                 Y = c( 7, -14,  10,   9,  -8, -16,  12)) # store X,Y together
+con.hull.pos <- chull(df) # find positions of convex hull
+con.hull <- rbind(df[con.hull.pos,],df[con.hull.pos[1],]) # get coordinates for convex hull
+plot(Y ~ X, data = df) # plot data
+lines(con.hull) # add lines for convex hull
+
+Here is a simple example to create a SpatialPolygonsDataFrame, which can be saved as a shapefile with rgdal::writeOGR():
+
+set.seed(1)
+dat <- matrix(stats::rnorm(2000), ncol = 2)
+ch <- chull(dat)
+coords <- dat[c(ch, ch[1]), ]  # closed polygon
+
+plot(dat, pch=19)
+lines(coords, col="red")
+
+library("sp")
+library("rgdal")
+
+sp_poly <- SpatialPolygons(list(Polygons(list(Polygon(coords)), ID=1)))
+# set coordinate reference system with SpatialPolygons(..., proj4string=CRS(...))
+# e.g. CRS("+proj=longlat +datum=WGS84")
+sp_poly_df <- SpatialPolygonsDataFrame(sp_poly, data=data.frame(ID=1))
+writeOGR(sp_poly_df, "chull", layer="chull", driver="ESRI Shapefile")
+
+
+
+
+
 
 
 
@@ -112,4 +156,4 @@ MDS_map <- akmap2 +
            geom_point(data=MODIS_chl1, aes(x=longitude_degrees_east, y=latitude_degrees_north,
                                            color=chlorophyll_mg_m3))
 
-
+MDS_map
