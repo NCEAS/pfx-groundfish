@@ -24,10 +24,12 @@ catch <- read.csv("../goaTrawl/_fishing areas gfish/pounds_by_stat6.csv")
 ### Read in mapping of stat areas to regions.
 map_to_regions <- read.csv("../diversity-data/regions+OLE.csv")
 
-catch1     <- merge(catch, map_to_regions[,c("stat6","final.OLE")])
+catch1 <- merge(catch, map_to_regions[,c("stat6","final.OLE")])
+
 catch_sum <- catch1 %>% 
-             group_by(year,final.OLE) %>% 
-             summarize(tot_pound =sum(pounds))
+             group_by(year, final.OLE) %>% 
+             summarize(tot_pound = sum(as.numeric(pounds)))
+
 catch_sum$met_ton <-  catch_sum$tot_pound * 0.000453592
 
 ### Calculating the area (km2) of each fishery Region:
@@ -42,7 +44,7 @@ Area_est <- data.frame(
 colnames(Area_est) <- c("final.OLE","km2")
 Area_est$km2 <- as.numeric(as.character(Area_est$km2))
 
-catch_sum <- merge(catch_sum,Area_est)
+catch_sum <- merge(catch_sum, Area_est)
 catch_sum$met_ton_km2 <- catch_sum$met_ton / catch_sum$km2
 catch_sum$final.OLE <- as.character(catch_sum$final.OLE)
 catch_sum$final.OLE[catch_sum$final.OLE == "PWS"] <- "Prince William Sound"

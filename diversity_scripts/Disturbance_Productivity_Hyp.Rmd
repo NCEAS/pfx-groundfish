@@ -208,6 +208,8 @@ gam1e <- gam(Sp_rich~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
 plot(gam1a, pages=1, residuals=TRUE, shade=T)
 plot(gam1b, pages=1, residuals=TRUE, shade=T)
 
+
+
 gam.check(gam1b)
 
 AIC(gam1, gam1a, gam1b, gam1c, gam1d, gam1e)
