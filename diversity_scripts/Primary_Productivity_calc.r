@@ -10,7 +10,8 @@ library(rgdal) ; library(dplyr) ; library(ggplot2) ; library(reshape2)
 library(scales) ; library(psych) ; library(rworldmap) ; library(rworldxtra) ;
 library(sp) ; library(maptools) ; library(raster) ; library(rgeos) ;
 library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ;
-library(RColorBrewer) ; library(GISTools) ; library(tidyverse) ; library(stringr)
+library(RColorBrewer) ; library(GISTools) ; library(stringi) ; library(stringr) ;
+library(grDevices)
 
 # read in the SEAWIFS data
 SEAWIFS_chl <- read.csv("./diversity-data/SEAWIFS_erdSW1chlamday_b482_a79d_4c9e.csv", header=TRUE)
@@ -23,7 +24,7 @@ SEAW_chl1 <- SEAWIFS_chl %>%
                     Day = str_sub(time_UTC, 9,10)) %>%
              filter(latitude_degrees_north < 62 & latitude_degrees_north > 54) %>%
              filter(longitude_degrees_east < -142 & longitude_degrees_east > -165) %>%
-             filter(!chlorophyll_mg_m.3 == "NaN") #%>%
+             filter(!chlorophyll_mg_m3 == "NaN") #%>%
              #filter(!time_UTC == "1997-10-16T00:00:00Z",
              #        !time_UTC == "1997-09-16T00:00:00Z",
              #        !time_UTC == "1998-05-16T00:00:00Z",
@@ -31,7 +32,7 @@ SEAW_chl1 <- SEAWIFS_chl %>%
              #        !time_UTC == "1998-03-16T00:00:00Z",
              #        !time_UTC == "1998-08-16T00:00:00Z",
              #        !time_UTC == "1998-06-16T00:00:00Z",
-            #         !time_UTC == "1998-07-16T00:00:00Z")  # removing really high chla values...seems spurious
+             #        !time_UTC == "1998-07-16T00:00:00Z")  # removing really high chla values...seems spurious
 
 # Study Areas
 discrete_areas1 <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
@@ -50,9 +51,28 @@ discrete_areas <- discrete_areas1 %>%
 discrete_areas$area1 <- factor(discrete_areas$area,
                                levels=c('1','2','3','4','5','6','7','8','9','10'))
 
-pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
-           "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")   
+# make a shapefile for each study area using convex hulls
+make_cnvx_hull <- function(area_number){
+  
+                  # make the convex hull polygon
+                  area_hull <- discrete_areas %>% filter(area1 == area_number) %>% 
+                               dplyr::select(LONGITUDE, LATITUDE)
+                  hull_pos <- chull(area_hull)
+                  hull_coords <- area_hull[c(hull_pos, hull_pos[1]), ] 
+ 
+                  # check that it looks ok
+                  #plot(area_hull, pch=19)
+                  #lines(hull_coords, col="red")
 
+                  # make the convex hull a SpatialPolygonsDataFrame, which can be saved as a shapefile 
+                  # with rgdal::writeOGR()
+                  sp_poly <- SpatialPolygons(list(Polygons(list(Polygon(hull_coords)), ID=1)), 
+                                             proj4string=CRS("+proj=longlat +datum=WGS84"))
+                  sp_poly_df <- SpatialPolygonsDataFrame(sp_poly, data=data.frame(ID=1))
+                  rgdal::writeOGR(sp_poly_df,  "./diversity-data/chull", layer="chull", driver="ESRI Shapefile")
+}
+
+# use lapply to run this function over all values of discrete_areas$area1
 
 
 
@@ -78,50 +98,14 @@ pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
 MODIS_chl_box <- read.csv("./diversity-data/MODIS_Big_Box_Clipped.csv", header=TRUE)
 head(MODIS_chl_box)
 
-
-
-
-
-
-
-library(grDevices) # load grDevices package
-df <- data.frame(X = c(-62,  -40,   9,  13,  26,  27,  27),
-                 Y = c( 7, -14,  10,   9,  -8, -16,  12)) # store X,Y together
-con.hull.pos <- chull(df) # find positions of convex hull
-con.hull <- rbind(df[con.hull.pos,],df[con.hull.pos[1],]) # get coordinates for convex hull
-plot(Y ~ X, data = df) # plot data
-lines(con.hull) # add lines for convex hull
-
-Here is a simple example to create a SpatialPolygonsDataFrame, which can be saved as a shapefile with rgdal::writeOGR():
-
-set.seed(1)
-dat <- matrix(stats::rnorm(2000), ncol = 2)
-ch <- chull(dat)
-coords <- dat[c(ch, ch[1]), ]  # closed polygon
-
-plot(dat, pch=19)
-lines(coords, col="red")
-
-library("sp")
-library("rgdal")
-
-sp_poly <- SpatialPolygons(list(Polygons(list(Polygon(coords)), ID=1)))
-# set coordinate reference system with SpatialPolygons(..., proj4string=CRS(...))
-# e.g. CRS("+proj=longlat +datum=WGS84")
-sp_poly_df <- SpatialPolygonsDataFrame(sp_poly, data=data.frame(ID=1))
-writeOGR(sp_poly_df, "chull", layer="chull", driver="ESRI Shapefile")
-
-
-
-
-
-
-
+# clip the MODIS data to each study area
 
 
 # map where the data are...
-ak <- map_data('worldHires','USA:Alaska')
-
+# library(tidyverse) also has a function called map() which causes this to produce an error
+#ak <- map_data('worldHires','USA:Alaska')  
+ak <- fortify(maps::map('worldHires','USA:Alaska', plot=FALSE, fill=TRUE))
+  
 akmap2 <- ggplot() + 
           geom_polygon(data=ak, aes(long,lat,group=group), fill=8, 
                        color="black") +
@@ -129,6 +113,9 @@ akmap2 <- ggplot() +
           ylab(expression(paste(Latitude^o,~'N'))) +
           coord_map(xlim=c(-165, -142), ylim=c(54, 62)) +
           theme(panel.background=element_rect(fill='aliceblue')) 
+
+# pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",  # colors for study areas
+#            "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")   
 
 SWFS_map <- akmap2 + 
             geom_point(data=SEAW_chl1, aes(x=longitude_degrees_east, y=latitude_degrees_north,
@@ -153,7 +140,7 @@ SWFS_map
 
 
 MDS_map <- akmap2 + 
-           geom_point(data=MODIS_chl1, aes(x=longitude_degrees_east, y=latitude_degrees_north,
-                                           color=chlorophyll_mg_m3))
+           geom_point(data=MODIS_chl_box, aes(x=longitude_degrees_east, y=latitude_degrees_north,
+                                              color=chlorophyll_mg_m3))
 
 MDS_map

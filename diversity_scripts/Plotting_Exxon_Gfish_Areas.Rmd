@@ -18,7 +18,8 @@ NOTE: Maybe try doing this in TMAP package instead of GGPLOT package.
 
 ```{r, include=FALSE, echo=FALSE}
 #Map plotted in Lat Long:
-ak <- map_data('worldHires','USA:Alaska')
+#ak <- map_data('worldHires','USA:Alaska')
+ak <- fortify(maps::map('worldHires','USA:Alaska', plot=FALSE, fill=TRUE))
 
 akmap2 <- ggplot() + 
           geom_polygon(data=ak, aes(long,lat,group=group), fill=8, 
