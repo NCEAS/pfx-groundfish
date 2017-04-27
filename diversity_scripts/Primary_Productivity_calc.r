@@ -6,12 +6,12 @@
 ###############################################################
 
 # load libraries needed by this script
-library(rgdal) ; library(dplyr) ; library(ggplot2) ; library(reshape2)
+library(rgdal) ; library(plyr) ; library(ggplot2) ; library(reshape2)
 library(scales) ; library(psych) ; library(rworldmap) ; library(rworldxtra) ;
 library(sp) ; library(maptools) ; library(raster) ; library(rgeos) ;
 library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ;
 library(RColorBrewer) ; library(GISTools) ; library(stringi) ; library(stringr) ;
-library(grDevices)
+library(grDevices) ; library(dplyr)
 
 # read in the SEAWIFS data
 SEAWIFS_chl <- read.csv("./diversity-data/SEAWIFS_erdSW1chlamday_b482_a79d_4c9e.csv", header=TRUE)
@@ -51,56 +51,6 @@ discrete_areas <- discrete_areas1 %>%
 discrete_areas$area1 <- factor(discrete_areas$area,
                                levels=c('1','2','3','4','5','6','7','8','9','10'))
 
-# make a shapefile for each study area using convex hulls
-make_cnvx_hull <- function(area_number){
-  
-                  # make the convex hull polygon
-                  area_hull <- discrete_areas %>% filter(area1 == area_number) %>% 
-                               dplyr::select(LONGITUDE, LATITUDE)
-                  hull_pos <- chull(area_hull)
-                  hull_coords <- area_hull[c(hull_pos, hull_pos[1]), ] 
- 
-                  # check that it looks ok
-                  #plot(area_hull, pch=19)
-                  #lines(hull_coords, col="red")
-
-                  # make the convex hull a SpatialPolygonsDataFrame, which can be saved as a shapefile 
-                  # with rgdal::writeOGR()
-                  sp_poly <- SpatialPolygons(list(Polygons(list(Polygon(hull_coords)), ID=1)), 
-                                             proj4string=CRS("+proj=longlat +datum=WGS84"))
-                  sp_poly_df <- SpatialPolygonsDataFrame(sp_poly, data=data.frame(ID=1))
-                  rgdal::writeOGR(sp_poly_df,  "./diversity-data/chull", layer="chull", driver="ESRI Shapefile")
-}
-
-# use lapply to run this function over all values of discrete_areas$area1
-
-
-
-# read in the MODIS data  ## NOTE: This file is 4 GB !!!
-# MODIS_chl <- read.csv("./diversity-data/MODIS_erdMH1chlamday_632a_18ce_f111.csv", 
-#                       skip=1, header=TRUE)
-# head(MODIS_chl)
-# 
-# MODIS_chl1 <- MODIS_chl %>%
-#               dplyr::rename(time_UTC = UTC, 
-#                      latitude_degrees_north = degrees_north,
-#                      longitude_degrees_east = degrees_east,
-#                      chlorophyll_mg_m3 = mg.m..3) %>%
-#               mutate(Year = str_sub(time_UTC, 1,4),
-#                      Month = str_sub(time_UTC, 6,7),
-#                      Day = str_sub(time_UTC, 9,10)) %>%
-#               filter(latitude_degrees_north < 62 & latitude_degrees_north > 54) %>%
-#               filter(longitude_degrees_east < -142 & longitude_degrees_east > -165) %>%
-#               filter(!chlorophyll_mg_m3 == "NaN")
-# 
-# write.csv(MODIS_chl1, "./diversity-data/MODIS_Big_Box_Clipped.csv", row.names=F)
-
-MODIS_chl_box <- read.csv("./diversity-data/MODIS_Big_Box_Clipped.csv", header=TRUE)
-head(MODIS_chl_box)
-
-# clip the MODIS data to each study area
-
-
 # map where the data are...
 # library(tidyverse) also has a function called map() which causes this to produce an error
 #ak <- map_data('worldHires','USA:Alaska')  
@@ -138,9 +88,116 @@ SWFS_map <- akmap2 +
 
 SWFS_map
 
+# make a shapefile for each study area using convex hulls
+#' Title
+#'
+#' @param area_number 
+#' @param df 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+make_cnvx_hull <- function(area_number, df){
+  
+                  # make the convex hull polygon
+                  area_hull <- df %>% filter(area1 == area_number) %>% 
+                               dplyr::select(LONGITUDE, LATITUDE)
+                  hull_pos <- chull(area_hull)
+                  hull_coords <- area_hull[c(hull_pos, hull_pos[1]), ] 
+ 
+                  # check that it looks ok
+                  #plot(area_hull, pch=19)
+                  #lines(hull_coords, col="red")
+
+                  # make the convex hull a SpatialPolygonsDataFrame, which can be saved as a shapefile 
+                  # with rgdal::writeOGR()
+                  sp_poly <- SpatialPolygons(list(Polygons(list(Polygon(hull_coords)), ID=1)), 
+                                             proj4string=CRS("+proj=longlat +datum=WGS84"))
+                  sp_poly_df <- SpatialPolygonsDataFrame(sp_poly, data=data.frame(ID=1))
+                  rgdal::writeOGR(sp_poly_df,  "./diversity-data", layer=area_number, driver="ESRI Shapefile")
+}
+
+# use sapply to run this function over all values of discrete_areas$area1
+sapply(unique(discrete_areas$area1), function(x) make_cnvx_hull(area_number=x, df=discrete_areas))
+
+# make individual shapefiles into one shapefile
+area_list <- list()
+area_list[[1]] <- readOGR(dsn="./diversity-data", layer="1")
+area_list[[2]] <- readOGR(dsn="./diversity-data", layer="2")
+area_list[[3]] <- readOGR(dsn="./diversity-data", layer="3")
+area_list[[4]] <- readOGR(dsn="./diversity-data", layer="4")
+area_list[[5]] <- readOGR(dsn="./diversity-data", layer="5")
+area_list[[6]] <- readOGR(dsn="./diversity-data", layer="6")
+area_list[[7]] <- readOGR(dsn="./diversity-data", layer="7")
+area_list[[8]] <- readOGR(dsn="./diversity-data", layer="8")
+area_list[[9]] <- readOGR(dsn="./diversity-data", layer="9")
+area_list[[10]] <- readOGR(dsn="./diversity-data", layer="10")
+
+areas_shps1 <- raster::union(area_list[[1]],area_list[[2]])
+areas_shps2 <- raster::union(area_list[[3]],area_list[[4]])
+areas_shps3 <- raster::union(area_list[[5]],area_list[[6]])
+areas_shps4 <- raster::union(area_list[[7]],area_list[[8]])
+areas_shps5 <- raster::union(area_list[[9]],area_list[[10]])
+
+areas_shps6 <- raster::union(areas_shps1,areas_shps2)
+areas_shps7 <- raster::union(areas_shps3,areas_shps4)
+areas_shps8 <- raster::union(areas_shps5,areas_shps6)
+areas_shps10 <- raster::union(areas_shps7,areas_shps8)
+
+areas_shps10 # This is the shapefile of all 10 study area polygons
+
+
+# read in the MODIS data  ## NOTE: This file is 4 GB !!!
+# MODIS_chl <- read.csv("./diversity-data/MODIS_erdMH1chlamday_632a_18ce_f111.csv", 
+#                       skip=1, header=TRUE)
+# head(MODIS_chl)
+# 
+# MODIS_chl1 <- MODIS_chl %>%
+#               dplyr::rename(time_UTC = UTC, 
+#                      latitude_degrees_north = degrees_north,
+#                      longitude_degrees_east = degrees_east,
+#                      chlorophyll_mg_m3 = mg.m..3) %>%
+#               mutate(Year = str_sub(time_UTC, 1,4),
+#                      Month = str_sub(time_UTC, 6,7),
+#                      Day = str_sub(time_UTC, 9,10)) %>%
+#               filter(latitude_degrees_north < 62 & latitude_degrees_north > 54) %>%
+#               filter(longitude_degrees_east < -142 & longitude_degrees_east > -165) %>%
+#               filter(!chlorophyll_mg_m3 == "NaN")
+# 
+# write.csv(MODIS_chl1, "./diversity-data/MODIS_Big_Box_Clipped.csv", row.names=F)
+
+MODIS_chl_box <- read.csv("./diversity-data/MODIS_Big_Box_Clipped.csv", header=TRUE)
+head(MODIS_chl_box)
+
+# clip the MODIS data to each study area
+# copying from this website: https://www.nceas.ucsb.edu/scicomp/usecases/point-in-polygon
+
+coordinates(MODIS_chl_box) <- c("longitude_degrees_east", "latitude_degrees_north") # makes area grid points into spatial polygon file I think
+
+areas_shps10 # This is the shapefile of all 10 study area polygons
+
+proj4string(MODIS_chl_box) <- proj4string(areas_shps10)  # tell R that coordinates are in the same lat/lon reference system
+
+# combine is.na() with over() to do the containment test; note that we
+# need to "demote" parks to a SpatialPolygons object first
+areas_chla <- !is.na(over(MODIS_chl_box, as(areas_shps10, "SpatialPolygons")))
+
+# use 'over' again, this time with areas_shps10 as a SpatialPolygonsDataFrame
+# object, to determine which areas_shps10 (if any) contains each chla point, and
+# store the areas_shps10 name as an attribute of the MODIS_chl_box data
+MODIS_chl_box$area <- over(MODIS_chl_box, areas_shps10)$Unit_Name
+
+
+
 
 MDS_map <- akmap2 + 
-           geom_point(data=MODIS_chl_box, aes(x=longitude_degrees_east, y=latitude_degrees_north,
+           geom_point(data=, aes(x=longitude_degrees_east, y=latitude_degrees_north,
                                               color=chlorophyll_mg_m3))
 
 MDS_map
+
+
+
+
+
