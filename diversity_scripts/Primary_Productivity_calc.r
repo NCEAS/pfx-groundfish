@@ -184,16 +184,15 @@ proj4string(MODIS_chl_box) <- proj4string(areas_shps10)  # tell R that coordinat
 areas_chla <- !is.na(over(MODIS_chl_box, as(areas_shps10, "SpatialPolygons")))
 
 # use 'over' again, this time with areas_shps10 as a SpatialPolygonsDataFrame
-# object, to determine which areas_shps10 (if any) contains each chla point, and
-# store the areas_shps10 name as an attribute of the MODIS_chl_box data
-MODIS_chl_box$area <- over(MODIS_chl_box, areas_shps10)$Unit_Name
+# object, to determine which areas (if any) contains each chla point, and
+# store the areas name as an attribute of the MODIS_chl_box data
+MODIS_chl_box$area <- over(MODIS_chl_box, areas_shps10)$
 
-
+# make something ggplot can read
 
 
 MDS_map <- akmap2 + 
-           geom_point(data=, aes(x=longitude_degrees_east, y=latitude_degrees_north,
-                                              color=chlorophyll_mg_m3))
+           geom_point(data=MODIS_chl_box, aes(x=longitude_degrees_east, y=latitude_degrees_north))
 
 MDS_map
 
