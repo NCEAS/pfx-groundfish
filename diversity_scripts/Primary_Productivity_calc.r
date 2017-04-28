@@ -189,7 +189,11 @@ areas_chla <- !is.na(over(MODIS_chl_box, as(areas_shps10, "SpatialPolygons")))
 MODIS_chl_box$area <- over(MODIS_chl_box, areas_shps10)$
 
 # make something ggplot can read
-
+#MODIS_areas <- readOGR(dsn=".", layer="MODIS_chl_box")
+MODIS_chl_box@data$id = rownames(MODIS_chl_box@data)
+MODIS_chl_box_points = fortify(MODIS_chl_box, region="id")
+MODIS_chl_box_df = join(MODIS_chl_box_points, utah@data, by="id")
+  
 
 MDS_map <- akmap2 + 
            geom_point(data=MODIS_chl_box, aes(x=longitude_degrees_east, y=latitude_degrees_north))
