@@ -34,6 +34,10 @@ source("../diversity_scripts/Fishing_Pressure_calc.r")
 
 ```{r, echo=FALSE, results='hide'}
 # source the chlorophyll a calculation script
+source("../diversity_scripts/Primary_Productivity_calc.r")
+
+# want the CHL_both dataframe from here
+#head(CHL_both)
 
 ```
 
@@ -307,5 +311,33 @@ gam3_plot
 
 ```
 
+# Primary Productivity effects 
+```{r}
+# clean and prepare the data
+head(CHL_both)
+
+div_met3 <- div_met %>%
+            rename(Year = YEAR,
+                   area = AREA)
+
+# make one large dataframe
+prod_df <- full_join(div_met3, CHL_both, by=c("Year","area"))
+
+# filter for complete cases
+prod_df <- prod_df %>% filter(complete.cases(.))
+
+# average to chla for each year...
+dist_df_cat_ar <- dist_df %>%
+                  select(-AREA, -Simp, -Invsimp) %>%
+                  group_by(Catch_area, Year) %>%
+                  summarize(Eff_Num_Sp_ca = mean(Eff_Num_Sp),
+                            Sp_rich_ca = mean(Sp_rich),
+                            Exp_B_Div_ca = mean(Exp_B_Div),
+                            met_ton_km2_ca = mean(met_ton_km2)) %>%
+                  ungroup() %>%
+                  arrange(Catch_area, Year)
+           
+
+```
 
 
