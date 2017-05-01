@@ -269,7 +269,7 @@ MODIS_chl_gfish <- read.csv("./diversity-data/MODIS_chl_gfish_areas.csv", header
 #  Combine the two datasets  
 CHL_both <- SEAW_chl_gfish %>%
             full_join(MODIS_chl_gfish) %>%
-            select(-time_UTC, -optional) %>%
+            dplyr::select(-time_UTC, -optional) %>%
             filter(Year != 2016)
   
   
