@@ -13,6 +13,11 @@ library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ;
 library(RColorBrewer) ; library(GISTools) ; library(stringi) ; library(stringr) ;
 library(grDevices) ; library(dplyr)
 #########################################
+
+# set working dir
+setwd("~/NCEAS/GoA Portfolio Effects WG/pfx-groundfish")
+
+
 # # Study Areas
 # discrete_areas1 <- read.csv("./goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 # discrete_areas1$area <- discrete_areas1$Area
