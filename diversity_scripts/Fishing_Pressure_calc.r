@@ -75,7 +75,7 @@ Area_est$km2 <- as.numeric(as.character(Area_est$km2))
 
 catch_sum <- merge(catch_sum, Area_est)
 catch_sum$met_ton_km2 <- catch_sum$met_ton / catch_sum$km2
-catch_sum$final.OLE <- as.factor(catch_sum$final.OLE)
+catch_sum$final.OLE <- as.character(catch_sum$final.OLE)
 catch_sum$final.OLE[catch_sum$final.OLE == "PWS"] <- "Prince William Sound"
 
 ###########################################################################

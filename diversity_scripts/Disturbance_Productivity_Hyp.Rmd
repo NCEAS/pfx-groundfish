@@ -78,7 +78,7 @@ theme_boxplot <- function(base_size = 12){
 catch_sum2 <- catch_sum %>%
               dplyr::rename(Catch_area = final.OLE,
                             Year = year) %>%
-              select(Catch_area, Year, met_ton_km2) %>%
+              dplyr::select(Catch_area, Year, met_ton_km2) %>%
               arrange(Catch_area, Year)
 
 div_met2 <- div_met %>%
@@ -96,7 +96,7 @@ dist_df <- dist_df %>% filter(complete.cases(.))
 
 # average to catch area for each year...
 dist_df_cat_ar <- dist_df %>%
-                  select(-AREA, -Simp, -Invsimp) %>%
+                  dplyr::select(-AREA, -Simp, -Invsimp) %>%
                   group_by(Catch_area, Year) %>%
                   summarize(Eff_Num_Sp_ca = mean(Eff_Num_Sp),
                             Sp_rich_ca = mean(Sp_rich),
@@ -109,7 +109,7 @@ dist_df_cat_ar <- dist_df %>%
 
 ###with Linear fits
 ```{r, echo=FALSE, include=FALSE}
-# visualizing some data
+# Species Richness
 #pairs.panels(dist_df[,-c(1:3)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
 
 lmfit1 <- lm(met_ton_km2_ca~Sp_rich_ca, data=dist_df_cat_ar)  # lm() fit 
@@ -128,7 +128,7 @@ anova(lmfit1) # anova table of above lm() fit
 ```
 
 ```{r, echo=FALSE, include=FALSE}
-# visualizing some data
+# Alpha Diversity
 
 lmfit2 <- lm(met_ton_km2_ca~Eff_Num_Sp_ca, data=dist_df_cat_ar)  # lm() fit 
 
@@ -146,7 +146,7 @@ anova(lmfit2) # anova table of above lm() fit
 ```
 
 ```{r, echo=FALSE, include=FALSE}
-# visualizing some data
+# Beta Diversity
 
 lmfit3 <- lm(met_ton_km2_ca~Exp_B_Div_ca, data=dist_df_cat_ar)  # lm() fit 
 
@@ -169,27 +169,6 @@ grid.arrange(div_plot1, div_plot2, div_plot3, ncol=2, nrow=2)
 
 ```
 
-###with Loess fits
-```{r, echo=FALSE, fig.height=9, fig.width=10}
-div_plotA <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + geom_point() +
-             stat_smooth(method="loess", col="blue") + ylab("Species Richness") + 
-             theme(legend.position = "top") +
-             xlab("Fishing Pressure (metric tonnes km-2)")
-
-div_plotB <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) + geom_point() +
-             stat_smooth(method="loess", col="blue") + ylab("Effective # of Species") +
-             theme(legend.position = "top") +
-             xlab("Fishing Pressure (metric tonnes km-2)") 
-
-div_plotC <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + geom_point() +
-             stat_smooth(method="loess", col="blue") + ylab("Beta Diversity ") + 
-             theme(legend.position = "top") +
-             xlab("Fishing Pressure (metric tonnes km-2)")
-
-grid.arrange(div_plotA, div_plotB, div_plotC, ncol=2, nrow=2)
-
-```
-
 ###With GAM fits
 ```{r, echo=FALSE}
 # Species Richness 
@@ -202,24 +181,19 @@ gam1b <- gam(Sp_rich~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
 
 gam1c <- gam(Sp_rich~s(met_ton_km2, k=4), data=dist_df, family=gaussian) 
 
-gam1d <- gam(Sp_rich~s(met_ton_km2, k=40), data=dist_df, family=gaussian) 
+summary(gam1c)
 
-gam1e <- gam(Sp_rich~s(met_ton_km2, k=45), data=dist_df, family=gaussian) 
+#plot(gam1c, pages=1, residuals=TRUE, shade=T)
 
-#summary(gam1)
-#summary(gam1c)
+#gam.check(gam1c)
 
-plot(gam1a, pages=1, residuals=TRUE, shade=T)
-plot(gam1b, pages=1, residuals=TRUE, shade=T)
-
-
-
-gam.check(gam1b)
-
-AIC(gam1, gam1a, gam1b, gam1c, gam1d, gam1e)
+#AIC(gam1, gam1a, gam1b, gam1c)
 
 # ggplot
-
+gam1_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + geom_point() +
+             stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red") + ylab("Species Richness") +
+             xlab("Fishing Pressure (metric tonnes km-2)") + theme(legend.position = "top") 
+#gam1_plot
 
 ```
 
@@ -233,12 +207,10 @@ gam2b <- gam(Eff_Num_Sp~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
 
 gam2c <- gam(Eff_Num_Sp~s(met_ton_km2, k=4), data=dist_df, family=gaussian)
 
-gam2d <- gam(Eff_Num_Sp~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
+#plot(gam2b, pages=1, residuals=TRUE, shade=T)
 
-plot(gam2b, pages=1, residuals=TRUE, shade=T)
-
-#summary(gam2) ; summary(gam2a)
-AIC(gam2, gam2a, gam2b, gam2c, gam2d)
+summary(gam2c) 
+#AIC(gam2, gam2a, gam2b, gam2c)
 
 # ggplot
 # use plot = FALSE to get plot data from visreg without plotting
@@ -257,13 +229,22 @@ resid2 <- data.frame(Variable=plotdata2$meta$x,
                      y=plotdata2$res$visregRes)
 
 # The ggplot:
-gam2_plot <- ggplot(smooths2, aes(x, smooth)) + 
-             geom_line() + theme_boxplot() +
-             geom_line(aes(y=lower), linetype="dashed") + 
-             geom_line(aes(y=upper), linetype="dashed") #+
-             #geom_point(data=resid2, aes(x, y)) +
+gam2_plota <- ggplot(smooths2, aes(x, smooth)) + 
+              geom_line() + theme_boxplot() +
+              geom_line(aes(y=lower), linetype="dashed") + 
+              geom_line(aes(y=upper), linetype="dashed") #+
+              #geom_point(data=resid2, aes(x, y)) +
 
-gam2_plot
+#gam2_plota
+
+
+# ggplot
+gam2_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) + 
+             geom_point() +  ylab("Alpha Diversity") + xlab("Fishing Pressure (metric tonnes km-2)") + 
+             stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red") + theme(legend.position = "top") 
+             
+#gam2_plot
+
 
 ```
 
@@ -277,12 +258,10 @@ gam3b <- gam(Exp_B_Div~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
 
 gam3c <- gam(Exp_B_Div~s(met_ton_km2, k=4), data=dist_df, family=gaussian)
 
-gam3d <- gam(Exp_B_Div~s(met_ton_km2, k=45), data=dist_df, family=gaussian)
+#plot(gam3b, pages=1, shade=T)
 
-plot(gam3b, pages=1, shade=T)
-
-#summary(gam3) ; summary(gam3a)
-AIC(gam3, gam3a, gam3b, gam3c, gam3d)
+summary(gam3c)
+#AIC(gam3, gam3a, gam3b, gam3c, gam3d)
 
 # ggplot
 # use plot = FALSE to get plot data from visreg without plotting
@@ -301,43 +280,204 @@ resid3 <- data.frame(Variable=plotdata3$meta$x,
                      y=plotdata3$res$visregRes)
 
 # The ggplot:
-gam3_plot <- ggplot(smooths3, aes(x, smooth)) + 
-             geom_line() + theme_boxplot() +
-             geom_line(aes(y=lower), linetype="dashed") + 
-             geom_line(aes(y=upper), linetype="dashed") #+
-             #geom_point(data=resid3, aes(x, y)) +
+gam3_plota <- ggplot(smooths3, aes(x, smooth)) + 
+              geom_line() + theme_boxplot() +
+              geom_line(aes(y=lower), linetype="dashed") + 
+              geom_line(aes(y=upper), linetype="dashed") #+
+              #geom_point(data=resid3, aes(x, y)) +
 
-gam3_plot
+#gam3_plota
+
+
+
+# ggplot
+gam3_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + 
+             geom_point() +  ylab("Beta Diversity") + xlab("Fishing Pressure (metric tonnes km-2)") + 
+             stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red") + theme(legend.position = "top") 
+             
+#gam3_plot
+
+
+```
+
+```{r, echo=FALSE, fig.height=9, fig.width=10}
+# arranging above plots
+grid.arrange(gam1_plot, gam2_plot, gam3_plot, ncol=2, nrow=2)
 
 ```
 
 # Primary Productivity effects 
 ```{r}
-# clean and prepare the data
-head(CHL_both)
+# # clean and prepare the data
+# head(CHL_both)  # size is 19.6 Mb
+# 
+# # size is 7.8 Mb
+# CHL_both_s <- CHL_both %>% dplyr::select(-Day, -latitude_degrees_north, -longitude_degrees_east) 
+# 
+# div_met3 <- div_met %>%    # size is 5.3 Mb
+#             rename(Year = YEAR,
+#                    area = AREA) %>%
+#             dplyr::select(-Simp, -Invsimp, -SW, -Gamma) 
+# 
+# # make one large dataframe
+# prod_df <- full_join(div_met3, CHL_both_s, by=c("Year","area"))   
+# 
+# # filter for complete cases
+# prod_df <- prod_df %>% filter(complete.cases(.))   # size is 13.4 Gb
+# 
+# # average to chla for each year...
+# prod_df_chlyr <- prod_df %>%                     # size is 4 Kb
+#                  group_by(area, Year) %>%
+#                  summarize(Eff_Num_Sp_mn = mean(Eff_Num_Sp),
+#                            Sp_rich_mn = mean(Sp_rich),
+#                            Exp_B_Div_mn = mean(Exp_B_Div),
+#                            chl_mg_m3_mn = mean(chlorophyll_mg_m3)) %>%
+#                  ungroup() %>%
+#                  arrange(Year, area)
 
-div_met3 <- div_met %>%
-            rename(Year = YEAR,
-                   area = AREA)
+# average to chla for each month...
+# prod_df_chlmth <- prod_df %>%
+#                   group_by(area, Year, Month) %>%
+#                   summarize(Eff_Num_Sp_mn = mean(Eff_Num_Sp),
+#                             Sp_rich_mn = mean(Sp_rich),
+#                             Exp_B_Div_mn = mean(Exp_B_Div),
+#                             chl_mg_m3_mn = mean(chlorophyll_mg_m3)) %>%
+#                   ungroup() %>%
+#                   arrange(Year, Month, area)
 
-# make one large dataframe
-prod_df <- full_join(div_met3, CHL_both, by=c("Year","area"))
 
-# filter for complete cases
-prod_df <- prod_df %>% filter(complete.cases(.))
+# write.csv(prod_df_chlyr, "./diversity-data/Productivity_gfish_areas_yr.csv", row.names=F)
+# write.csv(prod_df_chlmth, "./diversity-data/Productivity_gfish_areas_mth.csv", row.names=F)
 
-# average to chla for each year...
-dist_df_cat_ar <- dist_df %>%
-                  select(-AREA, -Simp, -Invsimp) %>%
-                  group_by(Catch_area, Year) %>%
-                  summarize(Eff_Num_Sp_ca = mean(Eff_Num_Sp),
-                            Sp_rich_ca = mean(Sp_rich),
-                            Exp_B_Div_ca = mean(Exp_B_Div),
-                            met_ton_km2_ca = mean(met_ton_km2)) %>%
-                  ungroup() %>%
-                  arrange(Catch_area, Year)
-           
+prod_chl_yr <- read.csv("./diversity-data/Productivity_gfish_areas_yr.csv")
+prod_chl_mth <- read.csv("./diversity-data/Productivity_gfish_areas_mth.csv")
+
+```
+
+### with Lineaer Fits
+```{r, echo=FALSE}
+# Linear fits on Species Richness
+
+lmfit4 <- lm(Sp_rich_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
+
+div_plot2c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Sp_rich_mn, color=as.factor(area))) + geom_point() +
+              stat_smooth(method="lm", col="blue") + ylab("Species Richness") +
+              xlab("Primary Productivity (chla mg m^3)") + 
+              theme(legend.position = "right") +
+              labs(title=paste("Adj R^2 =",signif(summary(lmfit4)$adj.r.squared, 5),
+                               #"Intercept =",signif(lmfit2$coef[[1]],5 ),
+                               #" Slope =",signif(lmfit2$coef[[2]], 5),
+                               " p =",signif(summary(lmfit4)$coef[2,4], 5)))
+
+anova(lmfit4) # anova table of above lm() fit
+
+
+```
+
+```{r, echo=FALSE}
+# Linear fits on alpha diversity
+
+lmfit5 <- lm(Eff_Num_Sp_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
+
+div_plot3c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Eff_Num_Sp_mn, color=as.factor(area))) + geom_point() +
+              stat_smooth(method="lm", col="blue") + ylab("Effective # of Species") +
+              xlab("Primary Productivity (chla mg m^3)") + 
+              theme(legend.position = "right") +
+              labs(title=paste("Adj R^2 =",signif(summary(lmfit5)$adj.r.squared, 5),
+                               #"Intercept =",signif(lmfit2$coef[[1]],5 ),
+                               #" Slope =",signif(lmfit2$coef[[2]], 5),
+                               " p =",signif(summary(lmfit5)$coef[2,4], 5)))
+
+anova(lmfit5) # anova table of above lm() fit
+
+
+```
+
+```{r, echo=FALSE}
+# Linear fits on beta diversity
+
+lmfit6 <- lm(Exp_B_Div_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
+
+div_plot4c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=as.factor(area))) + geom_point() +
+              stat_smooth(method="lm", col="blue") + ylab("Beta Diversity") +
+              xlab("Primary Productivity (chla mg m^3)") + 
+              theme(legend.position = "right") +
+              labs(title=paste("Adj R^2 =",signif(summary(lmfit6)$adj.r.squared, 5),
+                               #"Intercept =",signif(lmfit2$coef[[1]],5 ),
+                               #" Slope =",signif(lmfit2$coef[[2]], 5),
+                               " p =",signif(summary(lmfit6)$coef[2,4], 5)))
+
+anova(lmfit6) # anova table of above lm() fit
+
+
+```
+
+```{r, echo=FALSE, fig.height=9, fig.width=10}
+# arranging above plots
+grid.arrange(div_plot2c, div_plot3c, div_plot4c, ncol=2, nrow=2)
 
 ```
 
 
+### With GAM Fits
+```{r, echo=FALSE}
+# Species Richness 
+#assumes normally distributed data 
+gam4 <- gam(Sp_rich_mn~chl_mg_m3_mn, data=prod_chl_yr, family=gaussian) # essentially equal to glm()
+
+gam4a <- gam(Sp_rich_mn~s(chl_mg_m3_mn, k=4), data=prod_chl_yr, family=gaussian) 
+
+summary(gam4a)
+
+# ggplot
+gam4_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Sp_rich_mn, color=as.factor(area))) + geom_point() +
+             stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red") + ylab("Species Richness") +
+             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "right") 
+#gam4_plot
+
+
+```
+
+```{r, echo=FALSE}
+# Alpha Diversity
+#assumes normally distributed data 
+gam5 <- gam(Eff_Num_Sp_mn~chl_mg_m3_mn, data=prod_chl_yr, family=gaussian) # essentially equal to glm()
+
+gam5a <- gam(Eff_Num_Sp_mn~s(chl_mg_m3_mn, k=4), data=prod_chl_yr, family=gaussian) 
+
+summary(gam5a)
+
+# ggplot
+gam5_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Eff_Num_Sp_mn, color=as.factor(area))) + 
+             geom_point() +
+             stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red") + ylab("Alpha Diversity") +
+             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "right") 
+#gam5_plot
+
+
+```
+
+```{r, echo=FALSE}
+# Beta Diversity
+#assumes normally distributed data 
+gam6 <- gam(Exp_B_Div_mn~chl_mg_m3_mn, data=prod_chl_yr, family=gaussian) # essentially equal to glm()
+
+gam6a <- gam(Exp_B_Div_mn~s(chl_mg_m3_mn, k=4), data=prod_chl_yr, family=gaussian) 
+
+summary(gam6a)
+
+# ggplot
+gam6_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=as.factor(area))) + 
+             geom_point() +
+             stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red") + ylab("Beta Diversity") +
+             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "right") 
+#gam6_plot
+
+
+```
+
+```{r, echo=FALSE, fig.height=9, fig.width=10}
+# arranging above plots
+grid.arrange(gam4_plot, gam5_plot, gam6_plot, ncol=2, nrow=2)
+
+```
