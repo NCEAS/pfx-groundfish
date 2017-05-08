@@ -159,11 +159,11 @@ div_plot3 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=
              geom_point(size=8) +
              stat_smooth(method="lm", col="blue", size=2) + ylab("Beta Diversity ") + 
              xlab("Fishing Pressure (metric tonnes km-2)") +  scale_color_manual(values=colors_plot) +
-             theme_boxplot() + theme(legend.position = c(1,.7), legend.justification = c(0,0)) #+ 
-             # labs(title=paste("Adj R^2 =", signif(summary(lmfit3)$adj.r.squared, 5),
-             #                  #"Intercept =",signif(lmfit3$coef[[1]],5 ),
-             #                  #" Slope =",signif(lmfit3$coef[[2]], 5),
-             #                  " p =",signif(summary(lmfit3)$coef[2,4], 5)))
+             theme_boxplot() + theme(legend.position = c(1,.7), legend.justification = c(0,0)) + 
+             labs(title=paste("Adj R^2 =", signif(summary(lmfit3)$adj.r.squared, 5),
+                              #"Intercept =",signif(lmfit3$coef[[1]],5 ),
+                              #" Slope =",signif(lmfit3$coef[[2]], 5),
+                              " p =",signif(summary(lmfit3)$coef[2,4], 5)))
 
 anova(lmfit3) # anova table of above lm() fit
 
@@ -399,11 +399,11 @@ div_plot4c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=as.f
               geom_point(size=8) + scale_color_manual(values=pinks) + theme_boxplot() +
               stat_smooth(method="lm", col="blue", size=2) + ylab("Beta Diversity") +
               xlab("Primary Productivity (chla mg m^3)") + 
-              theme(legend.position = c(1.1,.2), legend.justification = c(0,0)) #+
-              # labs(title=paste("Adj R^2 =",signif(summary(lmfit6)$adj.r.squared, 5),
-              #                  #"Intercept =",signif(lmfit2$coef[[1]],5 ),
-              #                  #" Slope =",signif(lmfit2$coef[[2]], 5),
-              #                  " p =",signif(summary(lmfit6)$coef[2,4], 5)))
+              theme(legend.position = c(1.1,.2), legend.justification = c(0,0)) +
+              labs(title=paste("Adj R^2 =",signif(summary(lmfit6)$adj.r.squared, 5),
+                               #"Intercept =",signif(lmfit2$coef[[1]],5 ),
+                               #" Slope =",signif(lmfit2$coef[[2]], 5),
+                               " p =",signif(summary(lmfit6)$coef[2,4], 5)))
 
 anova(lmfit6) # anova table of above lm() fit
 
