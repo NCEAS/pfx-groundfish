@@ -32,7 +32,7 @@ source("../diversity_scripts/Fishing_Pressure_calc.r")
 
 ```
 
-```{r, echo=FALSE, results='hide'}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # source the chlorophyll a calculation script
 source("../diversity_scripts/Primary_Productivity_calc.r")
 
@@ -41,7 +41,7 @@ source("../diversity_scripts/Primary_Productivity_calc.r")
 
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 #######################################
 ### MAKE MY OWN THEME TO SAVE LINES OF CODE
 theme_boxplot <- function(base_size = 12){
@@ -73,7 +73,7 @@ theme_boxplot <- function(base_size = 12){
 
 
 # Fishing Pressure effects on Diversity Metrics
-```{r, echo=FALSE, results='hide'}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # clean the data
 catch_sum2 <- catch_sum %>%
               dplyr::rename(Catch_area = final.OLE,
@@ -111,7 +111,7 @@ colors_plot <- c("#49006A","#DD3497","#FA9FB5","#E3C9C6")
 ```
 
 ###with Linear fits
-```{r, echo=FALSE, include=FALSE}
+```{r, include=FALSE, echo=FALSE}
 # Species Richness
 #pairs.panels(dist_df[,-c(1:3)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
 
@@ -176,7 +176,7 @@ grid.arrange(div_plot1, div_plot2, div_plot3, ncol=2, nrow=2)
 ```
 
 ###With GAM fits
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 # Species Richness 
 #assumes normally distributed data 
 gam1 <- gam(Sp_rich~met_ton_km2, data=dist_df, family=gaussian) # essentially equal to glm()
@@ -205,7 +205,7 @@ gam1_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, col
 
 ```
 
-```{r}
+```{r  include=FALSE, echo=FALSE}
 # Alpha Diversity
 gam2 <- gam(Eff_Num_Sp~met_ton_km2, data=dist_df, family=gaussian)  # essentially equal to glm()
 
@@ -257,7 +257,7 @@ gam2_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, 
 
 ```
 
-```{r}
+```{r include=FALSE, echo=FALSE}
 # Beta Diversity
 gam3 <- gam(Exp_B_Div~met_ton_km2, data=dist_df, family=gaussian)  # essentially equal to glm()
 
@@ -297,7 +297,7 @@ grid.arrange(gam1_plot, gam2_plot, div_plot3, ncol=2, nrow=2)
 
 
 # Primary Productivity effects 
-```{r}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # # clean and prepare the data
 # head(CHL_both)  # size is 19.6 Mb
 # 
@@ -339,8 +339,8 @@ grid.arrange(gam1_plot, gam2_plot, div_plot3, ncol=2, nrow=2)
 # write.csv(prod_df_chlyr, "./diversity-data/Productivity_gfish_areas_yr.csv", row.names=F)
 # write.csv(prod_df_chlmth, "./diversity-data/Productivity_gfish_areas_mth.csv", row.names=F)
 
-prod_chl_yr <- read.csv("./diversity-data/Productivity_gfish_areas_yr.csv")
-prod_chl_mth <- read.csv("./diversity-data/Productivity_gfish_areas_mth.csv")
+prod_chl_yr <- read.csv("../diversity-data/Productivity_gfish_areas_yr.csv")
+prod_chl_mth <- read.csv("../diversity-data/Productivity_gfish_areas_mth.csv")
 
 
 # colors for plots
@@ -350,7 +350,7 @@ pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
 ```
 
 ### with Lineaer Fits
-```{r, echo=FALSE}
+```{r, include=FALSE, echo=FALSE}
 # Linear fits on Species Richness
 
 lmfit4 <- lm(Sp_rich_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
@@ -370,7 +370,7 @@ anova(lmfit4) # anova table of above lm() fit
 
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE, echo=FALSE}
 # Linear fits on alpha diversity
 
 lmfit5 <- lm(Eff_Num_Sp_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
@@ -390,7 +390,7 @@ anova(lmfit5) # anova table of above lm() fit
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 # Linear fits on beta diversity
 
 lmfit6 <- lm(Exp_B_Div_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
@@ -418,7 +418,7 @@ grid.arrange(div_plot2c, div_plot3c, div_plot4c, ncol=2, nrow=2)
 
 
 ### With GAM Fits
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 # Species Richness 
 #assumes normally distributed data 
 gam4 <- gam(Sp_rich_mn~chl_mg_m3_mn, data=prod_chl_yr, family=gaussian) # essentially equal to glm()
@@ -437,7 +437,7 @@ gam4_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Sp_rich_mn, color=as
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 # Alpha Diversity
 #assumes normally distributed data 
 gam5 <- gam(Eff_Num_Sp_mn~chl_mg_m3_mn, data=prod_chl_yr, family=gaussian) # essentially equal to glm()
@@ -456,7 +456,7 @@ gam5_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Eff_Num_Sp_mn, color
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 # Beta Diversity
 #assumes normally distributed data 
 gam6 <- gam(Exp_B_Div_mn~chl_mg_m3_mn, data=prod_chl_yr, family=gaussian) # essentially equal to glm()
