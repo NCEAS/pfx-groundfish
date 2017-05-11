@@ -5,10 +5,11 @@ date: "March 3, 2017"
 output: html_document
 ---
 # SEM for Diversity metrics - Gfish Paper #3
+
 ```{r , echo=FALSE}
 
-library(tidyverse) # for Rachael
-#library(plyr) ; library(dplyr) ; library(tidyr) # for Colette
+#library(tidyverse) # for Rachael
+library(plyr) ; library(dplyr) ; library(tidyr) # for Colette
 library(lavaan) ; library(semPlot) ; library(AICcmodavg)
 
 ```
@@ -17,30 +18,122 @@ library(lavaan) ; library(semPlot) ; library(AICcmodavg)
 ```{r, echo=FALSE}
 
 # read in the data
-load("../spatial-portfolio-project/randomAgg.RData")   # This produces an object called randomAgg
-load("../spatial-portfolio-project/spatNested.RData")  # This produces an object called spatNested
+# for Colette:
+load("./spatial-portfolio-project/randomAgg1.RData")   # This produces an object called randomAgg1
+load("./spatial-portfolio-project/randomAgg1_subdom1.RData")   # This produces an object called randomAgg1
+load("./spatial-portfolio-project/spatNested.RData")  # This produces an object called spatNested
+load("./spatial-portfolio-project/spatNested_subdom1.RData")  # This produces an object called spatNested
+
+
+# for Rachael:
+#load("../spatial-portfolio-project/randomAgg.RData")   # This produces an object called randomAgg
+#load("../spatial-portfolio-project/spatNested.RData")  # This produces an object called spatNested
+
+
+# n = number of local communities in the aggregation
+# Area = total km^2 of all local communities in the aggregation
+# CV = coefficient of variation of summed CPUE of all local communities in the agg
+# id = unique ID of the aggregation
+# meanRichDiff = mean pairwise difference in species richness between all k local communities in aggregation j
+# avSpVar = mean species variability (averaged across all local communities in the agg)
+# oldBray = don't use this
+# meanBray = use this
+# synchrony is calculated using Loreau et al 2008, Gross et al. 2014, or Thibaut & Connolly 2013 metrics
 
 ```
 
 ```{r, echo=FALSE}
-# Define the model
-mod1 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween + bray
-         grossSyncWithin ~ speciesRichness
-        '
-         #grossSyncBetween ~ Alpha_div # need to calculate Alpha
-         #bray ~ Alpha_div + speciesRichness # need to calculate Alpha
-         #avSpVar ~ Alpha_div + speciesRichness # need to calculate Alpha first
+# look at the data:
 
-# Fit the model (estimate the parameters)
-mod1_fit <- sem(mod1, data=randomAgg, missing="ml")
+
+hist(randomAgg1$CV)
+; qqnorm(randomAgg1$CV)
+hist(randomAgg1$avSpVar)
+; qqnorm(randomAgg1$avSpVar)
+hist(randomAgg1$grossSyncWithin)
+; qqnorm(randomAgg1$grossSyncWithin)
+hist(randomAgg1$grossSyncBetween)
+; qqnorm(randomAgg1$grossSyncBetween)
+hist(randomAgg1$meanUneveness); qqnorm(randomAgg1$meanUneveness)
+hist(randomAgg1$meanBray); qqnorm(randomAgg1$meanBray)
+
+
+
+# invert data signs for ease of interpretation:
+# AvSpVar (within-patch) = CV of species j in local community i, weighted for percent contribution of each species' abundance to total abundance of local community (or spatial grouping)
+
+
+# note that transforming 1/CV and 1/avSpVar changes all the fitted model coefficients, p-vals, model significance, modindices, etc
+# a simple *-1 transformation does not.
+
+invert = c("CV", "avSpVar")
+inverse = c("grossSyncWithin", "grossSyncBetween", "CV", "avSpVar")
+
+randomAgg1[,invert] <- apply(randomAgg1[,invert], 2, function(y) 1/(y))
+randomAgg1[,inverse] <- apply(randomAgg1[,inverse], 2, function(y) (y)*-1)
+
+randomAgg1_subdom1[,invert] <- apply(randomAgg1_subdom1[,invert], 2, function(y) 1/(y))
+randomAgg1_subdom1[,inverse] <- apply(randomAgg1_subdom1[,inverse], 2, function(y) (y)*-1)
+
+spatNested[,invert] <- apply(spatNested[,invert], 2, function(y) 1/(y))
+spatNested[,inverse] <- apply(spatNested[,inverse], 2, function(y) (y)*-1)
+
+spatNested_subdom1[,invert] <- apply(spatNested_subdom1[,invert], 2, function(y) 1/(y))
+spatNested_subdom1[,inverse] <- apply(spatNested_subdom1[,inverse], 2, function(y) (y)*-1)
+
+
+```
+
+Starting model structure is here (on last slide):
+https://docs.google.com/presentation/d/1-K8GAFqSqDaSm2bPvCuJQwcu58V9wwGFv2KdQHwr5Bw/edit#slide=id.g1dc467a5d3_0_0
+
+```{r, echo=FALSE}
+
+# Model for Random aggregations
+
+# 1. Starting with the model excluding local processes (ie the model for only aggregated properties)
+
+mod1 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+        '
+
+# note that standardized coefficients for avSpVar, grossSyncWithin, & grossSyncBetween must be positive to meet their respective hypothesis
+# coefficient for meanBray -> grossSyncBetween must be negative
+
+
+# Fit the model (estimate the parameters) for RandomAgg dataset
+mod1_fit_RA <- sem(mod1, data=randomAgg1, missing="ml")
 
 # Output a summary of the computed results
-summary(mod1_fit, rsq=T, standardized=T)  # rsq=T means output the r-sqr
-fitMeasures(mod1_fit)
-mi1 <- modindices(mod1_fit, sort. = T) 
+summary(mod1_fit_RA, rsq=T, standardized=T)
+# poor model fit (p = 0, chi-sq = 31.3)
+# note Bray has no significant effect on grossSyncBetween (p = 0.68), therefore remove it
+# HOWEVER, note too that Bray & Uneveness are strongly correlated (r = 0.81) ... so how do we know which drives grossSyncBetween??? grossSyncBetween is more stronly correlated with Uneveness (r = -0.68) vs Bry (r = -0.56), so that's probably why SEM assigns all the causal power to Uneveness instead of Bray.  
+resid(mod1_fit_RA, type = "normalized")
+
+# Problem? Why does mod1 give a positive coefficient for CV ~ grossSyncWithin, but plots suggest the relationship is actually negative ... ? (recall that x-axis is flipped in plots in the ppt)
+# (i) check that the covariance between these actually is negative, as plot suggests:
+cov(randomAgg1$grossSyncWithin, randomAgg1$CV) # -0.1430932
+# look at covariance matrix of mod1_fit_RA:
+vcov(mod1_fit_RA)
+fitted(mod1_fit_RA)
+# (ii) perhaps it becomes positive after controlling for effect of other variables on CV? 
+# check by running a model with only CV <- grossSyncWithin:
+mod_expt1 <- 'CV ~ grossSyncWithin
+        '
+mod_expt1_fit <- sem(mod_expt1, data=randomAgg1, missing="ml")
+summary(mod_expt1_fit, rsq=T, standardized=T)
+# note the coefficient is negative here (-0.14) ... suggests that coefficient in mod1 becomes positive after controlling for effects of other variables 
+
+modindices(mod1_fit_RA, sort. = T) 
+
+
+
+
+fitMeasures(mod1_fit_RA)
+mi1 <- modindices(mod1_fit_RA, sort. = T) 
 print(mi1[mi1$op == "~",])# extracts mod indicies with "~" operator suggesting adding a path
-# or use this to look at residual covariates (op == "~~") as well:
-modindices(mod1_fit, sort. = T)
+modindices(mod1_fit_RA, sort. = T) # or use this to look at residual covariates (op == "~~") as well
 
 # plot with standardized coefficients
 semPaths(mod1_fit, "std", layout="tree3", style="lisrel", curvePivot=TRUE)
@@ -48,6 +141,330 @@ semPaths(mod1_fit, "std", layout="tree3", style="lisrel", curvePivot=TRUE)
 
 
 
+# check model that is so far the best for spatially nested aggregations:
+modi <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray + meanLocalRichness
+        '
+modi_fit_RA <- sem(modi, data=randomAgg1, missing="ml")
+summary(modi_fit_RA, rsq=T, standardized=T)
+# chi-sq = 44, p = 0
+# note that neither meanBray nor meanLocalRichness are significant
+
+
+
+# 2. For mod1, Bray has no significant effect on grossSyncBetween (p = 0.68). Therefore remove it:
+mod2 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness
+        '
+
+mod2_fit_RA <- sem(mod2, data=randomAgg1, missing="ml")
+summary(mod2_fit_RA, rsq=T, standardized=T)
+# big improvement in chi-sq (11.5), but model is not yet significant ( p = 0.009)
+modindices(mod2_fit_RA, sort. = T)
+# CV ~~ grossSyncBetween  9.624 (residuals are correlated) ... Note this was also suggested for mod1
+# also suggests a direct link:  CV ~ meanUneveness  9.624   ... note this was also suggested for mod1
+# note both of these ammendments correspond to a path from meanUneveness to CV, and the modification index is the same for both,
+# which suggests that it's really adding CV ~ meanUneveness that is suggested?
+# note that model fit for mod3 is exactly the same whether I add CV ~~ grossSyncBetween or CV ~ meanUneveness
+# Why would there be a DIRECT path from meanUneveness to Regional CV???
+
+
+
+
+# 3. Try adding covariance between CV & grossSyncBetween, or CV ~ meanUneveness (these do the same thing as per above):
+mod3 <- ' # regressions:
+         CV ~ avSpVar + grossSyncWithin + grossSyncBetween + meanUneveness
+         grossSyncBetween ~ meanUneveness
+
+         # to add covariance:
+         # CV ~~ grossSyncBetween
+        '
+
+mod3_fit_RA <- sem(mod3, data=randomAgg1, missing="ml")
+summary(mod3_fit_RA, rsq=T, standardized=T)
+# model fit is dramatically improved. Chi-sq = 1.511, p = 0.47, ie now significant
+modindices(mod3_fit_RA, sort. = T)
+# modindices does not suggest ammending anything
+
+
+
+#4. Try adding mean local richness & mean local alpha as predictors of between-patch asynchrony:
+
+mod4 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween + meanUneveness
+         grossSyncBetween ~ meanUneveness + meanLocalExpAlpha + meanLocalRichness
+        '
+
+mod4_fit_RA <- sem(mod4, data=randomAgg1, missing="ml")
+summary(mod4_fit_RA, rsq=T, standardized=T)
+# model fit is dramatically worse than mod3 (comes from adding meanLocalRichness)
+# model fit is still worse when adding only meanLocalExpAlpha, though Chi-sq is not as bad (3.42) and p is still significant (0.331)
+modindices(mod4_fit_RA, sort. = T)
+
+
+# best model so far is mod3
+semPaths(mod3_fit_RA, "std", layout="tree3", style="lisrel", curvePivot=TRUE)
+
+
 ```
 
 
+```{r, echo=FALSE}
+
+# RandomAgg1 dataset, subdominant species (randomAgg1_subdom1 dataset):
+# Compare to results using all species (ie using randomAgg1)
+# for example, note that spatial turnover (Bray) is significant in the model using subdominant species
+
+
+# 1. Starting with the model excluding local processes (ie the model for only aggregated properties)
+
+mod1 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+        '
+
+# note that standardized coefficients for avSpVar, grossSyncWithin, & grossSyncBetween must be positive to meet their respective hypothesis
+# coefficient for meanBray -> grossSyncBetween must be negative
+
+mod1_fit_RAS <- sem(mod1, data=randomAgg1_subdom1, missing="ml")
+summary(mod1_fit_RAS, rsq=T, standardized=T)
+# poor model fit (p = 0, chi-sq = 120)
+# all independent variables are signficant
+# note that coefficient for grossSyncBetween ~ meanUneveness is positive ... constrain it to be negative?
+modindices(mod1_fit_RAS, sort. = T)
+# grossSyncBetween  ~  grossSyncWithin 88.920 # suggests a common underlying driver
+#  grossSyncWithin  ~ grossSyncBetween 71.655 # suggests a common underlying driver
+#               CV  ~    meanUneveness 12.246
+# grossSyncBetween  ~          avSpVar  5.779 # suggests a common underlying driver
+
+
+
+# Until mulitlevel code is figured out, for now all we can do is try adding CV ~ meanUneveness:
+mod2 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween + meanUneveness
+         grossSyncBetween ~ meanUneveness + meanBray
+        '
+mod2_fit_RAS <- sem(mod2, data=randomAgg1_subdom1, missing="ml")
+summary(mod2_fit_RAS, rsq=T, standardized=T)
+# still a poor model fit (p = 0, chi-sq = 108)
+# all independent variables are signficant
+modindices(mod2_fit_RAS, sort. = T)
+# grossSyncBetween  ~  grossSyncWithin 88.920 # suggests a common underlying driver
+#  grossSyncWithin  ~ grossSyncBetween 71.655 # suggests a common underlying driver
+# grossSyncBetween  ~          avSpVar  5.779 # suggests a common underlying driver
+
+# stuck here until multilevel modeling is done
+
+
+
+# 3.
+mod3 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray + meanLocalExpAlpha + meanLocalRichness
+        '
+mod3_fit_RAS <- sem(mod3, data=randomAgg1_subdom1, missing="ml")
+summary(mod3_fit_RAS, rsq=T, standardized=T)
+# much worse model fit (p = 0, chi-sq = 306)
+# all independent variables are signficant
+modindices(mod3_fit_RAS, sort. = T)
+
+
+
+# 4. 
+mod4 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+         meanBray ~ meanRichDiff
+        '
+mod4_fit_RAS <- sem(mod4, data=randomAgg1_subdom1, missing="ml")
+summary(mod4_fit_RAS, rsq=T, standardized=T)
+# model fit is worse (p = 0, chi-sq = 333)
+# all independent variables are signficant
+modindices(mod4_fit_RAS, sort. = T)
+
+
+
+# best model so far is mod2
+
+```
+
+
+
+```{r, echo=FALSE}
+
+# Model for Spatially Nested aggregations
+
+# Starting with the model excluding local processes (ie the model for only aggregated properties)
+
+mod1 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+        '
+
+mod1_fit_SN <- sem(mod1, data=spatNested, missing="ml")
+
+
+# note that standardized coefficients for avSpVar, grossSyncWithin, & grossSyncBetween must be positive to meet their respective hypothesis
+# coefficient for meanBray -> grossSyncBetween must be negative
+
+
+# Output a summary of the computed results
+summary(mod1_fit_SN, rsq=T, standardized=T)
+# poor model fit (p = 0, chi-sq = 37)
+# in contrast to model fit to Random Agg data, Bray is significant here (ie variation in grossSyncBetween is partitioned between Bray & Uneveness)
+resid(mod1_fit_SN, type = "normalized")
+
+modindices(mod1_fit_SN, sort. = T)
+# grossSyncBetween  ~  grossSyncWithin 24.072
+#  grossSyncWithin  ~ grossSyncBetween  6.280
+# grossSyncBetween  ~          avSpVar  2.364
+# suggests a direct link from SyncWithin to SyncBetween (mi = 24) less so vice versa (mi = 6), but it doesn't make sense to add a causal link here; instead, are both driven by local species richness?
+# note too that modification index does NOT suggest covariation between CV & grossSyncBetween (0.026), nor a causal link from meanUneveness -> CV (mi = 0.071)
+
+
+
+# 2.  Try adding mean local richness & mean local alpha as predictors of between-patch asynchrony:
+
+mod2 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray + meanLocalExpAlpha + meanLocalRichness
+        '
+
+mod2_fit_SN <- sem(mod2, data=spatNested, missing="ml")
+summary(mod2_fit_SN, rsq=T, standardized=T)
+# model fit is worse than mod1 (p = 0, chi-sq = 52)
+# meanLocalExpAlpha is not significant, therefore remove it
+modindices(mod2_fit_SN, sort. = T)
+# grossSyncBetween  ~   grossSyncWithin 10.416
+#               CV  ~ meanLocalExpAlpha  8.789
+
+
+# 3. Remove meanLocalExpAlpha:
+mod3 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray + meanLocalRichness
+        '
+
+mod3_fit_SN <- sem(mod3, data=spatNested, missing="ml")
+summary(mod3_fit_SN, rsq=T, standardized=T)
+# model fit dramatically improved (chi-sq = 19.8) but still not significant (p = 0.001)
+modindices(mod3_fit_SN, sort. = T)
+# grossSyncBetween  ~   grossSyncWithin 9.688
+
+
+
+
+# 4. Try alternative path for effect of local richness on between-patch Asynchrony (effect of [mean between-patch difference in richness] on spatial turnover (Bray):
+mod4 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+         meanBray ~ meanRichDiff
+        '
+
+mod4_fit_SN <- sem(mod4, data=spatNested, missing="ml")
+summary(mod4_fit_SN, rsq=T, standardized=T)
+# model fit is much much worse (p = 0, chi-sq = 75)
+# although meanBray ~ meanRichDiff   std coeff is sig & strong (p = 0, coeff = 0.85)
+modindices(mod4_fit_SN, sort. = T)
+# grossSyncBetween  ~  grossSyncWithin 23.814 # suggests a common underlying driver (ie need for multilevel SEM to look at local richness & local alpha)
+#         meanBray  ~    meanUneveness 17.043 # suggests a common underlying driver
+#               CV ~~         meanBray  7.273
+
+
+
+
+# best fit so far is mod3
+```
+
+
+
+```{r, echo=FALSE}
+
+# for Spatially Nested aggregations, subdominant species (compare to results for all species)
+
+mod1 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+        '
+mod1_fit_SNS <- sem(mod1, data=spatNested_subdom1, missing="ml")
+summary(mod1_fit_SNS, rsq=T, standardized=T)
+# poor model fit (chi-sq = 24, p = 0)
+# Bray is significant (p = 0)
+# CV ~ grossSyncWithin   p = 0.085
+modindices(mod1_fit_SNS, sort. = T)
+# grossSyncBetween  ~  grossSyncWithin 14.680 # suggests common underlying driver
+
+
+
+# 2. 
+mod2 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray + meanLocalExpAlpha + meanLocalRichness
+        '
+mod2_fit_SNS <- sem(mod2, data=spatNested_subdom1, missing="ml")
+summary(mod2_fit_SNS, rsq=T, standardized=T)
+# model fit is worse (chi-sq = 57, p = 0)
+# but note that all variables are significant
+
+
+# 3. Try alternative specification of local richness in beta variability:
+mod3 <- 'CV ~ avSpVar + grossSyncWithin + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+         meanBray ~ meanRichDiff
+        '
+mod3_fit_SNS <- sem(mod3, data=spatNested_subdom1, missing="ml")
+summary(mod3_fit_SNS, rsq=T, standardized=T)
+# model fit still not as good as mod1: chi-sq = 38, p = 0
+
+
+# 4. Remove CV ~ grossSyncWithin from mod1 because p = 0.085:
+mod4 <- 'CV ~ avSpVar + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+        '
+mod4_fit_SNS <- sem(mod4, data=spatNested_subdom1, missing="ml")
+summary(mod4_fit_SNS, rsq=T, standardized=T)
+# best model fit so far (chi-sq = 5.317, p = 0.15)
+# note that CV ~ grossSyncBetween  p = 0.06
+modindices(mod4_fit_SNS, sort. = T)
+# CV  ~         meanBray 4.343
+# CV  ~    meanUneveness 3.322
+
+
+# 5. Try adding local richness to mod4:
+mod5 <- 'CV ~ avSpVar + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray + meanLocalExpAlpha + meanLocalRichness
+        '
+mod5_fit_SNS <- sem(mod5, data=spatNested_subdom1, missing="ml")
+summary(mod5_fit_SNS, rsq=T, standardized=T)
+# much worse fit than mod4 and no longer significant (chi-sq = 49, p = 0)
+# CV ~ grossSyncBetween  p = 0.06
+# all other variables are significant
+# coefficient of Uneveness is positive, local richness is positive, local alpha is negative ... does this make sense???
+
+
+# 6. Try alternative specification of local richness in beta processes:
+mod6 <- 'CV ~ avSpVar + grossSyncBetween
+         grossSyncBetween ~ meanUneveness + meanBray
+         meanBray ~ meanRichDiff
+        '
+mod6_fit_SNS <- sem(mod6, data=spatNested_subdom1, missing="ml")
+summary(mod6_fit_SNS, rsq=T, standardized=T)
+# still a worse model fit than mod4 and not significant, but better than mod5 (chi-sq = 22.5, p = 0.002)
+# note all variables are significant, excpet CV ~ grossSyncBetween (p = 0.06)
+
+
+
+# 7. Add CV ~ meanUneveness to mod4:
+mod7 <- 'CV ~ avSpVar + grossSyncBetween + meanUneveness
+         grossSyncBetween ~ meanUneveness + meanBray
+        '
+mod7_fit_SNS <- sem(mod7, data=spatNested_subdom1, missing="ml")
+summary(mod7_fit_SNS, rsq=T, standardized=T)
+# better fit than mod4 (chi-sq = 1.9, p = 0.394)
+# grossSyncBetween ~ meanUneveness ... coeff is positive, is this OK?
+# CV ~ meanUneveness  p = 0.058
+fitted(mod7_fit_SNS)
+
+
+# 8. Try adding mean local richness difference to mod7:
+mod8 <- 'CV ~ avSpVar + grossSyncBetween + meanUneveness
+         grossSyncBetween ~ meanUneveness + meanBray
+         meanBray ~ meanRichDiff
+        '
+mod8_fit_SNS <- sem(mod8, data=spatNested_subdom1, missing="ml")
+summary(mod8_fit_SNS, rsq=T, standardized=T)
+# nope, no longer significant (p = 0.004, chi-sq = 19)
+
+
+# best model so far is mod7
+
+```
