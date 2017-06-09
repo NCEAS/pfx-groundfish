@@ -15,7 +15,7 @@ library(grDevices) ; library(dplyr)
 #########################################
 
 # set working dir
-setwd("~/NCEAS/GoA Portfolio Effects WG/pfx-groundfish")
+#setwd("~/NCEAS/GoA Portfolio Effects WG/pfx-groundfish")
 
 
 # # Study Areas
@@ -167,7 +167,7 @@ make_cnvx_hull <- function(area_number, df){
 # write.csv(SEAW_chl2_areas, "./diversity-data/SEAW_chl_gfish_areas.csv", row.names=F)
 
 # read in the data subset to the 10 gfish study areas
-SEAW_chl_gfish <- read.csv("./diversity-data/SEAW_chl_gfish_areas.csv", header=TRUE)
+SEAW_chl_gfish <- read.csv("../diversity-data/SEAW_chl_gfish_areas.csv", header=TRUE)
 
 
 # MAP the clipped SEAWIFS data
@@ -246,7 +246,7 @@ SEAW_chl_gfish <- read.csv("./diversity-data/SEAW_chl_gfish_areas.csv", header=T
 # write.csv(MODIS_chl_areas, "./diversity-data/MODIS_chl_gfish_areas.csv", row.names=F)
 
 # read in the MODIS data subset to the 10 gfish study areas
-MODIS_chl_gfish <- read.csv("./diversity-data/MODIS_chl_gfish_areas.csv", header=TRUE)
+MODIS_chl_gfish <- read.csv("../diversity-data/MODIS_chl_gfish_areas.csv", header=TRUE)
 
 
 # # MAP the clipped MODIS data

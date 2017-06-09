@@ -71,7 +71,6 @@ theme_boxplot <- function(base_size = 12){
 
 ```
 
-
 # Fishing Pressure effects on Diversity Metrics
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # clean the data
@@ -163,7 +162,7 @@ div_plot3 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=
              labs(title=paste("Adj R^2 =", signif(summary(lmfit3)$adj.r.squared, 5),
                               #"Intercept =",signif(lmfit3$coef[[1]],5 ),
                               #" Slope =",signif(lmfit3$coef[[2]], 5),
-                              " p =",signif(summary(lmfit3)$coef[2,4], 5)))
+                              " p =", signif(summary(lmfit3)$coef[2,4], 5)))
 
 anova(lmfit3) # anova table of above lm() fit
 
@@ -181,11 +180,11 @@ grid.arrange(div_plot1, div_plot2, div_plot3, ncol=2, nrow=2)
 #assumes normally distributed data 
 gam1 <- gam(Sp_rich~met_ton_km2, data=dist_df, family=gaussian) # essentially equal to glm()
 
-gam1a <- gam(Sp_rich~s(met_ton_km2, k=1), data=dist_df, family=gaussian) 
+#gam1a <- gam(Sp_rich~s(met_ton_km2, k=1), data=dist_df, family=gaussian) 
 
-gam1b <- gam(Sp_rich~s(met_ton_km2, k=2), data=dist_df, family=gaussian) 
+#gam1b <- gam(Sp_rich~s(met_ton_km2, k=2), data=dist_df, family=gaussian) 
 
-gam1c <- gam(Sp_rich~s(met_ton_km2, k=4), data=dist_df, family=gaussian) 
+gam1c <- mgcv::gam(Sp_rich~s(met_ton_km2, k=4), data=dist_df, family=gaussian) 
 
 summary(gam1c) #; anova(gam1c)
 
@@ -200,7 +199,9 @@ gam1_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, col
              geom_point(size=8) + ylab("Species Richness") +
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + 
              xlab("Fishing Pressure (metric tonnes km-2)") + theme_boxplot() +
-             scale_color_manual(values=colors_plot) + theme(legend.position = "none") 
+             scale_color_manual(values=colors_plot) + theme(legend.position = "none") +
+             labs(title=paste("Adj R2 =", signif(summary(gam1c)$r.sq, 4),
+                              "p =", signif(summary(gam1c)$s.table[1,4], 3)))
 #gam1_plot
 
 ```
@@ -209,9 +210,9 @@ gam1_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, col
 # Alpha Diversity
 gam2 <- gam(Eff_Num_Sp~met_ton_km2, data=dist_df, family=gaussian)  # essentially equal to glm()
 
-gam2a <- gam(Eff_Num_Sp~s(met_ton_km2, k=1), data=dist_df, family=gaussian)
+#gam2a <- gam(Eff_Num_Sp~s(met_ton_km2, k=1), data=dist_df, family=gaussian)
 
-gam2b <- gam(Eff_Num_Sp~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
+#gam2b <- gam(Eff_Num_Sp~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
 
 gam2c <- gam(Eff_Num_Sp~s(met_ton_km2, k=4), data=dist_df, family=gaussian)
 
@@ -222,26 +223,26 @@ summary(gam2c) #; anova(gam2c)
 
 # ggplot
 # use plot = FALSE to get plot data from visreg without plotting
-plotdata2 <- visreg(gam2b, type="contrast", plot=FALSE)
-
-# The output from visreg is a list of the same length as the number of 'x' variables,
-#   so we use ldply to pick the objects we want from the each list part and make a dataframe: 
-smooths2 <- data.frame(Variable = plotdata2$meta$x, 
-                       x=plotdata2$fit[[plotdata2$meta$x]], 
-                       smooth=plotdata2$fit$visregFit, 
-                       lower=plotdata2$fit$visregLwr, 
-                       upper=plotdata2$fit$visregUpr)
-
-resid2 <- data.frame(Variable=plotdata2$meta$x,
-                     x=plotdata2$res[[plotdata2$meta$x]],
-                     y=plotdata2$res$visregRes)
-
-# The ggplot:
-gam2_plota <- ggplot(smooths2, aes(x, smooth)) + 
-              geom_line() + theme_boxplot() +
-              geom_line(aes(y=lower), linetype="dashed") + 
-              geom_line(aes(y=upper), linetype="dashed") #+
-              #geom_point(data=resid2, aes(x, y)) +
+# plotdata2 <- visreg(gam2b, type="contrast", plot=FALSE)
+# 
+# # The output from visreg is a list of the same length as the number of 'x' variables,
+# #   so we use ldply to pick the objects we want from the each list part and make a dataframe: 
+# smooths2 <- data.frame(Variable = plotdata2$meta$x, 
+#                        x=plotdata2$fit[[plotdata2$meta$x]], 
+#                        smooth=plotdata2$fit$visregFit, 
+#                        lower=plotdata2$fit$visregLwr, 
+#                        upper=plotdata2$fit$visregUpr)
+# 
+# resid2 <- data.frame(Variable=plotdata2$meta$x,
+#                      x=plotdata2$res[[plotdata2$meta$x]],
+#                      y=plotdata2$res$visregRes)
+# 
+# # The ggplot:
+# gam2_plota <- ggplot(smooths2, aes(x, smooth)) + 
+#               geom_line() + theme_boxplot() +
+#               geom_line(aes(y=lower), linetype="dashed") + 
+#               geom_line(aes(y=upper), linetype="dashed") #+
+#               #geom_point(data=resid2, aes(x, y)) +
 
 #gam2_plota
 
@@ -250,7 +251,9 @@ gam2_plota <- ggplot(smooths2, aes(x, smooth)) +
 gam2_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) + 
              geom_point(size=8) +  ylab("Alpha Diversity") + xlab("Fishing Pressure (metric tonnes km-2)") + 
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() +
-              scale_color_manual(values=colors_plot) + theme(legend.position = "none") 
+              scale_color_manual(values=colors_plot) + theme(legend.position = "none") +
+             labs(title=paste("Adj R2 =", signif(summary(gam2c)$r.sq, 4),
+                              "p =", signif(summary(gam2c)$s.table[1,4], 3)))
              
 #gam2_plot
 
@@ -261,9 +264,9 @@ gam2_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, 
 # Beta Diversity
 gam3 <- gam(Exp_B_Div~met_ton_km2, data=dist_df, family=gaussian)  # essentially equal to glm()
 
-gam3a <- gam(Exp_B_Div~s(met_ton_km2, k=1), data=dist_df, family=gaussian)
+#gam3a <- gam(Exp_B_Div~s(met_ton_km2, k=1), data=dist_df, family=gaussian)
 
-gam3b <- gam(Exp_B_Div~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
+#gam3b <- gam(Exp_B_Div~s(met_ton_km2, k=2), data=dist_df, family=gaussian)
 
 gam3c <- gam(Exp_B_Div~s(met_ton_km2, k=4), data=dist_df, family=gaussian)
 
@@ -276,7 +279,9 @@ summary(gam3c) #; anova(gam3c)
 gam3_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + 
              geom_point(size=8) +  ylab("Beta Diversity") + xlab("Fishing Pressure (metric tonnes km-2)") + 
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + 
-             scale_color_manual(values=colors_plot) + theme(legend.position = "top") 
+             scale_color_manual(values=colors_plot) + theme(legend.position = "top") +
+             labs(title=paste("Adj R2 =", signif(summary(gam3c)$r.sq, 4),
+                              "p =", signif(summary(gam3c)$s.table[1,4], 3)))
              
 #gam3_plot
 
@@ -431,7 +436,9 @@ summary(gam4a) #; anova(gam4a)
 gam4_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Sp_rich_mn, color=as.factor(area))) +
              geom_point(size=8) + scale_color_manual(values=pinks) + theme_boxplot() +
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Species Richness") +
-             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "none") 
+             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "none") +
+             labs(title=paste("Adj R2 =", signif(summary(gam4a)$r.sq, 4),
+                              "p =", signif(summary(gam4a)$s.table[1,4], 3)))
 #gam4_plot
 
 
@@ -450,7 +457,9 @@ summary(gam5a) #; anova(gam5a)
 gam5_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Eff_Num_Sp_mn, color=as.factor(area))) + 
              geom_point(size=8) + scale_color_manual(values=pinks) + theme_boxplot() +
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Alpha Diversity") +
-             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "none") 
+             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "none") +
+             labs(title=paste("Adj R2 =", signif(summary(gam5a)$r.sq, 4),
+                              "p =", signif(summary(gam5a)$s.table[1,4], 3)))
 #gam5_plot
 
 
@@ -469,7 +478,9 @@ summary(gam6a) #; anova(gam6a)
 gam6_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=as.factor(area))) + 
              geom_point(size=8) + scale_color_manual(values=pinks) + theme_boxplot() +
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Beta Diversity") +
-             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "none") 
+             xlab("Primary Productivity (chla mg m^3)") + theme(legend.position = "none") +
+             labs(title=paste("Adj R2 =", signif(summary(gam6a)$r.sq, 4),
+                              "p =", signif(summary(gam6a)$s.table[1,4], 3)))
 #gam6_plot
 
 
@@ -484,6 +495,33 @@ grid.arrange(gam4_plot, gam5_plot, gam6_plot, ncol=2, nrow=2)
 ```{r, echo=FALSE, fig.height=9, fig.width=10}
 # arranging above plots
 grid.arrange(gam4_plot, gam5_plot, div_plot4c, ncol=2, nrow=2)
+
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+# correlation between primary productivity and fishing pressure
+prod_over <- prod_chl_yr %>% 
+             dplyr::filter(Year %in% c(2003:2013)) %>%
+             dplyr::select(area, Year, chl_mg_m3_mn) %>% 
+             dplyr::group_by(Year) %>%
+             dplyr::summarize(ann_mn_chl = mean(chl_mg_m3_mn)) %>%
+             dplyr::ungroup()
+  
+fish_over <- dist_df_cat_ar %>%
+             dplyr::filter(Year %in% c(2003:2013)) %>%
+             dplyr::select(Catch_area, Year, met_ton_km2_ca) %>%
+             dplyr::group_by(Year) %>%
+             dplyr::summarize(ann_mn_fish = mean(met_ton_km2_ca)) %>%
+             dplyr::ungroup() 
+
+prod_fish_over <- fish_over %>%
+                  full_join(prod_over, by="Year")
+
+ppfp <- ggplot(data=prod_fish_over, aes(x=ann_mn_fish, y=ann_mn_chl)) + 
+        geom_point(size=3) + geom_text(aes(label=Year), hjust=-0.25, vjust=0) + 
+        theme_boxplot() + xlab("Annual mean fishing pressure") + ylab("Annual mean Chla")
+ppfp
 
 ```
 
