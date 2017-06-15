@@ -114,7 +114,7 @@ colors_plot <- c("#49006A","#DD3497","#FA9FB5","#E3C9C6")
 # Species Richness
 #pairs.panels(dist_df[,-c(1:3)],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
 
-lmfit1 <- lm(met_ton_km2_ca~Sp_rich_ca, data=dist_df_cat_ar)  # lm() fit 
+lmfit1 <- lm(Sp_rich_ca~met_ton_km2_ca, data=dist_df_cat_ar)  # lm() fit 
 
 div_plot1 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + 
              geom_point(size=8) +
@@ -133,7 +133,7 @@ anova(lmfit1) # anova table of above lm() fit
 ```{r, echo=FALSE, include=FALSE}
 # Alpha Diversity
 
-lmfit2 <- lm(met_ton_km2_ca~Eff_Num_Sp_ca, data=dist_df_cat_ar)  # lm() fit 
+lmfit2 <- lm(Eff_Num_Sp_ca~met_ton_km2_ca, data=dist_df_cat_ar)  # lm() fit 
 
 div_plot2 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) +
              geom_point(size=8) +
@@ -152,7 +152,7 @@ anova(lmfit2) # anova table of above lm() fit
 ```{r, echo=FALSE, include=FALSE}
 # Beta Diversity
 
-lmfit3 <- lm(met_ton_km2_ca~Exp_B_Div_ca, data=dist_df_cat_ar)  # lm() fit 
+lmfit3 <- lm(Exp_B_Div_ca~met_ton_km2_ca, data=dist_df_cat_ar)  # lm() fit 
 
 div_plot3 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + 
              geom_point(size=8) +
