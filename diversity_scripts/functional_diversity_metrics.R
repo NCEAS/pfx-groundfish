@@ -616,20 +616,20 @@ theme_boxplot <- function(base_size = 12){
 
 range(shallowRao2$RaosQ) #; range(deepRao2$RaosQ)
 
-shallow_FD <- ggplot(data=shallowRao2, aes(x = area, y = RaosQ)) + 
-  geom_boxplot() + theme_boxplot() + 
-  ylab("Rao's Q") + #xlab("Area (West <-> East)") + 
-  xlim("10", "9", "8", "7", "6", "5", "4", "3", "2", "1") + 
-  #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
-  ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
-  #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
-  #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
-  theme(legend.position="none", plot.background=element_blank(),
-        axis.text.x = element_text(size=15),
-        axis.title.x=element_blank(),
-        plot.title=element_text(colour="black", size=15,
-                                   hjust=0.04, vjust=0.5, face="bold"))
-shallow_FD
+shallow_FD <- ggplot(data=shallowRao2, aes(x = AREA, y = RaosQ)) + 
+              geom_boxplot() + theme_boxplot() + 
+              ylab("Rao's Q") + #xlab("Area (West <-> East)") + 
+              xlim("10", "9", "8", "7", "6", "5", "4", "3", "2", "1") + 
+              #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
+              ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
+              #ylim(2.45, 6.9) + # ylim for Mahanlobis matrix for 6 quantitative traits
+              #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
+              theme(legend.position="none", plot.background=element_blank(),
+                    axis.text.x = element_text(size=15),
+                    axis.title.x=element_blank(),
+                    plot.title=element_text(colour="black", size=15,
+                                            hjust=0.04, vjust=0.5, face="bold"))
+#shallow_FD
 
 
 # 
@@ -662,7 +662,7 @@ shallow_FD
 
 plot(density(shallowRao2$RaosQ))
 
-shallowANOVA <- aov(RaosQ ~ area, data = shallowRao2)
+shallowANOVA <- aov(RaosQ ~ AREA, data = shallowRao2)
 summary(shallowANOVA)
 #               Df  Sum Sq   Mean Sq F value   Pr(>F)    
 #  area          9 0.00241 2.678e-04   3.481 0.000698 ***
@@ -670,7 +670,7 @@ summary(shallowANOVA)
 shapiro.test(shallowANOVA$residuals) # ok
 
 #shallowANOVA <- aov(RaosQ ~ area*year, data = shallowRao2) # interaction is not significant
-shallowANOVA1 <- aov(RaosQ ~ area + year, data = shallowRao2)
+shallowANOVA1 <- aov(RaosQ ~ AREA + Year, data = shallowRao2)
 summary(shallowANOVA1)
 #               Df   Sum Sq   Mean Sq F value   Pr(>F)    
 #  area          9 0.002410 0.0002678   3.772 0.000304 ***
