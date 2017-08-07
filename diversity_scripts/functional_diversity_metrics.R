@@ -31,15 +31,15 @@ traits_df <- read.csv("../diversity-data/Groundfish-Functional-Diversity-Traits.
 # minor dataframe cleaning:
 
 traits_df1 <- traits_df %>%
-  dplyr::select(-reference, -database, -lengthType, -comments, -common.name) %>% # drop unnecessary columns
-  mutate(genus.species = revalue(genus.species, c("Clupea pallasii" = "Clupea pallasi", # make Species names match those in CPUE file
-                                                "Sebastes group 1" = "Dusky and Dark Rockfish", 
-                                                "Sebastes group 2" = "Rougheye and Blackspotted Rockfish", 
-                                                "Lepidopsetta spp." = "Lepidopsetta sp.", 
-                                                "Myctophidae spp." = "Myctophidae",
-                                                "Theragra chalcogramma" = "Gadus chalcogrammus"))) %>%
-  mutate(genus.species = gsub(" ", ".", genus.species)) %>% # make Species names match those in CPUE file
-  rename(Species = genus.species)
+              dplyr::select(-reference, -database, -lengthType, -comments, -common.name) %>% # drop unnecessary columns
+              mutate(genus.species = revalue(genus.species, c("Clupea pallasii" = "Clupea pallasi", # make Species names match those in CPUE file
+                                                              "Sebastes group 1" = "Dusky and Dark Rockfish", 
+                                                              "Sebastes group 2" = "Rougheye and Blackspotted Rockfish", 
+                                                              "Lepidopsetta spp." = "Lepidopsetta sp.", 
+                                                              "Myctophidae spp." = "Myctophidae",
+                                                              "Theragra chalcogramma" = "Gadus chalcogrammus"))) %>%
+              mutate(genus.species = gsub(" ", ".", genus.species)) %>% # make Species names match those in CPUE file
+              rename(Species = genus.species)
 
 
 # assign location classes (GoA vs other)
@@ -118,13 +118,13 @@ trChr_df1 <- trChr_df %>% dplyr::select(-region)
 # retrieve maximum values of longevity, maximum observed size, and maximum depth regardless of gender
 max_df <- traits_df1[which(traits_df1$trait %in% c('ageMaximum', 'lengthMaximum', 'depthMax')),]
 max_df1 <- max_df %>%
-  mutate(estimate1 = as.numeric(estimate)) %>%
-  dplyr::select(-estimate, -region) %>%
-  mutate(gender = revalue(gender, c("f"="both", "m" = "both", "u" = "both"))) %>% # replace all values of gender with "both" (because we've calculated maximum values regardless of gender, and to facilitate binding with other dfs below)
-  group_by(Species, trait, location) %>%
-  summarise_each(funs(max(., na.rm = TRUE))) %>%
-  ungroup %>%
-  rename(estimate = estimate1)
+           mutate(estimate1 = as.numeric(estimate)) %>%
+           dplyr::select(-estimate, -region) %>%
+           mutate(gender = revalue(gender, c("f"="both", "m" = "both", "u" = "both"))) %>% # replace all values of gender with "both" (because we've calculated maximum values regardless of gender, and to facilitate binding with other dfs below)
+           group_by(Species, trait, location) %>%
+           summarise_all(funs(max(., na.rm = TRUE))) %>%
+           ungroup %>%
+           rename(estimate = estimate1)
 
 
 
@@ -132,17 +132,17 @@ max_df1 <- max_df %>%
 # depth range: calculate mean breadth of depth range
 depth_df <- traits_df1[which(traits_df1$trait %in% c('depthRange')),]
 depth_df1 <- depth_df %>%
-  mutate(estimate1=strsplit(estimate,split="-") %>% sapply(function(x) x[1])) %>% 
-  mutate(estimate2=strsplit(estimate,split="-") %>% sapply(function(x) x[2])) %>%
-  mutate(estimate1.num = as.numeric(estimate1), estimate2.num = as.numeric(estimate2)) %>% # change to numeric values
-  rowwise() %>%
-  mutate(estimate3 = estimate2.num-estimate1.num) %>% # calculate breadth of depth range
-  ungroup() %>%
-  dplyr::select(-region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
-  rename(estimate = estimate3) %>%
-  group_by(Species, trait, gender, location) %>%
-  summarise_each(funs(mean)) %>% # calculate means of depth range breadth for each taxa / gender / location combination
-  ungroup 
+             mutate(estimate1=strsplit(estimate,split="-") %>% sapply(function(x) x[1])) %>% 
+             mutate(estimate2=strsplit(estimate,split="-") %>% sapply(function(x) x[2])) %>%
+             mutate(estimate1.num = as.numeric(estimate1), estimate2.num = as.numeric(estimate2)) %>% # change to numeric values
+             rowwise() %>%
+             mutate(estimate3 = estimate2.num-estimate1.num) %>% # calculate breadth of depth range
+             ungroup() %>%
+             dplyr::select(-region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
+             rename(estimate = estimate3) %>%
+             group_by(Species, trait, gender, location) %>%
+             summarise_all(funs(mean)) %>% # calculate means of depth range breadth for each taxa / gender / location combination
+             ungroup() 
   
 
 
@@ -151,23 +151,23 @@ depth_df1 <- depth_df %>%
 maturity_df <- traits_df1[which(traits_df1$trait %in% c('age50percentMaturity', 'firstMaturityAge', 'firstMaturityLength', 'length50percentMaturity')),]
 
 maturity_df1 <- maturity_df %>%
-  mutate(estimate = gsub("\\+", "", estimate)) %>% # remove "+"
-  filter(estimate != "up to 12") %>% # remove this entry because it's not imformative for determining mean values
+                mutate(estimate = gsub("\\+", "", estimate)) %>% # remove "+"
+                filter(estimate != "up to 12") %>% # remove this entry because it's not imformative for determining mean values
   
-  # age- and size-at-maturity data here are often given as ranges
-  # the following calculates the mean value of the min & max given for these ranges
-  mutate(estimate1=strsplit(estimate,split="-") %>% sapply(function(x) x[1])) %>% 
-  mutate(estimate2=strsplit(estimate,split="-") %>% sapply(function(x) x[2])) %>%
-  # note that when there is a single estimate, rather than a range, this value is entered into estimate1 and estimate2 is NA
-  mutate(estimate1.num = as.numeric(estimate1), estimate2.num = as.numeric(estimate2)) %>% # change these from character to numeric values
-  rowwise() %>%
-  mutate(estimate3 = mean(c(estimate1.num, estimate2.num), na.rm=T)) %>% # calculate mean of the 2 estimates
-  ungroup() %>%
-  dplyr::select( -region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
-  rename(estimate = estimate3) %>%
-  group_by(Species, trait, gender, location) %>%
-  summarise_each(funs(mean(., na.rm = TRUE))) %>% # calculate means of all estimates for each taxa / gender / location combination
-  ungroup 
+                # age- and size-at-maturity data here are often given as ranges
+                # the following calculates the mean value of the min & max given for these ranges
+                mutate(estimate1=strsplit(estimate,split="-") %>% sapply(function(x) x[1])) %>% 
+                mutate(estimate2=strsplit(estimate,split="-") %>% sapply(function(x) x[2])) %>%
+                # note that when there is a single estimate, rather than a range, this value is entered into estimate1 and estimate2 is NA
+                mutate(estimate1.num = as.numeric(estimate1), estimate2.num = as.numeric(estimate2)) %>% # change these from character to numeric values
+                rowwise() %>%
+                mutate(estimate3 = mean(c(estimate1.num, estimate2.num), na.rm=T)) %>% # calculate mean of the 2 estimates
+                ungroup() %>%
+                dplyr::select( -region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
+                rename(estimate = estimate3) %>%
+                group_by(Species, trait, gender, location) %>%
+                summarise_all(funs(mean(., na.rm = TRUE))) %>% # calculate means of all estimates for each taxa / gender / location combination
+                ungroup() 
 # warning re NAs is OK; it's just reporting that estimate2 is NA when the original cell is a single value rather than a range
 
 
@@ -178,13 +178,13 @@ maturity_df1 <- maturity_df %>%
 KL_df <- read.csv("../diversity-data/linf_k.csv", header=T, stringsAsFactors = F)
 
 KL_df1 <- KL_df %>%
-  dplyr::select(-X, -common.name) %>%
-  dplyr::rename(Species = genus.species, estimate = value) %>%
-  # dplyr::mutate(Species = revalue(Species, c("Clupea pallasii" = "Clupea pallasi", 
-  #                                     "Lepidopsetta spp." = "Lepidopsetta sp.", 
-  #                                     "Theragra chalcogramma" = "Gadus chalcogrammus",
-  #                                     "Sebastes group 1" = "Dusky and Dark Rockfish"))) %>%
-  mutate(Species = gsub(" ", ".", Species))
+          dplyr::select(-X, -common.name) %>%
+          dplyr::rename(Species = genus.species, estimate = value) %>%
+          # dplyr::mutate(Species = revalue(Species, c("Clupea pallasii" = "Clupea pallasi", 
+          #                                     "Lepidopsetta spp." = "Lepidopsetta sp.", 
+          #                                     "Theragra chalcogramma" = "Gadus chalcogrammus",
+          #                                     "Sebastes group 1" = "Dusky and Dark Rockfish"))) %>%
+          mutate(Species = gsub(" ", ".", Species))
 
 for(i in 1:nrow(KL_df1)) { # add columns for gender & location
   KL_df1$gender[[i]] <- "goodEnough"
@@ -202,9 +202,9 @@ dCoef1 <- content(dCoefGet, as='text')
 dCoef_df <- read.csv(file=textConnection(dCoef1),stringsAsFactors=FALSE)
 
 dCoef1 <- dCoef_df %>% 
-  filter(Model == "pos") %>% # use positive model (vs binomial presence/absence)
-  rename(estimate = Mean) %>%
-  dplyr::select(Species, estimate)
+          filter(Model == "pos") %>% # use positive model (vs binomial presence/absence)
+          rename(estimate = Mean) %>%
+          dplyr::select(Species, estimate)
 
 for(i in 1:nrow(dCoef1)) { # add columns for trait, gender, location
   dCoef1$trait[[i]] <- "depthCoefPos"
@@ -264,10 +264,10 @@ diffsOther_df <- left_join(diffs_df, other_df, by = c("Species", "trait", "gende
 
 # now merge the table with non-GoA trait data onto the table with GoA data: 
 traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("Species", "trait", "gender")) %>% 
-  transmute(Species, trait, gender, 
-            location = ifelse(is.na(location.x), location.y, location.x),
-            estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x)) %>%
-  filter(!is.na(estimate)) # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations
+              transmute(Species, trait, gender, 
+                        location = ifelse(is.na(location.x), location.y, location.x),
+                        estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x)) %>%
+              filter(!is.na(estimate)) # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations
 
 
 ######################################################
@@ -280,11 +280,11 @@ traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("Species", "trait", 
 # Convert to wide format:
 traits_df4$row <- 1:nrow(traits_df4) # create column of unique identifiers to facilitate data spread
 traits_wide <- traits_df4 %>%
-  spread(trait, estimate) %>%
-  dplyr::select(-gender, -location, -row) %>%
-  group_by(Species) %>%
-  summarize_each(funs(first(., order_by = is.na(.)))) %>%
-  ungroup()
+               spread(trait, estimate) %>%
+               dplyr::select(-gender, -location, -row) %>%
+               group_by(Species) %>%
+               summarize_all(funs(first(., order_by = is.na(.)))) %>%
+               ungroup()
 
 
 quant = c("age50percentMaturity", "ageMaximum", "depthCoefPos", "depthMax", "depthRange", 
@@ -376,13 +376,13 @@ spShallow_df <- SPCPUEArea %>%
                 filter(!(Species %in% c("Chionoecetes.bairdi", "Hemitripterus.bolini", "Hyas.lyratus", "Lycodes.brevipes", 
                                         "Lycodes.palearis", "Lyopsetta.exilis", "Myctophidae", "Oncorhynchus.keta", 
                                         "Oncorhynchus.tshawytscha"))) %>% # remove taxa for which we don't have all trait data
-  mutate(area = as.numeric(area)) # convert to numeric class
+                mutate(area = as.numeric(area)) # convert to numeric class
 
 Sh <- spShallow_df %>% 
-  dplyr::select(Species, area, year, Mean.totalDensity) %>%
-  arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df
-  spread(Species, Mean.totalDensity) %>%
-  dplyr::select(-year)
+      dplyr::select(Species, area, year, Mean.totalDensity) %>%
+      arrange(Species) %>% # arrange in alphabetical order to match order in functional traits df
+      spread(Species, Mean.totalDensity) %>%
+      dplyr::select(-year)
 
 shallowByArea_list <- split(Sh, f = Sh$area) # create a list of dataframes (one for each area)
 
@@ -576,7 +576,8 @@ year <- as.data.frame(unique(sort(SPCPUEArea$year)))
 shallowRao2 <- shallowRaoQ %>% 
                gather(key = area, value = RaosQ, Area1:Area10) %>%
                mutate(area = gsub("Area", "", area), 
-                      area = as.factor(area))
+                      area = as.factor(area)) %>%
+               dplyr::rename(Year=year, AREA=area)
 # 
 # deepRao2 <- deepRaoQ %>% 
 #             gather(key = area, value = RaosQ, Area11:Area15) %>%
