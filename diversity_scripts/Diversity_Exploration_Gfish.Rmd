@@ -35,6 +35,7 @@ library(ade4)
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+# downloads the file "All_sp_index_occurrenceByArea.csv"
 URL_SpByArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udlVNME9rQXEwZ1k"
 SpByArea_Get <- GET(URL_SpByArea)
 SpByArea_1 <- content(SpByArea_Get, as='text')
@@ -44,6 +45,7 @@ SpByArea <- read.csv(file=textConnection(SpByArea_1),stringsAsFactors=FALSE,head
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
+# downloads the file "All_sp_index_meanCPUEByArea.csv"
 URL_SPCPUEArea <- "https://drive.google.com/uc?export=download&id=0By1iaulIAI-udm1FT2trQUh5N1k"
 SPCPUEArea_Get <- GET(URL_SPCPUEArea)
 SPCPUEArea_1 <- content(SPCPUEArea_Get, as='text')
@@ -76,12 +78,17 @@ head(SpByArea)
 ```
 
 
-We want to look at diversity by area by year (using CPUE per area).
-Here we calculate Shannon diversity, effective # of species, beta diversity, and gamma diversity.
+##We want to look at diversity by area by year (using CPUE per area).
+##Here we calculate Shannon diversity, effective # of species, beta diversity, and gamma diversity.
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 Div_SpCPUEArea <- SPCPUEArea %>%
-                  filter(area!="Total") %>%
+                  filter(area != "Total") %>%
+                  mutate(area = ifelse(area == "8", "NULL", 
+                                ifelse(area == "9", "8", 
+                                ifelse(area == "10", "9", 
+                                ifelse(area == "11", "10", area))))) %>%
+                  filter(area != "NULL") %>%
                   group_by(area, Year) %>% 
                   mutate(SW_Div = diversity(Mean.totalDensity, index="shannon"),
                          Exp_A_Div = exp(SW_Div)) %>%  # this is alpha diversity
@@ -93,15 +100,12 @@ Div_SpCPUEArea <- SPCPUEArea %>%
                   ungroup() 
 
 ```
-\n
-\n
-\n
-\n
-Plot of Shannon-Wiener Diversity:  
 
+
+##Plot of Shannon-Wiener Diversity:  
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
 SW <- ggplot(Div_SpCPUEArea, aes(Year, SW_Div, color=area)) + geom_line(size=1) + 
-      scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+      scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10")) + 
       scale_x_continuous(breaks=pretty_breaks(n=15)) + 
       theme(panel.grid.minor=element_blank())
 SW
@@ -109,23 +113,21 @@ SW
 ```
 
 \pagebreak
-Plot of Alpha Diversity "exp(Shannon-Wiener)" ie: effective # of species :   
-
+#Plot of Alpha Diversity "exp(Shannon-Wiener)" ie: effective # of species :   
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
 Eff_Sp <- ggplot(Div_SpCPUEArea, aes(Year, Exp_A_Div, color=area)) +
           geom_line(size=1) + 
-          scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+          scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10")) + 
           scale_x_continuous(breaks=pretty_breaks(n=15)) + 
           theme(panel.grid.minor=element_blank())
 Eff_Sp
 
 ```
 
-Plot beta diversity "(Exp_G_Div/Exp_A_Div)":   
-
+##Plot beta diversity "(Exp_G_Div/Exp_A_Div)":   
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
 Bdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_B_Div, color=area)) + geom_line(size=1) + 
-        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10")) + 
         scale_x_continuous(breaks=pretty_breaks(n=15)) + 
         theme(panel.grid.minor=element_blank())
 Bdiv
@@ -133,27 +135,26 @@ Bdiv
 ```
 
 \pagebreak
-Plot gamma diversity:  
-
+##Plot gamma diversity:  
 ```{r, echo=FALSE, fig.height=4, fig.width=7}
 Gdiv <- ggplot(Div_SpCPUEArea, aes(Year, Exp_G_Div)) + geom_line(size=1, color="blue") + 
-        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10","11")) + 
+        scale_color_hue(breaks=c("1","2","3","4","5","6","7","8","9","10")) + 
         scale_x_continuous(breaks=pretty_breaks(n=15)) + 
         theme(panel.grid.minor=element_blank())
 Gdiv
 
 ```
 
+## Testing for differences between sites for species richness, alpha diversity, and saturation???
+```{r, echo=FALSE}
 
-```{r, eval=FALSE,include=FALSE}
 
 
 ```
 
 
 
-Here we calculate Rao's quadratic entropy for taxonomic diversity.
-
+###Here we calculate Rao's quadratic entropy for taxonomic diversity.
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 source(script_that_calculates_Rao_q_with_Jost_correction)
 

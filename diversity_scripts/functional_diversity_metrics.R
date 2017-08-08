@@ -13,7 +13,6 @@ library(gridExtra)
 
 
 # load the functional trait data from local source in our repository:
-#setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
 traits_df <- read.csv("../diversity-data/Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
 
 # or load it from our google drive:
@@ -426,7 +425,6 @@ shallowByArea_list1 <- lapply(shallowByArea_list, function(x) x[!(names(x) %in% 
 ######################################################
 ######################################################
 ######################################################
-
 
 # Calculate Functional Diversity (Rao's Q)
 
