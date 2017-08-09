@@ -647,7 +647,11 @@ gam3_plot_final <- gam3_plot + labs(title="c.")
 gam3a_plot_final <- gam3a_plot + labs(title="d.")   
 div_plot4c_final <- div_plot4c + labs(title="e.")
 
-ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+
+ffig
+
+tiff("ffig.tif", units="in", width=8.5, height=11, res=600)
 
 ```
 

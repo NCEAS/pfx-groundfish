@@ -1,7 +1,7 @@
 ---
 title: "Figures for Blake et al. diversity paper"
-author: "M. Hunsicker"
-date: "10/24/2016"
+author: "started by M. Hunsicker, revised by R.E. Blake"
+date: "started 10/24/2016, revised 8/8/2017"
 output:
   pdf_document: 
   fig_height: 4
@@ -9,6 +9,7 @@ output:
 ---
 
 ```{r, include=FALSE, echo=FALSE}
+### This is what Mary Hunsicker did in Oct 2016.  
 ###Steps, R code and output files for generating diversity metrics for 10 shallow and 5 deep area in the GoA
 
 #1. Selected deep areas by modifying Ole's original code.
@@ -28,6 +29,7 @@ output:
 #Output: git_repos/pfx-groundfish/DiversityMetrics.Deep.Bootstrapped.Final
 
 # 4. Generated figures using code in this r markdown file.
+
 ```
 
 
@@ -43,8 +45,10 @@ library(GISTools) ; library(egg)
 
 ```{r loadMapData, message=FALSE, echo=FALSE, warning=FALSE}
 # Map of area locations
-#discrete_ShallowAreas <- read.csv("./goaTrawl/Output #Data/Shallow_goa_discrete_areas_for_comparison_50_to_150m.final.csv")
-#discrete_DeepAreas <- read.csv("./goaTrawl/Output #Data/Deep_goa_discrete_areas_for_comparison_150_to_300m.final.csv")
+source("../diversity_scripts/Plotting_Exxon_Gfish_Areas.Rmd")
+
+ak_areas_all
+
 ```
 
  
