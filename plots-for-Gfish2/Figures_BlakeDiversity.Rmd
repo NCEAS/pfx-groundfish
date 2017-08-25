@@ -138,69 +138,12 @@ ak_areas_all <- akmap2 +
 ```
 
 
-```{r, echo=FALSE, , include=FALSE, message=FALSE}
-
-sho_shp <- readOGR(dsn="../Oil_Markdown_folder",
-                   layer="all_0689_and_0889_surveys_merged",
-                   stringsAsFactors=FALSE)
-
-#crs(sho_shp)
-#plot(sho_shp, col='blue')
-
-sho_shp@data$id = rownames(sho_shp@data)
-
-LL_proj <-  "+proj=longlat +datum=NAD83"
-
-sho_shp <- spTransform(sho_shp, LL_proj)
-
-sho_shp_pt <- fortify(sho_shp, region="id")
-
-sho_shp_df <- join(sho_shp_pt, sho_shp@data, by="id")
-
-sho_shp_df <- sho_shp_df[!(sho_shp_df$OILING %in% c("UNOBSERVED", "NO_IMPACT")),]# remove "UNOBSERVED" and "NO_IMPACT" categories
-#plot(sho_shp_df$long, sho_shp_df$lat)
-
-```
-
-```{r,  echo=FALSE, message=FALSE}
-
-sho_shp_df$OILING1 <- factor(sho_shp_df$OILING,
-                             levels=c("VLIGHT_IMPACT","LIGHT_IMPACT",
-                                      "MEDIUM_IMPACT","HEAVY_IMPACT"))
-
-ak_so <- ak_areas_all + 
-         # geom_path(data=sho_shp_df, aes(x=long, y=lat, group=group, size=OILING1),
-         #                                color="#67001F") +
-         # scale_size_manual(values=c(0.5, 1.25, 2, 2.75), name="Shoreline Oiling",
-         #                   breaks=c("VLIGHT_IMPACT","LIGHT_IMPACT",
-         #                             "MEDIUM_IMPACT","HEAVY_IMPACT"),
-         #                   labels=c("Very Light", "Light", "Medium", "Heavy")) +
-         geom_segment(aes(x=-163, y=61.35, xend=-163, yend=61.75), size=1.1,
-                      arrow=arrow(length=unit(0.35, "cm"))) + 
-         annotate("text", x=-163, y=61.1, label="N", size=6) +
-         theme(legend.position=c(1,0),
-               legend.justification=c(1,0),
-               legend.key=element_rect(fill="white"))
-ak_so           
-          
-
-```
-
-
 ```{r, fig.cap="Locations of shallow areas (50-150 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
 #map of Shallow locations
 #discrete_ShallowAreas$area <- discrete_ShallowAreas$Area
 #discrete_ShallowAreas$Area <- factor(discrete_ShallowAreas$area)
 
 #akmap + geom_point(data=discrete_ShallowAreas,aes(LONGITUDE,LATITUDE,color=Area))
-```
-
-```{r, fig.cap="Locations of deep areas (>150-300 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
-#map of Deep locations
-#discrete_DeepAreas$area <- discrete_DeepAreas$Area
-#discrete_DeepAreas$Area <- factor(discrete_DeepAreas$area)
-
-#akmap + geom_point(data=discrete_DeepAreas,aes(LONGITUDE,LATITUDE,color=Area))
 ```
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}

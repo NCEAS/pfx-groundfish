@@ -13,7 +13,7 @@ library(gridExtra)
 
 
 # load the functional trait data from local source in our repository:
-traits_df <- read.csv("../diversity-data/Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
+traits_df <- read.csv("./diversity-data/Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
 
 # or load it from our google drive:
 #URL_traits <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7uV0h5SG1UeC1lbjg"
@@ -38,7 +38,7 @@ traits_df1 <- traits_df %>%
                                                               "Myctophidae spp." = "Myctophidae",
                                                               "Theragra chalcogramma" = "Gadus chalcogrammus"))) %>%
               mutate(genus.species = gsub(" ", ".", genus.species)) %>% # make Species names match those in CPUE file
-              rename(Species = genus.species)
+              dplyr::rename(Species = genus.species)
 
 
 # assign location classes (GoA vs other)
@@ -72,7 +72,7 @@ for(i in 1:nrow(horPos_df)) {
           }}}}}}
 # for ease of binding with other dfs, remove original estimate column and rename adultHorizPosition to estimate:
 horPos_df1 <- horPos_df %>%
-  dplyr::select(-estimate, -region) %>% rename(estimate = adultHorizPosition)
+  dplyr::select(-estimate, -region) %>% dplyr::rename(estimate = adultHorizPosition)
 
 
 
@@ -90,7 +90,7 @@ for(i in 1:nrow(substrate_df)) {
 # for ease of binding with other dfs, remove original estimate column and rename adultSubstrateCategory to estimate:
 substrate_df1 <- substrate_df %>%
   dplyr::select(-estimate, -region) %>% 
-  rename(estimate = adultSubstrateCategory) 
+  dplyr::rename(estimate = adultSubstrateCategory) 
 
 
 
@@ -123,7 +123,7 @@ max_df1 <- max_df %>%
            group_by(Species, trait, location) %>%
            summarise_all(funs(max(., na.rm = TRUE))) %>%
            ungroup %>%
-           rename(estimate = estimate1)
+           dplyr::rename(estimate = estimate1)
 
 
 
@@ -138,7 +138,7 @@ depth_df1 <- depth_df %>%
              mutate(estimate3 = estimate2.num-estimate1.num) %>% # calculate breadth of depth range
              ungroup() %>%
              dplyr::select(-region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
-             rename(estimate = estimate3) %>%
+             dplyr::rename(estimate = estimate3) %>%
              group_by(Species, trait, gender, location) %>%
              summarise_all(funs(mean)) %>% # calculate means of depth range breadth for each taxa / gender / location combination
              ungroup() 
@@ -163,7 +163,7 @@ maturity_df1 <- maturity_df %>%
                 mutate(estimate3 = mean(c(estimate1.num, estimate2.num), na.rm=T)) %>% # calculate mean of the 2 estimates
                 ungroup() %>%
                 dplyr::select( -region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
-                rename(estimate = estimate3) %>%
+                dplyr::rename(estimate = estimate3) %>%
                 group_by(Species, trait, gender, location) %>%
                 summarise_all(funs(mean(., na.rm = TRUE))) %>% # calculate means of all estimates for each taxa / gender / location combination
                 ungroup() 
@@ -174,7 +174,7 @@ maturity_df1 <- maturity_df %>%
 ###############
 
 # pull in additional K & L_infinity values from Ben Williams:
-KL_df <- read.csv("../diversity-data/linf_k.csv", header=T, stringsAsFactors = F)
+KL_df <- read.csv("./diversity-data/linf_k.csv", header=T, stringsAsFactors = F)
 
 KL_df1 <- KL_df %>%
           dplyr::select(-X, -common.name) %>%
@@ -202,7 +202,7 @@ dCoef_df <- read.csv(file=textConnection(dCoef1),stringsAsFactors=FALSE)
 
 dCoef1 <- dCoef_df %>% 
           filter(Model == "pos") %>% # use positive model (vs binomial presence/absence)
-          rename(estimate = Mean) %>%
+          dplyr::rename(estimate = Mean) %>%
           dplyr::select(Species, estimate)
 
 for(i in 1:nrow(dCoef1)) { # add columns for trait, gender, location
@@ -358,7 +358,7 @@ ft_df <- ft_df %>% dplyr::select(-Species)
 #View(SPCPUEArea)
 
 #setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
-SPCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
+SPCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
 str(SPCPUEArea)
 
 # NB  SPCPUEArea and deepCPUE both have only 53 taxa, not 57. Which ones are missing?
