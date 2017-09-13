@@ -635,48 +635,6 @@ ggarrange(gam4_plot, gam5_plot, div_plot4c, div_plot4d, ncol=2, nrow=2)
 
 ```
 
-### Final Diversity-Productivity Figure
-```{r, echo=FALSE, fig.height=16, fig.width=12}
-# making final figure
-gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
-                                                        axis.text.x = element_blank())
-gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_blank(), 
-                                                        axis.text.x = element_blank(),
-                                                        legend.title = element_blank())                   
-gam3_plot_final <- gam3_plot + labs(title="c.")     
-gam3a_plot_final <- gam3a_plot + labs(title="d.")   
-div_plot4c_final <- div_plot4c + labs(title="e.")
-
-ffig1 <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
-
-ffig1
-
-tiff("ffig.tif", units="in", width=12.5, height=15, res=800, compression = "lzw")
-ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
-dev.off()
-
-```
-
-### Supplementary Diversity-Productivity Figure
-```{r, echo=FALSE, fig.height=16, fig.width=12}
-# making final figure
-# gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
-#                                                         axis.text.x = element_blank())
-# gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_blank(), 
-#                                                         axis.text.x = element_blank(),
-#                                                         legend.title = element_blank())                   
-# gam3_plot_final <- gam3_plot + labs(title="c.")     
-# gam3a_plot_final <- gam3a_plot + labs(title="d.")   
-# div_plot4c_final <- div_plot4c + labs(title="e.")
-# 
-# ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
-# 
-# ffig
-
-
-
-```
-
 ```{r, echo=FALSE, include=FALSE}
 # correlation between primary productivity and fishing pressure
 prod_over <- prod_chl_yr %>% 
