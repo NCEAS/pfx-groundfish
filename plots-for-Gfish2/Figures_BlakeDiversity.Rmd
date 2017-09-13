@@ -32,7 +32,6 @@ output:
 
 ```
 
-
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load all necessary packages
 library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ; library(rgdal) ; 
@@ -43,6 +42,7 @@ library(GISTools) ; library(egg)
 
 ```
 
+## Figures
 ```{r map, cache=FALSE, echo=FALSE, warning=FALSE, include=FALSE}
 # Figure 1: Map of study areas 
 # Map plotted in Lat Long:
@@ -230,78 +230,69 @@ sp_box123
 
 ```
 
+```{r, echo=FALSE}
+# Figure 3: CV plot to show Portfolio Effect 
 
 
-######################################################################################################
-
-
-```{r, include=FALSE, echo=FALSE, results='hide'}
-# Figure 2b Diversity Metrics for deep areas
-# Read in diversity data for 5 deep areas (11-15)
-dat<-read.csv("../diversity-data/DiversityMetrics.Deep.Bootstrapped.final.csv")
-
-deepDat <- dat%>%
-           mutate(plotAREA = ifelse((AREA=="1"),'11',
-                             ifelse((AREA=="2"),'12',
-                             ifelse((AREA=="3"),'13',
-                             ifelse((AREA=="4"),'14',       
-                             ifelse((AREA=="5"),'15',
-                             "")))))
-                  )
-deepDat$AREA<-as.factor(deepDat$plotAREA)
 ```
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Alpha Diversity Deep Areas (exp H'):
-sp_box4 <- ggplot(data=deepDat, aes(AREA, y=Eff_Num_Sp)) + 
-           geom_boxplot() + theme_boxplot() + 
-           #xlab("Area (West <-> East)") +
-           theme(axis.title.x=element_blank())+
-           ylab("Alpha Diversity (exp H')") +
-           xlim("15","14","13","12","11") 
-           #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
-           theme(legend.position="none", plot.background=element_blank(),
-                 axis.text.x=element_text(size=15),
-                 plot.title=element_text(colour="black", size=15,
-                                         hjust=0.04, vjust=0.5, face="bold"))
+```{r, echo=FALSE}
+# Figure 4: NMDS Wisconsin
+
+
 ```
 
-```{r, echo=FALSE,fig.height=4, fig.width=7}
-sp_box4
+```{r, echo=FALSE}
+# Figure 5: Disturbance & Productivity plots
+source("./diversity_scripts/Disturbance_Productivity_Hyp.R")
+
+
+gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
+                                                        axis.text.x = element_blank())
+gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_blank(), 
+                                                        axis.text.x = element_blank(),
+                                                        legend.title = element_blank())                   
+gam3_plot_final <- gam3_plot + labs(title="c.")     
+gam3a_plot_final <- gam3a_plot + labs(title="d.")   
+div_plot4c_final <- div_plot4c + labs(title="e.")
+
+ffig1 <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+
+ffig1
+
+# tiff("ffig.tif", units="in", width=12.5, height=15, res=800, compression = "lzw")
+# ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+# dev.off()
+
 ```
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Beta Diversity Deep Areas:
-sp_box5 <- ggplot(data=deepDat, aes(AREA, y=Exp_B_Div)) + 
-  geom_boxplot() + theme_boxplot() + 
-  #xlab("Area (West <-> East)") +
-  theme(axis.title.x=element_blank())+
-  ylab("Beta Diversity") +
-  xlim("15","14","13","12","11") 
-  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
-  theme(legend.position="none", plot.background=element_blank(),
-        axis.text.x=element_text(size=15),
-        plot.title=element_text(colour="black", size=15,
-                                hjust=0.04, vjust=0.5, face="bold"))
+### Supplementary Diversity-Productivity Figure
+```{r, echo=FALSE, fig.height=16, fig.width=12}
+# making final figure
+# gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
+#                                                         axis.text.x = element_blank())
+# gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_blank(), 
+#                                                         axis.text.x = element_blank(),
+#                                                         legend.title = element_blank())                   
+# gam3_plot_final <- gam3_plot + labs(title="c.")     
+# gam3a_plot_final <- gam3a_plot + labs(title="d.")   
+# div_plot4c_final <- div_plot4c + labs(title="e.")
+# 
+# ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+# 
+# ffig
+
+
+
 ```
 
-```{r, echo=FALSE,fig.height=4, fig.width=7}
-sp_box5
+
 ```
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Species Richness Deep areas:
-sp_box6 <- ggplot(data=deepDat, aes(AREA, y=Sp_rich)) + 
-  geom_boxplot() + theme_boxplot() + xlab("Area (West <-> East)") +
-  ylab("Species Richness") +
-  xlim("15","14","13","12","11") + 
-  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
-  theme(legend.position="none", plot.background=element_blank(),
-        axis.text.x=element_text(size=15),
-        plot.title=element_text(colour="black", size=15,
-                                hjust=0.04, vjust=0.5, face="bold"))
+## Supplementary Figures:
+```{r, echo=FALSE}
+# 
+
+
 ```
 
-```{r, fig.cap="Alpha diversity, beta diversity and species richness of the groundfish assemblage in deep areas of the Gulf of Alaska. Medians and confidence intervals estimated from bootstrap sampling are shown.", echo=FALSE,fig.height=4, fig.width=7}
-sp_box6
-```
