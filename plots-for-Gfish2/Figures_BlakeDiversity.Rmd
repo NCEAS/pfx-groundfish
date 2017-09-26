@@ -237,7 +237,23 @@ sp_box123
 ```
 
 ```{r, echo=FALSE}
-# Figure 4: NMDS Wisconsin
+# Figure 4: NMDS Wisconsin plot
+source("./diversity_scripts/nmds.r")
+
+ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")
+text(ordShallowWiscSqrt, display = "spec", cex = 0.5, col="black")
+# colors from map and other plots ("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
+#                                  "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")   
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=1, col="#FFE6DA", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=2, col="#E3C9C6", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=3, col="#FCC5C0", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=4, col="#FA9FB5", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=5, col="#F768A1", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=6, col="#E7298A", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=7, col="#DD3497", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=8, col="#AE017E", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=9, col="#7A0177", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=10, col="#49006A", label=T, lwd=3, lty=1, cex=1.5)
 
 
 ```
@@ -266,8 +282,35 @@ ffig1
 
 ```
 
-### Supplementary Diversity-Productivity Figure
+
+
+## Supplementary Figures:
+```{r, echo=FALSE}
+# Supplementary Appendix A1: Hellinger NMDS plot
+ordiplot(ordShallowHellinger, type="n", choices=c(1,2), xlab="NMDS 1", ylab="NMDS 2")
+text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
+# colors from map and other plots ("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
+#                                  "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")  
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=1, col="#FFE6DA", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=2, col="#E3C9C6", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=3, col="#FCC5C0", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=4, col="#FA9FB5", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=5, col="#F768A1", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=6, col="#E7298A", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=7, col="#DD3497", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=8, col="#AE017E", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=9, col="#7A0177", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=10, col="#49006A", label=T, lwd=3, lty=1, cex=1.5)
+
+
+```
+
+
 ```{r, echo=FALSE, fig.height=16, fig.width=12}
+# Supplementary Appendix A2: Productiviy - Disturbance Plots
+
+# source("./diversity_scripts/Disturbance_Productivity_Hyp.R")
+
 # making final figure
 # gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
 #                                                         axis.text.x = element_blank())
@@ -286,13 +329,4 @@ ffig1
 
 ```
 
-
-```
-
-## Supplementary Figures:
-```{r, echo=FALSE}
-# 
-
-
-```
 
