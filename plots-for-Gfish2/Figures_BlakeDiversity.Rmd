@@ -1,7 +1,7 @@
 ---
 title: "Figures for Blake et al. diversity paper"
-author: "M. Hunsicker"
-date: "10/24/2016"
+author: "started by M. Hunsicker, revised by R.E. Blake"
+date: "started 10/24/2016, revised 8/8/2017"
 output:
   pdf_document: 
   fig_height: 4
@@ -9,6 +9,7 @@ output:
 ---
 
 ```{r, include=FALSE, echo=FALSE}
+### This is what Mary Hunsicker did in Oct 2016.  
 ###Steps, R code and output files for generating diversity metrics for 10 shallow and 5 deep area in the GoA
 
 #1. Selected deep areas by modifying Ole's original code.
@@ -28,8 +29,8 @@ output:
 #Output: git_repos/pfx-groundfish/DiversityMetrics.Deep.Bootstrapped.Final
 
 # 4. Generated figures using code in this r markdown file.
-```
 
+```
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Load all necessary packages
@@ -37,34 +38,30 @@ library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ; library(rgda
 library(sp) ; library(maptools) ; library(raster) ; library(ggplot2) ;  library(rgeos) ; 
 library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ; library(extrafont) ; 
 library(vegan) ; library(scales) ; library(gridExtra) ; library(RColorBrewer) ; 
-library(GISTools)
+library(GISTools) ; library(egg)
 
 ```
 
-```{r loadMapData, message=FALSE, echo=FALSE, warning=FALSE}
-# Map of area locations
-#discrete_ShallowAreas <- read.csv("./goaTrawl/Output #Data/Shallow_goa_discrete_areas_for_comparison_50_to_150m.final.csv")
-#discrete_DeepAreas <- read.csv("./goaTrawl/Output #Data/Deep_goa_discrete_areas_for_comparison_150_to_300m.final.csv")
-```
-
- 
+## Figures
 ```{r map, cache=FALSE, echo=FALSE, warning=FALSE, include=FALSE}
-# Figure 1: Map of shallow and deep study areas overlaid with EVOS slick 
-#Map plotted in Lat Long:
-ak <- map_data('worldHires','USA:Alaska')
+# Figure 1: Map of study areas 
+# Map plotted in Lat Long:
+
+ak <- fortify(maps::map('worldHires','USA:Alaska', plot=FALSE, fill=TRUE))
 
 akmap2 <- ggplot() + 
           geom_polygon(data=ak, aes(long,lat,group=group), fill=8, 
                        color="black") +
           xlab(expression(paste(Longitude^o,~'W'))) +
           ylab(expression(paste(Latitude^o,~'N'))) +
-          coord_map(xlim=c(-190, -125), ylim=c(50, 72)) +
+          coord_map(xlim=c(-165, -142), ylim=c(54, 62)) +
           theme(panel.background=element_rect(fill='aliceblue')) 
+
 
 ```
 
 ```{r, include=FALSE, echo=FALSE}
-# Shallow Study Areas
+# Adding Study Areas to the map
 discrete_areas1 <- read.csv("../goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 
 discrete_areas1$area <- discrete_areas1$Area
@@ -82,13 +79,13 @@ discrete_areas <- discrete_areas1 %>%
 ```
 
 ```{r, echo=FALSE}
+
 discrete_areas$area1 <- factor(discrete_areas$area,
                                levels=c('1','2','3','4','5','6','7','8','9','10'))
 # http://colorbrewer2.org/     brewer.pal(n=9, "PuRd")
 pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
-           "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")     #E3C9C6   #FDE0DD
-#blues <- c("#9ECAE1", "#6BAED6", "#4292C6", "#2171B5", "#084594")
-#Colors1 <- c(pinks, blues)
+           "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")     
+
 
 ak_areas_all <- akmap2 +
                 geom_point(data=discrete_areas, 
@@ -105,19 +102,9 @@ ak_areas_all <- akmap2 +
                  annotate("text", x=-151.1, y=57.8, label="7", size=4, color="white") +
                  annotate("text", x=-152.85, y=56.8, label="8", size=4, color="white") +
                  annotate("text", x=-155.5, y=56.45, label="9", size=4, color="white") +
-                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white") #+
-                # annotate("text", x=-153.9, y=58.1, label="11", size=4) +
-                # annotate("text", x=-150, y=58, label="12", size=4) +
-                # annotate("text", x=-156.3, y=56, label="13", size=4, color="white") +
-                # annotate("text", x=-158.5, y=55.25, label="14", size=4, color="white") 
-               #  theme(legend.key.size=unit(11,"points"),
-              #         legend.text=element_text(size=9),
-              #         legend.key=element_rect(fill="white"),
-              #         legend.justification=c(1,0), 
-              #         legend.position=c(1,0)) +
-              #   guides(color=guide_legend(ncol=2))
-#ak_areas_all
+                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white") 
 
+#ak_areas_all
 
 
 ```
@@ -134,69 +121,10 @@ ak_areas_all <- akmap2 +
 ```
 
 
-```{r, echo=FALSE, , include=FALSE, message=FALSE}
+```{r, fig.cap="Locations of study areas (50-150 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
 
-sho_shp <- readOGR(dsn="../Oil_Markdown_folder",
-                   layer="all_0689_and_0889_surveys_merged",
-                   stringsAsFactors=FALSE)
+ak_areas_all
 
-#crs(sho_shp)
-#plot(sho_shp, col='blue')
-
-sho_shp@data$id = rownames(sho_shp@data)
-
-LL_proj <-  "+proj=longlat +datum=NAD83"
-
-sho_shp <- spTransform(sho_shp, LL_proj)
-
-sho_shp_pt <- fortify(sho_shp, region="id")
-
-sho_shp_df <- join(sho_shp_pt, sho_shp@data, by="id")
-
-sho_shp_df <- sho_shp_df[!(sho_shp_df$OILING %in% c("UNOBSERVED", "NO_IMPACT")),]# remove "UNOBSERVED" and "NO_IMPACT" categories
-#plot(sho_shp_df$long, sho_shp_df$lat)
-
-```
-
-```{r,  echo=FALSE, message=FALSE}
-
-sho_shp_df$OILING1 <- factor(sho_shp_df$OILING,
-                             levels=c("VLIGHT_IMPACT","LIGHT_IMPACT",
-                                      "MEDIUM_IMPACT","HEAVY_IMPACT"))
-
-ak_so <- ak_areas_all + 
-         # geom_path(data=sho_shp_df, aes(x=long, y=lat, group=group, size=OILING1),
-         #                                color="#67001F") +
-         # scale_size_manual(values=c(0.5, 1.25, 2, 2.75), name="Shoreline Oiling",
-         #                   breaks=c("VLIGHT_IMPACT","LIGHT_IMPACT",
-         #                             "MEDIUM_IMPACT","HEAVY_IMPACT"),
-         #                   labels=c("Very Light", "Light", "Medium", "Heavy")) +
-         geom_segment(aes(x=-163, y=61.35, xend=-163, yend=61.75), size=1.1,
-                      arrow=arrow(length=unit(0.35, "cm"))) + 
-         annotate("text", x=-163, y=61.1, label="N", size=6) +
-         theme(legend.position=c(1,0),
-               legend.justification=c(1,0),
-               legend.key=element_rect(fill="white"))
-ak_so           
-          
-
-```
-
-
-```{r, fig.cap="Locations of shallow areas (50-150 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
-#map of Shallow locations
-#discrete_ShallowAreas$area <- discrete_ShallowAreas$Area
-#discrete_ShallowAreas$Area <- factor(discrete_ShallowAreas$area)
-
-#akmap + geom_point(data=discrete_ShallowAreas,aes(LONGITUDE,LATITUDE,color=Area))
-```
-
-```{r, fig.cap="Locations of deep areas (>150-300 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
-#map of Deep locations
-#discrete_DeepAreas$area <- discrete_DeepAreas$Area
-#discrete_DeepAreas$Area <- factor(discrete_DeepAreas$area)
-
-#akmap + geom_point(data=discrete_DeepAreas,aes(LONGITUDE,LATITUDE,color=Area))
 ```
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
@@ -210,12 +138,12 @@ theme_boxplot <- function(base_size = 12){
           legend.background=element_rect(colour="white", fill="transparent"),
           plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
           panel.border=element_blank(),
-          panel.margin=unit(0,"lines"),
-          panel.background=element_rect(fill=NA, colour=NA),
+          panel.spacing=unit(0,"lines"),
+          panel.background=element_blank(),
           panel.grid.major=element_blank(),
           panel.grid.minor=element_blank(),
-          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
-          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.line = element_line(colour = 'black', size=0.5, linetype='solid'),
+         # axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
           axis.ticks.length=unit(1,"mm"),
           axis.text.x = element_text(margin=margin(5,0,0,0), size=15), 
           axis.text.y = element_text(margin=margin(0,5,0,0), size=15),
@@ -228,154 +156,177 @@ theme_boxplot <- function(base_size = 12){
 
 
 ```{r, include=FALSE, echo=FALSE,results='hide'}
-# Figure 2a Diversity Metrics for 1 shallow areas
-# Read in diversity metrics for 10 shallow areas (1-10)
+# Figure 2: 
+# Read in diversity metrics for 10 study areas
 shallowDat <- read.csv("../diversity-data/DiversityMetrics.Shallow.Bootstrapped.final.csv")
 shallowDat$AREA <- as.factor(shallowDat$AREA)
+
 ```
 
 ```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Alpha Diversity Shallow Areas (exp H'):
+# Figure 2a: Boxplots Alpha Diversity (exp H')
+
 sp_box1 <- ggplot(data=shallowDat, aes(AREA, y=Eff_Num_Sp)) + 
            geom_boxplot() + theme_boxplot() + 
-           theme(axis.title.x=element_blank())+
-           #xlab("Area (West <-> East)") +
-           ylab("Alpha Diversity (exp H')") +
+           theme(axis.title.x=element_blank()) +
+           #xlab("Study Area") +
+           ylab("Alpha Diversity (exp H')") + labs(title = "a.") +
            xlim("10","9","8","7","6","5","4","3","2","1") + #shallow areas
            #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
            theme(legend.position="none", plot.background=element_blank(),
                  axis.text.x=element_text(size=15),
                  plot.title=element_text(colour="black", size=15,
                                          hjust=0.04, vjust=0.5, face="bold"))
-```
 
-```{r, echo=FALSE,fig.height=4, fig.width=7}
-sp_box1
 ```
 
 ```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Beta Diversity Shallow Areas:
+# Figure 2c: Boxplots Beta Diversity 
+
 sp_box2 <- ggplot(data=shallowDat, aes(AREA, y=Exp_B_Div)) +
            geom_boxplot() + theme_boxplot() + 
-           theme(axis.title.x=element_blank())+
-           #xlab("Area (West <-> East)") +
-           ylab("Beta Diversity") +
+          # theme(axis.title.x=element_blank()) +
+           xlab("Study Area") +
+           ylab("Beta Diversity") + labs(title = "c.") +
            xlim("10","9","8","7","6","5","4","3","2","1") + #shallow areas
            #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
            theme(legend.position="none", plot.background=element_blank(),
                  axis.text.x=element_text(size=15),
                  plot.title=element_text(colour="black", size=15,
                                          hjust=0.04, vjust=0.5, face="bold"))
+
 ```
 
-```{r, echo=FALSE,fig.height=4, fig.width=7}
-sp_box2
-```
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Figure 2b: Boxplots Species Richness
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Species Richness shallow areas:
 sp_box3 <- ggplot(data=shallowDat, aes(AREA, y=Sp_rich)) + 
-           geom_boxplot() + theme_boxplot() + #xlab("Area (West <-> East)") +
-           theme(axis.title.x=element_blank())+
+           geom_boxplot() + theme_boxplot() + 
+           theme(axis.title.x=element_blank()) +
+           #xlab("Area (West <-> East)") +
            ylab("Species Richness") +
            xlim("10","9","8","7","6","5","4","3","2","1") + 
+           labs(title = "b.") +
            #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
            theme(legend.position="none", plot.background=element_blank(),
                  axis.text.x=element_text(size=15),
-                 plot.title=element_text(colour="black", size=15,
+                 plot.title=element_text(colour="black", size=17,
                                          hjust=0.04, vjust=0.5, face="bold"))
+
 ```
 
-```{r, fig.cap="Alpha diversity, beta diversity and species richness of the groundfish assemblage in shallow areas of the Gulf of Alaska. The medians and confidence intervals estimated from bootstrap sampling are shown.", echo=FALSE,fig.height=4, fig.width=7}
-sp_box3
-```
-
-```{r}
+```{r, echo=FALSE, results='hide'}
 source("../diversity_scripts/functional_diversity_metrics.R")
 
 #shallow_FD  # This is the name of the shallow FD boxplot figure from Colette's script.
 
 ```
 
+```{r, fig.cap="Alpha diversity, beta diversity and species richness of the groundfish assemblage in shallow areas of the Gulf of Alaska. The medians and confidence intervals estimated from bootstrap sampling are shown.", echo=FALSE, fig.height=4, fig.width=7}
 
+sp_box123 <- ggarrange(sp_box1, sp_box3, sp_box2, shallow_FD, ncol=2, nrow=2)
+
+sp_box123
+
+```
 
 ```{r, echo=FALSE}
-sp_box123 <- grid.arrange(sp_box1, sp_box3, sp_box2, shallow_FD, ncol=2, nrow=2)
+# Figure 3: CV plot to show Portfolio Effect 
+
+
+```
+
+```{r, echo=FALSE}
+# Figure 4: NMDS Wisconsin plot
+source("./diversity_scripts/nmds.r")
+
+ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")
+text(ordShallowWiscSqrt, display = "spec", cex = 0.5, col="black")
+# colors from map and other plots ("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
+#                                  "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")   
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=1, col="#FFE6DA", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=2, col="#E3C9C6", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=3, col="#FCC5C0", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=4, col="#FA9FB5", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=5, col="#F768A1", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=6, col="#E7298A", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=7, col="#DD3497", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=8, col="#AE017E", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=9, col="#7A0177", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=10, col="#49006A", label=T, lwd=3, lty=1, cex=1.5)
+
+
+```
+
+```{r, echo=FALSE}
+# Figure 5: Disturbance & Productivity plots
+source("./diversity_scripts/Disturbance_Productivity_Hyp.R")
+
+
+gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
+                                                        axis.text.x = element_blank())
+gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_blank(), 
+                                                        axis.text.x = element_blank(),
+                                                        legend.title = element_blank())                   
+gam3_plot_final <- gam3_plot + labs(title="c.")     
+gam3a_plot_final <- gam3a_plot + labs(title="d.")   
+div_plot4c_final <- div_plot4c + labs(title="e.")
+
+ffig1 <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+
+ffig1
+
+# tiff("ffig.tif", units="in", width=12.5, height=15, res=800, compression = "lzw")
+# ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+# dev.off()
 
 ```
 
 
 
+## Supplementary Figures:
+```{r, echo=FALSE}
+# Supplementary Appendix A1: Hellinger NMDS plot
+ordiplot(ordShallowHellinger, type="n", choices=c(1,2), xlab="NMDS 1", ylab="NMDS 2")
+text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
+# colors from map and other plots ("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
+#                                  "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")  
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=1, col="#FFE6DA", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=2, col="#E3C9C6", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=3, col="#FCC5C0", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=4, col="#FA9FB5", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=5, col="#F768A1", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=6, col="#E7298A", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=7, col="#DD3497", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=8, col="#AE017E", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=9, col="#7A0177", label=T, lwd=3, lty=1, cex=1.5)
+ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=10, col="#49006A", label=T, lwd=3, lty=1, cex=1.5)
 
 
-
-```{r, include=FALSE, echo=FALSE, results='hide'}
-# Figure 2b Diversity Metrics for deep areas
-# Read in diversity data for 5 deep areas (11-15)
-dat<-read.csv("../diversity-data/DiversityMetrics.Deep.Bootstrapped.final.csv")
-
-deepDat <- dat%>%
-           mutate(plotAREA = ifelse((AREA=="1"),'11',
-                             ifelse((AREA=="2"),'12',
-                             ifelse((AREA=="3"),'13',
-                             ifelse((AREA=="4"),'14',       
-                             ifelse((AREA=="5"),'15',
-                             "")))))
-                  )
-deepDat$AREA<-as.factor(deepDat$plotAREA)
 ```
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Alpha Diversity Deep Areas (exp H'):
-sp_box4 <- ggplot(data=deepDat, aes(AREA, y=Eff_Num_Sp)) + 
-           geom_boxplot() + theme_boxplot() + 
-           #xlab("Area (West <-> East)") +
-           theme(axis.title.x=element_blank())+
-           ylab("Alpha Diversity (exp H')") +
-           xlim("15","14","13","12","11") 
-           #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
-           theme(legend.position="none", plot.background=element_blank(),
-                 axis.text.x=element_text(size=15),
-                 plot.title=element_text(colour="black", size=15,
-                                         hjust=0.04, vjust=0.5, face="bold"))
+
+```{r, echo=FALSE, fig.height=16, fig.width=12}
+# Supplementary Appendix A2: Productiviy - Disturbance Plots
+
+# source("./diversity_scripts/Disturbance_Productivity_Hyp.R")
+
+# making final figure
+# gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
+#                                                         axis.text.x = element_blank())
+# gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_blank(), 
+#                                                         axis.text.x = element_blank(),
+#                                                         legend.title = element_blank())                   
+# gam3_plot_final <- gam3_plot + labs(title="c.")     
+# gam3a_plot_final <- gam3a_plot + labs(title="d.")   
+# div_plot4c_final <- div_plot4c + labs(title="e.")
+# 
+# ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+# 
+# ffig
+
+
+
 ```
 
-```{r, echo=FALSE,fig.height=4, fig.width=7}
-sp_box4
-```
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Beta Diversity Deep Areas:
-sp_box5 <- ggplot(data=deepDat, aes(AREA, y=Exp_B_Div)) + 
-  geom_boxplot() + theme_boxplot() + 
-  #xlab("Area (West <-> East)") +
-  theme(axis.title.x=element_blank())+
-  ylab("Beta Diversity") +
-  xlim("15","14","13","12","11") 
-  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
-  theme(legend.position="none", plot.background=element_blank(),
-        axis.text.x=element_text(size=15),
-        plot.title=element_text(colour="black", size=15,
-                                hjust=0.04, vjust=0.5, face="bold"))
-```
-
-```{r, echo=FALSE,fig.height=4, fig.width=7}
-sp_box5
-```
-
-```{r, include=FALSE, echo=FALSE,results='hide'}
-#Boxplots Species Richness Deep areas:
-sp_box6 <- ggplot(data=deepDat, aes(AREA, y=Sp_rich)) + 
-  geom_boxplot() + theme_boxplot() + xlab("Area (West <-> East)") +
-  ylab("Species Richness") +
-  xlim("15","14","13","12","11") + 
-  #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
-  theme(legend.position="none", plot.background=element_blank(),
-        axis.text.x=element_text(size=15),
-        plot.title=element_text(colour="black", size=15,
-                                hjust=0.04, vjust=0.5, face="bold"))
-```
-
-```{r, fig.cap="Alpha diversity, beta diversity and species richness of the groundfish assemblage in deep areas of the Gulf of Alaska. Medians and confidence intervals estimated from bootstrap sampling are shown.", echo=FALSE,fig.height=4, fig.width=7}
-sp_box6
-```

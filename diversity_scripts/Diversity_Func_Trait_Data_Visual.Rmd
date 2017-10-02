@@ -17,12 +17,13 @@ library(stringr)
 library(reshape2)
 library(ggplot2)
 library(scales)
+```
 
-
+```{r ,  include=FALSE, echo=FALSE, results='hide'}
 # source Gf FD trait cleaning script
-source()
+#source("./diversity_scripts/?????????????????????.R")   # WHERE IS THIS SCRIPT FOR GENERATING THE BELOW FILE???
 
-#GF_T <- read.csv("Groundfish-Functional-Diversity-Traits.csv", header=TRUE)
+GF_T <- read.csv("../diversity-data/Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
 
 ```
 
@@ -34,12 +35,14 @@ traits <- unique(GF_T$trait)
 sp <- data.frame(unique(GF_T$genus.species))
 
 GF_Tb <- data.frame(sp[rep(seq_len(nrow(sp)), each=21),])  # repeats data frame 
-GF_Tb$Trait <- rep(traits)   # adds the column
-GF_3 <- select(GF_T,genus.species,trait,estimate,region)
+GF_Tb$trait <- rep(traits)   # adds the column
+GF_Tb <- dplyr::rename(GF_Tb, genus.species=sp.rep.seq_len.nrow.sp....each...21....) 
+GF_3 <- dplyr::select(GF_T, genus.species,trait,estimate,region,database)
+GF_Tb <- full_join(GF_Tb, GF_3, by=c("genus.species","trait"))
     
 
 GFT <- GF_Tb %>%
-       rename(Genus_Species=sp.rep.seq_len.nrow.sp....each...21....) %>%
+     #  dplyr::rename(Genus_Species=genus.species) %>%
        mutate(Bin_Value = ifelse((is.na(estimate)),'0',
                           ifelse((!is.na(estimate)),'1',"")))
 ```
@@ -51,13 +54,14 @@ GFT <- GF_Tb %>%
 
 GFT_GOA <- GFT %>% 
            filter(region %in% c("GoA","Kodiak Is (GoA","GoA (Kodiak Island)",
-                                "GoA (Kodiak Is)","GoA & Aleutian Islands"))
+                                "GoA (Kodiak Is)","GoA & Aleutian Islands")) # %>%
+           #mutate(genus.species2 = factor(genus.species, levels=unique(desc(genus.species))))
            
 
 p1 <- ggplot(data=GFT_GOA, aes(x=trait, y=genus.species)) + 
-             geom_tile(aes(fill = Bin_Value), colour = "white") +
+             geom_tile(aes(fill = Bin_Value), color = "white") +
              scale_fill_manual(values=c("0"="white", "1"="red"), guide=FALSE) +
-             scale_y_reverse() + 
+            # scale_y_reverse() + 
              theme(axis.text.x = element_text(angle=90, vjust=0.3, hjust=1, 
                                               color="black", size=15),
                    axis.text.y = element_text(color="black", size=15),
@@ -71,12 +75,17 @@ p1
 ```{r , fig.height=12, fig.width=12, echo=FALSE}
 
 GFT_ <- GFT %>% 
-           filter(region!="GOA")
+        filter(region != "GOA") %>%
+        mutate(database = replace(database, 
+                                  database == "mean of other Sebastes species in this spreadsheet, from Fishbase",
+                                  "fishbase")) %>%
+        mutate(database = replace(database, database == "REEM Groundfish Diet Database", "REEM"))
+     
 
-p2 <- ggplot(data=GFT_, aes(x=Data_Set, y=Year)) + 
+p2 <- ggplot(data=GFT_, aes(x=database, y=region)) + 
              geom_tile(aes(fill = Bin_Value), colour = "white") +
              scale_fill_manual(values=c("0"="white", "1"="red"), guide=FALSE) +
-             scale_y_reverse() + 
+          #   scale_y_reverse() + 
              theme(axis.text.x = element_text(angle=90, vjust=0.3, hjust=1, 
                                               color="black", size=15),
                    axis.text.y = element_text(color="black", size=15),

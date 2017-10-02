@@ -1,7 +1,6 @@
-
 ---
 title: "Plotting Oil Spill"
-author: "Rachael Blake"
+author: "Rachael E. Blake"
 date: "March 14, 2016"
 output: html_document
 ---
@@ -13,9 +12,6 @@ library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ; library(sc
 library(RColorBrewer) ; library(GISTools)
 
 ```
-
-NOTE: Maybe try doing this in TMAP package instead of GGPLOT package.
-
 
 ```{r, include=FALSE, echo=FALSE}
 #Map plotted in Lat Long:
@@ -50,31 +46,10 @@ discrete_areas <- discrete_areas1 %>%
 
 ```
 
-```{r, include=FALSE, echo=FALSE, eval=FALSE}
-# Deeper Study Areas
-discrete_areas_deep <- read.csv("../goaTrawl/Output Data/Deep_goa_discrete_areas_for_comparison_150_to_300m.MH.csv")
-
-discrete_areas_deep$Area <- factor(discrete_areas_deep$Area)
-discrete_areas_deep <- rename(discrete_areas_deep, Depth=depth)
-
-#discrete_areas_deep <- discrete_areas_deep[!duplicated(discrete_areas_deep[1:6]),]
-
-```
-
 ```{r, echo=FALSE}
 discrete_areas <- discrete_areas %>%
                   mutate(Depth_Cat = "Shallow")
                                     
-# discrete_areas_deep <- discrete_areas_deep %>%
-#                        mutate(Area_Combo = ifelse((Area %in% c(1)), "10",
-#                                            ifelse((Area %in% c(2)), "11",
-#                                            ifelse((Area %in% c(5)), "12",
-#                                            ifelse((Area %in% c(3)), "13", "14")))),
-#                               Depth_Cat = "Deep")
-# 
-# discrete_areas_combo <- bind_rows(discrete_areas, discrete_areas_deep)
-
-
 ```
 
 ```{r, echo=FALSE}
@@ -82,9 +57,8 @@ discrete_areas$area1 <- factor(discrete_areas$area,
                                levels=c('1','2','3','4','5','6','7','8','9','10'))
 # http://colorbrewer2.org/     brewer.pal(n=9, "PuRd")
 pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
-           "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")     #E3C9C6   #FDE0DD
-#blues <- c("#9ECAE1", "#6BAED6", "#4292C6", "#2171B5", "#084594")
-#Colors1 <- c(pinks, blues)
+           "#E7298A", "#DD3497", "#AE017E", "#7A0177",  "#49006A")     
+
 
 ak_areas_all <- akmap2 +
                 geom_point(data=discrete_areas, 
@@ -101,129 +75,13 @@ ak_areas_all <- akmap2 +
                  annotate("text", x=-151.1, y=57.8, label="7", size=4, color="white") +
                  annotate("text", x=-152.85, y=56.8, label="8", size=4, color="white") +
                  annotate("text", x=-155.5, y=56.45, label="9", size=4, color="white") +
-                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white") #+
-                # annotate("text", x=-153.9, y=58.1, label="11", size=4) +
-                # annotate("text", x=-150, y=58, label="12", size=4) +
-                # annotate("text", x=-156.3, y=56, label="13", size=4, color="white") +
-                # annotate("text", x=-158.5, y=55.25, label="14", size=4, color="white") 
-               #  theme(legend.key.size=unit(11,"points"),
-              #         legend.text=element_text(size=9),
-              #         legend.key=element_rect(fill="white"),
-              #         legend.justification=c(1,0), 
-              #         legend.position=c(1,0)) +
-              #   guides(color=guide_legend(ncol=2))
+                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white") 
+
 ak_areas_all
 
 
 
 ```
-
-
-
-Plotting Shoreline Surface Oil:
-
-```{r, echo=FALSE, , include=FALSE, message=FALSE}
-
-sho_shp <- readOGR(dsn="../Oil_Markdown_folder",
-                   layer="all_0689_and_0889_surveys_merged",
-                   stringsAsFactors=FALSE)
-
-#crs(sho_shp)
-#plot(sho_shp, col='blue')
-
-sho_shp@data$id = rownames(sho_shp@data)
-
-LL_proj <-  "+proj=longlat +datum=NAD83"
-
-sho_shp <- spTransform(sho_shp, LL_proj)
-
-sho_shp_pt <- fortify(sho_shp, region="id")
-
-sho_shp_df <- join(sho_shp_pt, sho_shp@data, by="id")
-
-sho_shp_df <- sho_shp_df[!(sho_shp_df$OILING %in% c("UNOBSERVED", "NO_IMPACT")),]# remove "UNOBSERVED" and "NO_IMPACT" categories
-#plot(sho_shp_df$long, sho_shp_df$lat)
-
-```
-
-
-```{r,  echo=FALSE, message=FALSE}
-
-sho_shp_df$OILING1 <- factor(sho_shp_df$OILING,
-                             levels=c("VLIGHT_IMPACT","LIGHT_IMPACT",
-                                      "MEDIUM_IMPACT","HEAVY_IMPACT"))
-
-ak_so <- ak_areas_all + 
-         geom_path(data=sho_shp_df, aes(x=long, y=lat, group=group, size=OILING1),
-                                        color="#67001F") +
-         scale_size_manual(values=c(0.5, 1.25, 2, 2.75), name="Shoreline Oiling",
-                           breaks=c("VLIGHT_IMPACT","LIGHT_IMPACT",
-                                     "MEDIUM_IMPACT","HEAVY_IMPACT"),
-                           labels=c("Very Light", "Light", "Medium", "Heavy")) +
-         geom_segment(aes(x=-163, y=61.35, xend=-163, yend=61.75), size=1.1,
-                      arrow=arrow(length=unit(0.35, "cm"))) + 
-         annotate("text", x=-163, y=61.1, label="N", size=6) +
-         theme(legend.position=c(1,0),
-               legend.justification=c(1,0),
-               legend.key=element_rect(fill="white"))
-ak_so           
-          
-
-```
-
-
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-#DON'T USE
-SOzipd <- tempfile()
-download.file("http://pdx.axiomalaska.com/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&outputFormat=SHAPE-ZIP&typeName=axiom:EVOSShorelineSurfaceOiling", SOzipd, mode="wb")
-SOzip_Unz <- unzip(SOzipd, exdir="SOzipd")
-
-slk_so <- readOGR(dsn="SOzipd",
-                  layer="EVOSShorelineSurfaceOilingLine",
-                  stringsAsFactors=FALSE)
-
-crs(slk_so)
-plot(slk_so, col='blue')
-
-slk_so@data$id = rownames(slk_so@data)
-
-LL_proj <-  "+proj=longlat +datum=NAD83"
-
-slk_so <- spTransform(slk_so, LL_proj)
-
-slk_so_pt <- fortify(slk_so, region="id")
-
-slk_so_df <- join(slk_so_pt, slk_so@data, by="id")
-
-slk_so_df <- slk_so_df[!is.na(slk_so_df$PosteriorO),]  # remove NA category
-slk_so_df <- slk_so_df[!(slk_so_df$PosteriorO %in% c("UNOBSERVED")),]# remove "UNOBSERVED" category
-
-```
-
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-# DON'T USE
-
-# "LIGHT_IMPACT"  "VLIGHT_IMPACT" "MEDIUM_IMPACT" "HEAVY_IMPACT" 
-
-slk_so_df$PosteriorO1 <- factor(slk_so_df$PosteriorO,
-                                levels=c("VLIGHT_IMPACT","LIGHT_IMPACT",
-                                         "MEDIUM_IMPACT","HEAVY_IMPACT"))
-#This works, but it's only on the bare map.
-ak_sobt <- akmap2 + 
-           geom_point(data=slk_so_df, aes(x=long, y=lat, color=PosteriorO1), size=1) 
-            
-ak_sobt     
-
-#Now this works also, but I don't like it.
-ak_sot <- ak_areas_all + 
-          geom_point(data=slk_so_df, aes(x=long, y=lat, size=PosteriorO1)) 
-            
-ak_sot           
-
-```
-
-
-
 
 
 
