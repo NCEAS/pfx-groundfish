@@ -3,9 +3,10 @@ title: "Figures for Blake et al. diversity paper"
 author: "started by M. Hunsicker, revised by R.E. Blake"
 date: "started 10/24/2016, revised 8/8/2017"
 output:
-  pdf_document: 
-  fig_height: 4
+  html_document: default
   fig_width: 7
+  fig_height: 4
+  pdf_document: null
 ---
 
 ```{r, include=FALSE, echo=FALSE}
@@ -238,7 +239,7 @@ sp_box123
 
 ```{r, echo=FALSE}
 # Figure 4: NMDS Wisconsin plot
-source("./diversity_scripts/nmds.r")
+source("../diversity_scripts/nmds.r")
 
 ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")
 text(ordShallowWiscSqrt, display = "spec", cex = 0.5, col="black")
@@ -260,7 +261,7 @@ ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=10, co
 
 ```{r, echo=FALSE}
 # Figure 5: Disturbance & Productivity plots
-source("./diversity_scripts/Disturbance_Productivity_Hyp.R")
+source("../diversity_scripts/Disturbance_Productivity_Hyp.r")
 
 
 gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
@@ -312,21 +313,34 @@ ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=10, c
 # source("./diversity_scripts/Disturbance_Productivity_Hyp.R")
 
 # making final figure
-# gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
-#                                                         axis.text.x = element_blank())
-# gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_blank(), 
-#                                                         axis.text.x = element_blank(),
-#                                                         legend.title = element_blank())                   
-# gam3_plot_final <- gam3_plot + labs(title="c.")     
-# gam3a_plot_final <- gam3a_plot + labs(title="d.")   
+ div_plot2c_final <- div_plot2c + labs(title="a.") + theme(axis.title.x = element_blank(), 
+                                                           axis.text.x = element_blank())
+ div_plot2_final <- div_plot3c + labs(title="b.") + theme(legend.title = element_blank()) 
+ 
+ div_plot3_final <- div_plot4d + labs(title="c.")     
+# div_plot3a_final <- div_plot3a + labs(title="d.")   
 # div_plot4c_final <- div_plot4c + labs(title="e.")
 # 
-# ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
+ ffig2 <- ggarrange(div_plot2c_final, div_plot2_final, div_plot3_final, ncol=2, nrow=2)
 # 
-# ffig
+ ffig2
 
 
 
 ```
+
+
+```{r, echo=FALSE, fig.height=16, fig.width=12}
+# Supplementary Appendix A3: figure of correlation between fishing pressure and Chla
+
+
+```
+
+
+
+
+
+
+
 
 

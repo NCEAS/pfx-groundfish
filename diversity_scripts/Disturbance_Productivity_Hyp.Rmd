@@ -236,7 +236,7 @@ summary(gam1c) #; anova(gam1c)
 
 # ggplot
 gam1_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + 
-             geom_point(size=6) + ylab("Species Richness") + theme_boxplot() +
+             geom_point(size=4) + ylab("Species Richness") + theme_boxplot() +
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              scale_color_manual(values=colors_plot) + 
@@ -290,7 +290,7 @@ summary(gam2c) #; anova(gam2c)
 
 # ggplot
 gam2_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) + 
-             geom_point(size=6) +  ylab("Alpha Diversity") + 
+             geom_point(size=4) +  ylab("Alpha Diversity") + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() +
              scale_color_manual(values=colors_plot) + 
@@ -321,7 +321,7 @@ summary(gam3c) #; anova(gam3c)
 
 # ggplot
 gam3_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + 
-             geom_point(size=6) +  ylab("Beta Diversity") + 
+             geom_point(size=4) +  ylab("Beta Diversity") + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() +
              scale_color_manual(values=colors_plot) + 
@@ -351,7 +351,7 @@ summary(gam3cc) #; anova(gam3cc)
 
 # ggplot
 gam3a_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=RaosQ, color=Catch_area)) + 
-              geom_point(size=6) +  ylab("Functional Diversity") + 
+              geom_point(size=4) +  ylab("Functional Diversity") + 
               xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) +  
               stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() + 
               scale_color_manual(values=colors_plot) + 
@@ -448,7 +448,7 @@ pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
 lmfit4 <- lm(Sp_rich_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
 
 div_plot2c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Sp_rich_mn, color=as.factor(AREA1))) + 
-              geom_point(size=6) + scale_color_manual(values=pinks) + theme_boxplot() +
+              geom_point(size=4) + scale_color_manual(values=pinks) + theme_boxplot() +
               stat_smooth(method="lm", col="blue", size=2) + ylab("Species Richness") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
               theme(legend.position = "none", panel.background = element_blank()) +
@@ -468,7 +468,7 @@ anova(lmfit4) # anova table of above lm() fit
 lmfit5 <- lm(Eff_Num_Sp_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
 
 div_plot3c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Eff_Num_Sp_mn, color=as.factor(AREA1))) + 
-              geom_point(size=6) + scale_color_manual(values=pinks) + theme_boxplot() +
+              geom_point(size=4) + scale_color_manual(values=pinks) + theme_boxplot() +
               stat_smooth(method="lm", col="blue", size=2) + ylab("Alpha Diversity") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
               theme(legend.position = "right", panel.background = element_blank()) +
@@ -488,7 +488,7 @@ anova(lmfit5) # anova table of above lm() fit
 lmfit6 <- lm(Exp_B_Div_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
 
 div_plot4c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=as.factor(AREA1))) + 
-              geom_point(size=6) + theme_boxplot() + scale_color_manual(values=pinks, name="Local\nArea") + 
+              geom_point(size=4) + theme_boxplot() + scale_color_manual(values=pinks, name="Local\nArea") + 
               stat_smooth(method="lm", col="blue", size=2) + ylab("Beta Diversity") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")"))) + 
               theme(legend.position = c(1,0), legend.justification = c(0,0),
@@ -509,7 +509,7 @@ anova(lmfit6) # anova table of above lm() fit
 lmfit6b <- lm(RaosQ~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
 
 div_plot4d <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=RaosQ, color=as.factor(AREA1))) + 
-              geom_point(size=6) + scale_color_manual(values=pinks) + theme_boxplot() +
+              geom_point(size=4) + scale_color_manual(values=pinks) + theme_boxplot() +
               stat_smooth(method="lm", col="blue", size=2) + ylab("Functional Diversity") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")"))) + 
               theme(legend.position = "none", panel.background = element_blank()) +
