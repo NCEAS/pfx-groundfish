@@ -21,7 +21,7 @@ library(gridExtra)
 ```
 
 
-# Jump to line 1018
+# Jump to line 1251
 
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
@@ -55,6 +55,10 @@ shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # me
   select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
   left_join(area, by = "area") # merge in area (km^2) of each local community
 
+
+# remove top 4 most numerically doominant species
+subdom1 <- shallowCPUEArea2 %>%
+  filter(!common.name %in% c("arrowtooth flounder", "Pacific halibut", "walleye pollock", "Pacific cod"))
 
 ```
 
@@ -230,6 +234,98 @@ random_agg_list_noSingles <- c(random2_list, random3_list, random4_list, random5
 load("random_agg_list_noSingles.RData")
 
 
+
+
+##################################################
+
+# Number of distinct combinations possible for each aggregation:
+# 1 community: 10
+# 2 communities: 45
+# 3: 120
+# 4: 210
+# 5: 252
+# 6: 210
+# 7: 120
+# 8: 45
+# 9: 10
+# 10: 1
+
+# so, taking 100 random draws (as above) oversamples aggregations of 2, 8, & 9 local communities
+# 2 options to deal with this:
+# 1) Do 45 random draws for aggregations of 2-8 local communities, 10 random draws for 1 & 9 communities, 1 for 10 communities
+# 2) Do 100 random draws for aggregations of 3-7 local communities, 45 for 2 & 8 communities, 10 for 1 & 9 communities, 1 for 10 communities
+
+
+########################
+
+# 1) Do 45 random draws for aggregations of 2-8 local communities, 10 random draws for 1 & 9 communities, 1 for 10 communities:
+
+random1_list1 <- list()
+random2_list1 <- list()
+random3_list1 <- list()
+random4_list1 <- list()
+random5_list1 <- list()
+random6_list1 <- list()
+random7_list1 <- list()
+random8_list1 <- list()
+random9_list1 <- list()
+
+for (i in 1:10) {
+  random1_list1[[i]] <- sample(seq(1:10), size = 1)
+  random9_list1[[i]] <- sample(seq(1:10), size = 9)
+}
+for (i in 1:45) {
+  random2_list1[[i]] <- sample(seq(1:10), size = 2)
+  random3_list1[[i]] <- sample(seq(1:10), size = 3)
+  random4_list1[[i]] <- sample(seq(1:10), size = 4)
+  random5_list1[[i]] <- sample(seq(1:10), size = 5)
+  random6_list1[[i]] <- sample(seq(1:10), size = 6)
+  random7_list1[[i]] <- sample(seq(1:10), size = 7)
+  random8_list1[[i]] <- sample(seq(1:10), size = 8)
+}
+random10_list1 <- list(1:10)
+
+random_agg_list_noSingles1 <- c(random2_list1, random3_list1, random4_list1, random5_list1, random6_list1, random7_list1, random8_list1, random9_list1, random10_list1)
+#save(random_agg_list_noSingles1, file = "random_agg_list_noSingles1.RData")
+load("random_agg_list_noSingles1.RData")
+
+
+########################
+
+# 2) Do 100 random draws for aggregations of 3-7 local communities, 45 for 2 & 8 communities, 10 for 1 & 9 communities, 1 for 10 communities:
+
+random1_list2 <- list()
+random2_list2 <- list()
+random3_list2 <- list()
+random4_list2 <- list()
+random5_list2 <- list()
+random6_list2 <- list()
+random7_list2 <- list()
+random8_list2 <- list()
+random9_list2 <- list()
+
+for (i in 1:10) {
+  random1_list2[[i]] <- sample(seq(1:10), size = 1)
+  random9_list2[[i]] <- sample(seq(1:10), size = 9)
+}
+for (i in 1:45) {
+  random2_list2[[i]] <- sample(seq(1:10), size = 2)
+  random8_list2[[i]] <- sample(seq(1:10), size = 8)
+}
+for (i in 1:100) {
+  random3_list2[[i]] <- sample(seq(1:10), size = 3)
+  random4_list2[[i]] <- sample(seq(1:10), size = 4)
+  random5_list2[[i]] <- sample(seq(1:10), size = 5)
+  random6_list2[[i]] <- sample(seq(1:10), size = 6)
+  random7_list2[[i]] <- sample(seq(1:10), size = 7)
+}
+random10_list2 <- list(1:10)
+
+random_agg_list_noSingles2 <- c(random2_list2, random3_list2, random4_list2, random5_list2, random6_list2, random7_list2, random8_list2, random9_list2, random10_list2)
+#save(random_agg_list_noSingles2, file = "random_agg_list_noSingles2.RData")
+load("random_agg_list_noSingles2.RData")
+
+
 ```
 
 
@@ -279,11 +375,17 @@ CV_Area_func <- function(my_df, spatialGrouping){
 
 # run function for spatially nested aggregations of local communities:
 CV_Area_spatNested <- CV_Area_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+# for subdominant species:
+CV_Area_spatNested_subdom1 <- CV_Area_func(subdom1, spatially_nested_list_noSingles)
 
 
 # run function for random aggregations of local communities:
 CV_Area_randomAgg <- CV_Area_func(shallowCPUEArea2, random_agg_list_noSingles)
+CV_Area_randomAgg1 <- CV_Area_func(shallowCPUEArea2, random_agg_list_noSingles1)
+CV_Area_randomAgg2 <- CV_Area_func(shallowCPUEArea2, random_agg_list_noSingles2)
 #save(CV_Area_randomAgg, file = "CV_Area_randomAgg.RData")
+# for subdominant species:
+CV_Area_randomAgg1_subdom1 <- CV_Area_func(subdom1, random_agg_list_noSingles1)
 
 
 ```
@@ -305,6 +407,9 @@ setwd("~/Google Drive/GoA project/pfx-groundfish/spatial-portfolio-project")
 occDat1 <- occDat %>%
   select(area, year.numb, Species, Mean.avgPresence)
 
+occDat_subdom1 <- occDat %>%
+  select(area, year.numb, Species, Mean.avgPresence) %>%
+  filter(!Species %in% c("Atheresthes.stomias", "Hippoglossus.stenolepis", "Gadus.chalcogrammus", "Gadus.macrocephalus"))
 
 
 Richness_func <- function(my_df, spatialGrouping){
@@ -348,11 +453,16 @@ Richness_func <- function(my_df, spatialGrouping){
 # run function for spatially nested aggregations of local communities:
 richness_spatNested <- Richness_func(occDat1, spatially_nested_list_noSingles)
 #richness_spatNested_withSingles <- Richness_func(occDat1, spatially_nested_list); richness_spatNested_withSingles
+# for subdominant species:
+richness_spatNested_subdom1 <- Richness_func(occDat_subdom1, spatially_nested_list_noSingles)
 
 # run function for random aggregations of local communities:
 richness_randomAgg <- Richness_func(occDat1, random_agg_list_noSingles)
+richness_randomAgg1 <- Richness_func(occDat1, random_agg_list_noSingles1)
+richness_randomAgg2 <- Richness_func(occDat1, random_agg_list_noSingles2)
 #save(richness_randomAgg, file = "richness_randomAgg.RData")
-
+# for subdominant species:
+richness_randomAgg1_subdom1 <- Richness_func(occDat_subdom1, random_agg_list_noSingles1)
 
 
 #######################################
@@ -404,10 +514,80 @@ meanRichness_func <- function(my_df, spatialGrouping){
 # run function for spatially nested aggregations of local communities:
 meanRichness_spatNested <- meanRichness_func(occDat1, spatially_nested_list_noSingles)
 #meanRichness_spatNested_withSingles <- meanRichness_func(occDat1, spatially_nested_list); meanRichness_spatNested_withSingles
+# for subdominant species:
+meanRichness_spatNested_subdom1 <- meanRichness_func(occDat_subdom1, spatially_nested_list_noSingles)
 
 # run function for random aggregations of local communities:
 meanRichness_randomAgg <- meanRichness_func(occDat1, random_agg_list_noSingles)
+meanRichness_randomAgg1 <- meanRichness_func(occDat1, random_agg_list_noSingles1)
+meanRichness_randomAgg2 <- meanRichness_func(occDat1, random_agg_list_noSingles2)
 #save(meanRichness_randomAgg, file = "meanRichness_randomAgg.RData")
+#for subdominant species:
+meanRichness_randomAgg1_subdom1 <- meanRichness_func(occDat_subdom1, random_agg_list_noSingles1)
+
+
+#######################################
+
+# Mean between-patch difference in species richness, for each aggregation:
+
+meanRichDiff_func <- function(my_df, spatialGrouping){
+ 
+  unlisted_list <- list()
+  diffs_list <- list()
+  mean_pairwise_diffs_list <- list()
+  
+  
+  # create nested lists with 2 levels:
+  loc_rich_list <- vector("list", length(spatialGrouping))
+  
+  
+  for(j in 1:length(spatialGrouping)) {
+    
+    for(k in 1:length(spatialGrouping[[j]])) {
+    
+      # calculate sp richness for each local community k in aggregation j:
+      loc_rich_list[[j]][[k]] <- my_df %>%
+                                 filter(area %in% spatialGrouping[[j]]) %>%
+                                 filter(area == spatialGrouping[[j]][k]) %>%
+      
+                                 group_by(year.numb) %>%
+                                 summarize(annProbOcc = sum(Mean.avgPresence)) %>% # calculate total prob of occurrence for each year
+                                 ungroup() %>%
+        
+                                 summarize(meanAnnProbOcc = mean(annProbOcc)) # calculate mean across all years
+      
+    } # end of k
+    
+    
+    unlisted_list[[j]] <- unlist(loc_rich_list[[j]]) # flatten each j list to a vector
+    diffs_list[[j]] <- abs(apply(combn(unlisted_list[[j]], 2), 2, diff)) # for each pair of patches within the aggregation (excluding self pairs), calculate the pairwise difference in local richness
+    mean_pairwise_diffs_list[[j]] <- mean(diffs_list[[j]]) # for each aggregation, calculate mean of all pairwise differences in local richness
+    
+    
+    } # end of j
+  
+  
+  # return dataframe of outputs:
+  rich_diffs_list <- list(mean_pairwise_diffs_list)
+  rich_diffs_df <- as.data.frame(matrix(unlist(rich_diffs_list), nrow=length(unlist(rich_diffs_list[1]))))
+  colnames(rich_diffs_df) <- c("meanRichDiff")
+  rich_diffs_df <- mutate(rich_diffs_df, id = rownames(rich_diffs_df)) # add column with unique number
+    
+  
+}
+
+# run for spatially-nested aggregations of local communities:
+meanRichDiff_spatNested <- meanRichDiff_func(occDat1, spatially_nested_list_noSingles)
+# for subdominant species:
+meanRichDiff_spatNested_subdom1 <- meanRichDiff_func(occDat_subdom1, spatially_nested_list_noSingles)
+
+# run for random aggregations of local communities:
+meanRichDiff_randomAgg <- meanRichDiff_func(occDat1, random_agg_list_noSingles)
+meanRichDiff_randomAgg1 <- meanRichDiff_func(occDat1, random_agg_list_noSingles1)
+meanRichDiff_randomAgg2 <- meanRichDiff_func(occDat1, random_agg_list_noSingles2)
+#save(meanRichDiff_randomAgg, file = "meanRichDiff_randomAgg.RData")
+# for subdominant species:
+meanRichDiff_randomAgg1_subdom1 <- meanRichDiff_func(occDat_subdom1, random_agg_list_noSingles1)
 
 ```
 
@@ -451,11 +631,16 @@ alphaDiv_func <- function(my_df, spatialGrouping){
 
 # run for spatially-nested aggregations of local communities:
 alphaDiv_spatNested <- alphaDiv_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+# for subdominant species:
+alphaDiv_spatNested_subdom1 <- alphaDiv_func(subdom1, spatially_nested_list_noSingles)
 
 # run for random aggregations of local communities:
 alphaDiv_randomAgg <- alphaDiv_func(shallowCPUEArea2, random_agg_list_noSingles)
+alphaDiv_randomAgg1 <- alphaDiv_func(shallowCPUEArea2, random_agg_list_noSingles1)
+alphaDiv_randomAgg2 <- alphaDiv_func(shallowCPUEArea2, random_agg_list_noSingles2)
 #save(alphaDiv_randomAgg, file = "alphaDiv_randomAgg.RData")
-
+# for subdominant species:
+alphaDiv_randomAgg1_subdom1 <- alphaDiv_func(subdom1, random_agg_list_noSingles1)
 
 
 ##############################
@@ -507,10 +692,18 @@ meanAlpha_func <- function(my_df, spatialGrouping){
 
 # run for spatially-nested aggregations of local communities:
 meanAlpha_spatNested <- meanAlpha_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+# for subdominant species:
+meanAlpha_spatNested_subdom1 <- meanAlpha_func(subdom1, spatially_nested_list_noSingles)
+
 
 # run for random aggregations of local communities:
 meanAlpha_randomAgg <- meanAlpha_func(shallowCPUEArea2, random_agg_list_noSingles)
+meanAlpha_randomAgg1 <- meanAlpha_func(shallowCPUEArea2, random_agg_list_noSingles1)
+meanAlpha_randomAgg2 <- meanAlpha_func(shallowCPUEArea2, random_agg_list_noSingles2)
 #save(meanAlpha_randomAgg, file = "meanAlpha_randomAgg.RData")
+# for subdominant species:
+meanAlpha_randomAgg1_subdom1 <- meanAlpha_func(subdom1, random_agg_list_noSingles1)
+
 
 
 ```
@@ -629,11 +822,22 @@ sync_within_func <- function(my_df, spatialGrouping){
 
 # run for spatially-nested aggregations of local communities:
 sync_within_spatNested <- sync_within_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+#save(sync_within_spatNested, file = "sync_within_spatNested.RData")
+#load(sync_within_spatNested.RData)
+# for subdominant species:
+sync_within_spatNested_subdom1 <- sync_within_func(subdom1, spatially_nested_list_noSingles)
+#save(sync_within_spatNested_subdom1, file = "sync_within_spatNested_subdom1.RData")
+
 
 # run for random aggregations of local communities:
-sync_within_randomAgg <- sync_within_func(shallowCPUEArea2, random_agg_list_noSingles)
-#save(sync_within_randomAgg, file = "sync_within_randomAgg.RData")
+sync_within_randomAgg <- sync_within_func(shallowCPUEArea2, random_agg_list_noSingles)#; save(sync_within_randomAgg, file = "sync_within_randomAgg.RData")
+sync_within_randomAgg1 <- sync_within_func(shallowCPUEArea2, random_agg_list_noSingles1)#; save(sync_within_randomAgg1, file = "sync_within_randomAgg1.RData")
+sync_within_randomAgg2 <- sync_within_func(shallowCPUEArea2, random_agg_list_noSingles2)#; save(sync_within_randomAgg2, file = "sync_within_randomAgg2.RData")
+#load("sync_within_randomAgg.RData")
 
+# for subdominant species:
+sync_within_randomAgg1_subdom1 <- sync_within_func(subdom1, random_agg_list_noSingles1)
+#save(sync_within_randomAgg1_subdom1, file = "sync_within_randomAgg1_subdom1.RData")
 
 ```
 
@@ -683,7 +887,7 @@ spat_uneveness_func <- function(my_df, spatialGrouping){
   # return dataframe of outputs:
   unev_list <- list(mean_pairwise_diffs_list)
   unev_df <- as.data.frame(matrix(unlist(unev_list), nrow=length(unlist(unev_list[1]))))
-  colnames(unev_df) <- c("meanUnevenessCPUE")
+  colnames(unev_df) <- c("meanUneveness")
   unev_df <- mutate(unev_df, id = rownames(unev_df)) # add column with unique number
   
 }
@@ -691,10 +895,18 @@ spat_uneveness_func <- function(my_df, spatialGrouping){
 
 # run for spatially-nested aggregations of local communities:
 uneveness_spatNested <- spat_uneveness_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+# for subdominant species:
+uneveness_spatNested_subdom1 <- spat_uneveness_func(subdom1, spatially_nested_list_noSingles)
+
 
 # run for random aggregations of local communities:
 uneveness_randomAgg <- spat_uneveness_func(shallowCPUEArea2, random_agg_list_noSingles)
+uneveness_randomAgg1 <- spat_uneveness_func(shallowCPUEArea2, random_agg_list_noSingles1)
+uneveness_randomAgg2 <- spat_uneveness_func(shallowCPUEArea2, random_agg_list_noSingles2)
 #save(uneveness_randomAgg, file = "uneveness_randomAgg.RData")
+# for subdominant species:
+uneveness_randomAgg1_subdom1 <- spat_uneveness_func(subdom1, random_agg_list_noSingles1)
+
 
 
 ```
@@ -771,12 +983,19 @@ sync_between_func <- function(my_df, spatialGrouping){
 # run function for spatially-nested aggregations of local communities:
 # note I must remove single local communities to look at synchrony between communities
 sync_between_spatNested <- sync_between_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+# for subdominant species:
+sync_between_spatNested_subdom1 <- sync_between_func(subdom1, spatially_nested_list_noSingles)
 
 
 # run function for random aggregations of local communities:
 # note I must remove single local communities to look at synchrony between communities
 sync_between_randomAgg <- sync_between_func(shallowCPUEArea2, random_agg_list_noSingles)
+sync_between_randomAgg1 <- sync_between_func(shallowCPUEArea2, random_agg_list_noSingles1)
+sync_between_randomAgg2 <- sync_between_func(shallowCPUEArea2, random_agg_list_noSingles2)
 #save(sync_between_randomAgg, file = "sync_between_randomAgg.RData")
+# for subdominant species:
+sync_between_randomAgg1_subdom1 <- sync_between_func(subdom1, random_agg_list_noSingles1)
+
 
 ```
 
@@ -801,7 +1020,7 @@ avSpeciesVar_within_func <- function(my_df, spatialGrouping){
     AAA_list[[j]] <- AA_list[[j]] %>%
                      select(year, common.name, Mean.totalDensity) %>%
                      group_by(year, common.name) %>%
-                     summarize(spTotDensity = sum(Mean.totalDensity)) %>% # for each species in each year, sum its total density across all local communities in the spatial grouping
+                     summarize(spTotDensity = sum(Mean.totalDensity)) %>% # for each species in each year, sum its total density across ALL local communities in the spatial grouping
                      ungroup()
         
     
@@ -813,8 +1032,8 @@ avSpeciesVar_within_func <- function(my_df, spatialGrouping){
       group_by(year) %>%
       summarize(annual_total_i = sum(spTotDensity)) %>% # sum CUEs across all species for each local community i in each year
       ungroup() %>%
-      summarize(var_i = var(annual_total_i),
-                stDev_i = sqrt(var(annual_total_i)),
+      summarize(#var_i = var(annual_total_i),  # remnant code; unnecessary now
+                #stDev_i = sqrt(var(annual_total_i)),  # remnant code; unnecessary now
                 u_i = mean(annual_total_i)) # mean total community CUE (across all years) for local community (or spatial grouping) i
     
     
@@ -829,7 +1048,7 @@ avSpeciesVar_within_func <- function(my_df, spatialGrouping){
     
   # calculate averaged species variability
     C_list[[j]] <- B_list[[j]] %>%
-      summarise(CV_species_i_squared = sum(CV_species_j_i))
+      summarise(CV_species_i_squared = sum(CV_species_j_i)) # using formula from Wang & Loreau 2014 ... but this is a sum, not a mean ...?
     
     
   }
@@ -848,10 +1067,18 @@ avSpeciesVar_within_func <- function(my_df, spatialGrouping){
 
 # run function for spatially-nested aggregations of local communities:
 avSpVar_within_spatNested <- avSpeciesVar_within_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+# for subdominant species:
+avSpVar_within_spatNested_subdom1 <- avSpeciesVar_within_func(subdom1, spatially_nested_list_noSingles)
+
 
 # run function for random aggregations of local communities:
 avSpVar_within_randomAgg <- avSpeciesVar_within_func(shallowCPUEArea2, random_agg_list_noSingles)
+avSpVar_within_randomAgg1 <- avSpeciesVar_within_func(shallowCPUEArea2, random_agg_list_noSingles1)
+avSpVar_within_randomAgg2 <- avSpeciesVar_within_func(shallowCPUEArea2, random_agg_list_noSingles2)
 #save(avSpVar_within_randomAgg, file = "avSpVar_within_randomAgg.RData")
+# for subdominant species:
+avSpVar_within_randomAgg1_subdom1 <- avSpeciesVar_within_func(subdom1, random_agg_list_noSingles1)
+
 
 ```
 
@@ -919,7 +1146,7 @@ bray_func <- function(your_df, spatialGrouping){
   
     my_list <- list(bray_list)
     bray_df <- as.data.frame(matrix(unlist(my_list), nrow=length(unlist(my_list[1]))))
-    colnames(bray_df) <- c("bray")
+    colnames(bray_df) <- c("oldBray")
     bray_df <- mutate(bray_df, id = rownames(bray_df)) # add column with unique number
     
     return(bray_df)
@@ -994,10 +1221,18 @@ alt_bray_func <- function(your_df, spatialGrouping){
 
 # run function for spatially-nested aggregations of local communities:
 altBrayResult_spatNested <- alt_bray_func(shallowCPUEArea2, spatially_nested_list_noSingles)
+# for subdominant species:
+altBrayResult_spatNested_subdom1 <- alt_bray_func(subdom1, spatially_nested_list_noSingles)
+
 
 # run function for random aggregations of local communities:
 altBrayResult_randomAgg <- alt_bray_func(shallowCPUEArea2, random_agg_list_noSingles)
+altBrayResult_randomAgg1 <- alt_bray_func(shallowCPUEArea2, random_agg_list_noSingles1)
+altBrayResult_randomAgg2 <- alt_bray_func(shallowCPUEArea2, random_agg_list_noSingles2)
 #save(altBrayResult_randomAgg, file = "altBrayResult_randomAgg.RData")
+# for subdominant species:
+altBrayResult_randomAgg1_subdom1 <- alt_bray_func(subdom1, random_agg_list_noSingles1)
+
 
 
 ```
@@ -1008,8 +1243,9 @@ altBrayResult_randomAgg <- alt_bray_func(shallowCPUEArea2, random_agg_list_noSin
 # bind dataframes together
 
 randomAgg <- CV_Area_randomAgg %>%
-  #left_join(richness_randomAgg, by = "id") %>%
-  eft_join(meanRichness_randomAgg, by = "id") %>%
+  left_join(richness_randomAgg, by = "id") %>%
+  left_join(meanRichness_randomAgg, by = "id") %>%
+  left_join(meanRichDiff_randomAgg, by = "id") %>%
   #left_join(alphaDiv_randomAgg, by = "id") %>%
   left_join(meanAlpha_randomAgg, by = "id") %>%
   left_join(sync_within_randomAgg, by = "id") %>%
@@ -1021,10 +1257,59 @@ randomAgg <- CV_Area_randomAgg %>%
   mutate(n = as.character(n))
 #save(randomAgg, file = "randomAgg.RData")
 
+randomAgg1 <- CV_Area_randomAgg1 %>%
+  left_join(richness_randomAgg1, by = "id") %>%
+  left_join(meanRichness_randomAgg1, by = "id") %>%
+  left_join(meanRichDiff_randomAgg1, by = "id") %>%
+  #left_join(alphaDiv_randomAgg1, by = "id") %>%
+  left_join(meanAlpha_randomAgg1, by = "id") %>%
+  left_join(sync_within_randomAgg1, by = "id") %>%
+  left_join(sync_between_randomAgg1, by = "id") %>%
+  left_join(avSpVar_within_randomAgg1, by = "id") %>%
+  left_join(uneveness_randomAgg1, by = "id") %>%
+  #left_join(brayResult_randomAgg1, by = "id") %>%
+  left_join(altBrayResult_randomAgg1, by = "id") %>%
+  mutate(n = as.character(n))
+#save(randomAgg1, file = "randomAgg1.RData")
+
+randomAgg2 <- CV_Area_randomAgg2 %>%
+  left_join(richness_randomAgg2, by = "id") %>%
+  left_join(meanRichness_randomAgg2, by = "id") %>%
+  left_join(meanRichDiff_randomAgg2, by = "id") %>%
+  #left_join(alphaDiv_randomAgg2, by = "id") %>%
+  left_join(meanAlpha_randomAgg2, by = "id") %>%
+  left_join(sync_within_randomAgg2, by = "id") %>%
+  left_join(sync_between_randomAgg2, by = "id") %>%
+  left_join(avSpVar_within_randomAgg2, by = "id") %>%
+  left_join(uneveness_randomAgg2, by = "id") %>%
+  #left_join(brayResult_randomAgg2, by = "id") %>%
+  left_join(altBrayResult_randomAgg2, by = "id") %>%
+  mutate(n = as.character(n))
+#save(randomAgg2, file = "randomAgg2.RData")
+
+
+randomAgg1_subdom1 <- CV_Area_randomAgg1_subdom1 %>%
+  left_join(richness_randomAgg1_subdom1, by = "id") %>%
+  left_join(meanRichness_randomAgg1_subdom1, by = "id") %>%
+  left_join(meanRichDiff_randomAgg1_subdom1, by = "id") %>%
+  #left_join(alphaDiv_randomAgg1_subdom1, by = "id") %>%
+  left_join(meanAlpha_randomAgg1_subdom1, by = "id") %>%
+  left_join(sync_within_randomAgg1_subdom1, by = "id") %>%
+  left_join(sync_between_randomAgg1_subdom1, by = "id") %>%
+  left_join(avSpVar_within_randomAgg1_subdom1, by = "id") %>%
+  left_join(uneveness_randomAgg1_subdom1, by = "id") %>%
+  #left_join(brayResult_randomAgg1_subdom1, by = "id") %>%
+  left_join(altBrayResult_randomAgg1_subdom1, by = "id") %>%
+  mutate(n = as.character(n))
+#save(randomAgg1_subdom1, file = "randomAgg1_subdom1.RData")
+
+
+
 
 spatNested <- CV_Area_spatNested %>%
-  #left_join(richness_spatNested, by = "id") %>%
+  left_join(richness_spatNested, by = "id") %>%
   left_join(meanRichness_spatNested, by = "id") %>%
+  left_join(meanRichDiff_spatNested, by = "id") %>%
   #left_join(alphaDiv_spatNested, by = "id") %>%
   left_join(meanAlpha_spatNested, by = "id") %>%
   left_join(sync_within_spatNested, by = "id") %>%
@@ -1035,6 +1320,22 @@ spatNested <- CV_Area_spatNested %>%
   left_join(altBrayResult_spatNested, by = "id") %>%
   mutate(n = as.character(n))
 #save(spatNested, file = "spatNested.RData")
+
+
+spatNested_subdom1 <- CV_Area_spatNested_subdom1 %>%
+  left_join(richness_spatNested_subdom1, by = "id") %>%
+  left_join(meanRichness_spatNested_subdom1, by = "id") %>%
+  left_join(meanRichDiff_spatNested_subdom1, by = "id") %>%
+  #left_join(alphaDiv_spatNested_subdom1, by = "id") %>%
+  left_join(meanAlpha_spatNested_subdom1, by = "id") %>%
+  left_join(sync_within_spatNested_subdom1, by = "id") %>%
+  left_join(sync_between_spatNested_subdom1, by = "id") %>%
+  left_join(avSpVar_within_spatNested_subdom1, by = "id") %>%
+  left_join(uneveness_spatNested_subdom1, by = "id") %>%
+  #left_join(brayResult_spatNested_subdom1, by = "id") %>%
+  left_join(altBrayResult_spatNested_subdom1, by = "id") %>%
+  mutate(n = as.character(n))
+#save(spatNested_subdom1, file = "spatNested_subdom1.RData")
 
 
 ```
@@ -1054,15 +1355,19 @@ Look at correlation structure between independent variables
 ``` {r, echo=FALSE, fig.height=3.5, fig.width=8}
 
 spatNested_indepVar <- spatNested %>%
-  select(Area, grossSyncWithin, grossSyncBetween, avSpVar, bray)
+  select(Area, meanLocalRichness, meanRichDiff, meanLocalExpAlpha, grossSyncWithin, avSpVar, meanUneveness, grossSyncBetween, meanBray)
 pairs.panels(spatNested_indepVar,smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T, cor = T, rug=T, main = "Spatially Nested Aggregations of Local Communities")
 # REMEMBER TO INVERT SYNCHRONY METRICS BEFORE DRAWING CONCLUSIONS ABOUT CORRELATIONS WITH OTHER VARIABLES
 
 
 randomAgg_indepVar <- randomAgg %>%
-  select(Area, grossSyncWithin, grossSyncBetween, avSpVar, bray)
+  select(Area, meanLocalRichness, meanRichDiff, meanLocalExpAlpha, grossSyncWithin, avSpVar, meanUneveness, grossSyncBetween, meanBray)
 pairs.panels(randomAgg_indepVar,smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T, cor = T, rug=T, main = "Random Aggregations of Local Communities")
 
+
+randomAgg1_indepVar <- randomAgg1 %>%
+  select(Area, meanLocalRichness, meanRichDiff, meanLocalExpAlpha, grossSyncWithin, avSpVar, meanUneveness, grossSyncBetween, meanBray)
+pairs.panels(randomAgg1_indepVar,smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T, cor = T, rug=T, main = "Random Aggregations 1 of Local Communities")
 
 
 ############################################
@@ -1134,7 +1439,7 @@ SN_cor_grossSyncWithin_avSpVar <- ggplot(data=spatNested, aes(x=grossSyncWithin,
 
 
 # grossSyncWithin, bray
-SN_cor_grossSyncWithin_bray <- ggplot(data=spatNested, aes(x=grossSyncWithin, y = bray, color = n, shape = n)) + 
+SN_cor_grossSyncWithin_bray <- ggplot(data=spatNested, aes(x=grossSyncWithin, y = meanBray, color = n, shape = n)) + 
   geom_point(size=3, show.legend = FALSE) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 1) +
@@ -1159,7 +1464,7 @@ cor.test(spatNested$grossSyncBetween, spatNested$avSpVar)
 
 
 #grossSyncBetween, bray
-SN_cor_grossSyncBetween_bray <- ggplot(data=spatNested, aes(x=grossSyncBetween, y = bray, color = n, shape = n)) + 
+SN_cor_grossSyncBetween_bray <- ggplot(data=spatNested, aes(x=grossSyncBetween, y = meanBray, color = n, shape = n)) + 
   geom_point(size=3, show.legend = FALSE) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 1) +
@@ -1171,7 +1476,7 @@ SN_cor_grossSyncBetween_bray <- ggplot(data=spatNested, aes(x=grossSyncBetween, 
 
 
 #avSpVar, bray
-SN_cor_avSpVar_bray <- ggplot(data=spatNested, aes(x=avSpVar, y = bray, color = n, shape = n)) + 
+SN_cor_avSpVar_bray <- ggplot(data=spatNested, aes(x=avSpVar, y = meanBray, color = n, shape = n)) + 
   geom_point(size=3, show.legend = FALSE) +
   theme_1_noLegend()+
   geom_smooth(method = lm, se = F, size = 1) +
@@ -1216,7 +1521,7 @@ RA_cor_grossSyncWithin_avSpVar <- ggplot(data=randomAgg, aes(x=grossSyncWithin, 
 
 
 # grossSyncWithin, bray
-RA_cor_grossSyncWithin_bray <- ggplot(data=randomAgg, aes(x=grossSyncWithin, y = bray, color = n, shape = n)) + 
+RA_cor_grossSyncWithin_bray <- ggplot(data=randomAgg, aes(x=grossSyncWithin, y = meanBray, color = n, shape = n)) + 
   geom_point(size=2, show.legend = FALSE) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 1) +
@@ -1242,7 +1547,7 @@ cor.test(randomAgg$grossSyncBetween, randomAgg$avSpVar)
 
 
 #grossSyncBetween, bray
-RA_cor_grossSyncBetween_bray <- ggplot(data=randomAgg, aes(x=grossSyncBetween, y = bray, color = n, shape = n)) + 
+RA_cor_grossSyncBetween_bray <- ggplot(data=randomAgg, aes(x=grossSyncBetween, y = meanBray, color = n, shape = n)) + 
   geom_point(size=2, show.legend = FALSE) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 1) +
@@ -1254,7 +1559,7 @@ RA_cor_grossSyncBetween_bray <- ggplot(data=randomAgg, aes(x=grossSyncBetween, y
 
 
 #avSpVar, bray
-RA_cor_avSpVar_bray <- ggplot(data=randomAgg, aes(x=avSpVar, y = bray, color = n, shape = n)) + 
+RA_cor_avSpVar_bray <- ggplot(data=randomAgg, aes(x=avSpVar, y = meanBray, color = n, shape = n)) + 
   geom_point(size=2, show.legend = FALSE) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 1) +
@@ -1286,7 +1591,8 @@ catN <- c("2", "3", "4", "5", "6", "7", "8", "9", "10")
 # 2. Spatially Nested Aggregations:
 
 # plot CV vs synchrony within local communities (between species)
-SN_cvGross_within <- ggplot(data=spatNested, aes(x=grossSyncWithin, y = CV, color = n, shape = n)) + 
+SN_cvGross_within <- ggplot(data=spatNested, aes(x=grossSyncWithin, y = CV, color = n, shape = n)) +
+  #ggplot(data=spatNested, aes(x=grossSyncWithin, y = CV)) + theme_1_noLegend() +
   geom_point(size=3, show.legend = FALSE) +
   theme_1_withLegend() +
   scale_x_reverse(breaks = c(0.05, 0.0, -0.05, -0.1, -0.15), labels = c(0.05, 0.0, -0.05, -0.1, -0.15)) +
@@ -1301,7 +1607,8 @@ SN_cvGross_within <- ggplot(data=spatNested, aes(x=grossSyncWithin, y = CV, colo
 
 
 # plot CV vs synchrony between local communities
-SN_cvGross_between <- ggplot(data=spatNested, aes(x=grossSyncBetween, y = CV, color = n, shape = n)) + 
+SN_cvGross_between <- ggplot(data=spatNested, aes(x=grossSyncBetween, y = CV, color = n, shape = n)) +
+  #ggplot(data=spatNested, aes(x=grossSyncBetween, y = CV)) +
   geom_point(size=3) +
   theme_1_noLegend() +
   scale_x_reverse() +
@@ -1314,7 +1621,8 @@ SN_cvGross_between <- ggplot(data=spatNested, aes(x=grossSyncBetween, y = CV, co
 
 
 # plot CV vs average species variation (within patches)
-SN_cv_AvSpVar_within <- ggplot(data=spatNested, aes(x=avSpVar, y = CV, color = n, shape = n)) + 
+SN_cv_AvSpVar_within <- ggplot(data=spatNested, aes(x=avSpVar, y = CV, color = n, shape = n)) +
+  #ggplot(data=spatNested, aes(x=avSpVar, y = CV)) +
   geom_point(size=3) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 0.75) +
@@ -1327,15 +1635,17 @@ SN_cv_AvSpVar_within <- ggplot(data=spatNested, aes(x=avSpVar, y = CV, color = n
 
 
 # CV vs Spatial Turnover:
-SN_CV_bray_plot <- ggplot(data=spatNested, aes(x=bray, y = CV, color = n, shape = n)) + 
+SN_CV_bray_plot <- ggplot(data=spatNested, aes(x=meanBray, y = CV, color = n, shape = n)) +
+  #ggplot(data=spatNested, aes(x=meanBray, y = CV)) + 
   geom_point(size=3) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Bray Dissimilarity", y = "CV (Total Community CUE)")
-
-
+summary(lm(spatNested$meanBray ~ spatNested$CV))
+# Multiple R-squared:  0.3255,	Adjusted R-squared:  0.3098 
+# F-statistic: 20.75 on 1 and 43 DF,  p-value: 4.281e-05
 
 grid.arrange(SN_cvGross_within, SN_cvGross_between, SN_cv_AvSpVar_within, SN_CV_bray_plot, ncol = 2)
 
@@ -1383,7 +1693,7 @@ SN_SpRich_Area_plot <- ggplot(data=spatNested, aes(x=Area, y = regionalSpRichnes
   scale_shape_manual(values = shapesN, limits = catN) +
   scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   labs(x = "Area (km^2)", 
-       y = "Species Richness
+       y = "Regional Species Richness
        (Probability of occurrence in at least one patch)", 
        main = "Random Aggregations of Local Communities")
 
@@ -1404,7 +1714,7 @@ SN_CV_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = CV, color 
   geom_smooth(method = lm, se = F, size = 1) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
-  labs(x = "Species Richness
+  labs(x = "Regional Species Richness
        (Probability of occurrence in at least one patch)",
        y = "CV")
 
@@ -1454,7 +1764,7 @@ SN_avSpVar_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = avSpV
 
 
 
-SN_Bray_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = bray, color = n, shape = n)) + 
+SN_Bray_SpRich <- ggplot(data=spatNested, aes(x=regionalSpRichness, y = meanBray, color = n, shape = n)) + 
   geom_point(size=3, show.legend = F) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 0.75) +
@@ -1475,9 +1785,9 @@ grid.arrange(SN_GrossAsynWithin_SpRich, SN_GrossAsynBetween_SpRich, SN_avSpVar_S
 # 3. Random draws of local communities:
 
 # plot CV vs synchrony within local communities (between species)
-RA_cvGross_within <- ggplot(data=randomAgg, aes(x=grossSyncWithin, y = CV, color = n, shape = n)) + 
+RA_cvGross_within <- ggplot(data=randomAgg, aes(x=grossSyncWithin, y = CV, color = n, shape = n)) + theme_1_withLegend() +
+  #ggplot(data=randomAgg, aes(x=grossSyncWithin, y = CV)) + theme_1_noLegend() +
   geom_point(size=2, show.legend = FALSE) +
-  theme_1_withLegend() +
   scale_x_reverse(breaks = c(0.05, 0.0, -0.05, -0.1, -0.15), labels = c(0.05, 0.0, -0.05, -0.1, -0.15)) +
   geom_smooth(method = lm, se = F, size = 1) +
   scale_color_manual(values = colorsN, limits = catN) +
@@ -1491,6 +1801,7 @@ RA_cvGross_within <- ggplot(data=randomAgg, aes(x=grossSyncWithin, y = CV, color
 
 # plot CV vs synchrony between local communities
 RA_cvGross_between <- ggplot(data=randomAgg, aes(x=grossSyncBetween, y = CV, color = n, shape = n)) + 
+  #ggplot(data=randomAgg, aes(x=grossSyncBetween, y = CV)) +
   geom_point(size=2) +
   theme_1_noLegend() +
   scale_x_reverse() +
@@ -1504,6 +1815,7 @@ RA_cvGross_between <- ggplot(data=randomAgg, aes(x=grossSyncBetween, y = CV, col
 
 # plot CV vs average species variation (within patches)
 RA_cv_AvSpVar_within <- ggplot(data=randomAgg, aes(x=avSpVar, y = CV, color = n, shape = n)) + 
+  #ggplot(data=randomAgg, aes(x=avSpVar, y = CV)) +
   geom_point(size=2) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 1) +
@@ -1516,14 +1828,18 @@ RA_cv_AvSpVar_within <- ggplot(data=randomAgg, aes(x=avSpVar, y = CV, color = n,
 
 
 # CV vs Spatial Turnover:
-RA_CV_bray_plot <- ggplot(data=randomAgg, aes(x=bray, y = CV, color = n, shape = n)) + 
+RA_CV_bray_plot <- ggplot(data=randomAgg, aes(x=meanBray, y = CV, color = n, shape = n)) + 
+  #ggplot(data=randomAgg, aes(x=meanBray, y = CV)) + 
   geom_point(size=2) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 1) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
   labs(x = "Bray Dissimilarity", y = "CV (Total Community CUE)")
-
+summary(lm(randomAgg$CV ~ randomAgg$meanBray))
+# Residual standard error: 0.02198 on 799 degrees of freedom
+# Multiple R-squared:  0.1588,	Adjusted R-squared:  0.1577 
+# F-statistic: 150.8 on 1 and 799 DF,  p-value: < 2.2e-16
 
 
 grid.arrange(RA_cvGross_within, RA_cvGross_between, RA_cv_AvSpVar_within, RA_CV_bray_plot, ncol = 2)
@@ -1572,7 +1888,7 @@ RA_SpRich_Area_plot <- ggplot(data=randomAgg, aes(x=Area, y = regionalSpRichness
   scale_shape_manual(values = shapesN, limits = catN) +
   scale_x_log10(breaks = c(1000, 5000, 10000, 20000, 30000, 40000), labels = c(1000, 5000, 10000, 20000, 30000, 40000)) +
   labs(x = "Area (km^2)", 
-       y = "Species Richness
+       y = "Regional Species Richness
        (Probability of occurrence in at least one patch)", 
        main = "Random Aggregations of Local Communities")
 
@@ -1580,8 +1896,9 @@ RA_SpRich_Area_plot <- ggplot(data=randomAgg, aes(x=Area, y = regionalSpRichness
 ################
 
 # Cumulative Species Richness vs CV:
-RA_CV_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = CV, color = n, shape = n)) + 
-  geom_point(size=3, show.legend = FALSE) +
+RA_CV_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = CV, color = n, shape = n)) +
+  #ggplot(data=randomAgg, aes(x=regionalSpRichness, y = CV)) +
+  geom_point(size=5, show.legend = FALSE) +
   theme(panel.background = element_blank(),
         axis.line.x = element_line(color="black"),
         axis.line.y = element_line(color="black"),
@@ -1593,7 +1910,7 @@ RA_CV_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = CV, color =
   geom_smooth(method = lm, se = F, size = 1) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
-  labs(x = "Species Richness
+  labs(x = "Regional Species Richness
        (Probability of occurrence in at least one patch)",
        y = "CV")
 
@@ -1613,7 +1930,7 @@ RA_GrossAsynWithin_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y 
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
-  labs(x = "Species Richness
+  labs(x = "Regional Species Richness
        (Probability of occurrence in at least one patch)",
        y = "Gross Asynchrony Within")
 
@@ -1625,7 +1942,7 @@ RA_GrossAsynBetween_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
-  labs(x = "Species Richness
+  labs(x = "Regional Species Richness
        (Probability of occurrence in at least one patch)",
        y = "Gross Asynchrony Between")
 
@@ -1637,19 +1954,19 @@ RA_avSpVar_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = avSpVa
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
-  labs(x = "Species Richness
+  labs(x = "Regional Species Richness
        (Probability of occurrence in at least one patch)",
        y = "Mean Species Variability")
 
 
 
-RA_Bray_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = bray, color = n, shape = n)) + 
+RA_Bray_SpRich <- ggplot(data=randomAgg, aes(x=regionalSpRichness, y = meanBray, color = n, shape = n)) + 
   geom_point(size=2, show.legend = F) +
   theme_1_noLegend() +
   geom_smooth(method = lm, se = F, size = 0.75) +
   scale_color_manual(values = colorsN, limits = catN) +
   scale_shape_manual(values = shapesN, limits = catN) +
-  labs(x = "Species Richness
+  labs(x = "Regional Species Richness
        (Probability of occurrence in at least one patch)",
        y = "Bray Dissimilarity")
 

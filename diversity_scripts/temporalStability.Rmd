@@ -1,0 +1,121 @@
+---
+title: "temporalStability"
+author: "Colette Ward"
+date: "10/16/2017"
+output: pdf_document
+---
+
+
+```{r, include=FALSE, echo=FALSE, results='hide'}
+# Load packages
+library(plyr); library(dplyr); library(tidyr); library(ggplot2)
+```
+
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+
+# load & prep look-up table of common names
+common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
+
+common1 <- common %>%
+  select(database.name, common.name) %>%
+  rename(Species = database.name)
+for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
+  if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
+  if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
+}
+
+
+# load area file
+area <- read.csv("./spatial-portfolio-project/local-community-area.csv", header = T, stringsAsFactors = F)
+
+```
+
+```{r,  include=FALSE, echo=FALSE, results='hide'}
+# load & prep mean annual CPUE data for Shallow Areas:
+
+# test how "Total" was calculated in the first dataset which included Total
+shallowCPUEArea1 <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
+# extract Atheresthes.stomias, 1984:
+shallowCPUEArea1.test <- shallowCPUEArea1 %>%
+  filter(Species == "Atheresthes.stomias", year == 1984) %>%
+  filter(area != "Total") %>%
+  #summarize(tot = sum(Mean.totalDensity)) # yields tot = 599.8305
+  summarise(tot = mean(Mean.totalDensity))
+View(shallowCPUEArea1.test) # Total should be 49.69839
+
+
+Albatrossia.pectoralis
+# extract Albatrossia.pectoralis, 1993:
+shallowCPUEArea1.test1 <- shallowCPUEArea1 %>%
+  filter(Species == "Albatrossia.pectoralis", year == 1993) %>%
+  filter(area != "Total") %>%
+  #summarize(tot = sum(Mean.totalDensity)) # yields tot = 1.3499e-05
+  summarise(tot = mean(Mean.totalDensity))
+View(shallowCPUEArea1.test1) # Total should be 1.58e-06
+
+
+
+shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # note areas have been renumbered here
+# NB there is no Total area
+
+
+shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
+  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
+  #filter(area != "8") %>% # remove Ole's area 8
+  #mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 but removing 8
+  mutate(area = revalue(area, c("Total" = "Region"))) %>%
+  left_join(area, by = "area") #%>%
+  #filter(area != "Region") %>% # run as needed for analyses below
+  #mutate(area = as.numeric(area))
+
+
+```
+
+
+To address local vs regional community stability we can compare CVs of total CPUE between local communities and the regional metacommunity.
+The regional community does indeed show greater stability than local communities. Note that y-axis scales differ - deep areas are generally less stable than shallow areas.  
+**The magnitude of the portfolio effect can be assessed from the ratio of mean local CV / regional CV (ie the increase in stability that arises from spatial (beta) diversity; values >1 indicate a stabilizing effect): the ratio is ~2.3 for shallow areas.**
+
+```{r, echo=F, fig.height=3.5, fig.width=8}
+
+# Shallow areas:
+CV_shallow <- shallowCPUEArea2 %>% 
+  group_by(area, year) %>%
+  summarise(total = sum(Mean.totalDensity)) %>%
+  ungroup() %>%
+  
+  group_by(area) %>%
+  summarise(CV = sd(total) / mean(total)) %>%
+  ungroup() %>%
+  
+  left_join(area, by = "area") # add area data
+
+# mean CV of shallow local areas
+# CV_shallow %>%
+#   filter(area != "Total") %>%
+#   summarise(mean = mean(CV), sd = sd(CV))
+# 0.171/0.073 # ratio of mean local / regional = 2.342 for shallow areas
+
+
+# plot on a log scale
+CV_shallow_plot <- ggplot(data=CV_shallow, aes(x=area, y = CV)) + 
+  geom_point(aes(y = CV), size=5) +
+  
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+        axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+        axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+        plot.title = element_text(size=18)) +
+  
+  scale_x_discrete(limits=c(1:10, "Region")) +
+
+  scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) +
+  
+  labs(x = "Local Community", y = "CV (Total CPUE)", title = "Shallow Areas")
+
+```
+
