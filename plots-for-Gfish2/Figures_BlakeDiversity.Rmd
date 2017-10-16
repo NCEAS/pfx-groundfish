@@ -25,7 +25,7 @@ output:
 #Output: git_repos/pfx-groundfish/All_sp_index_occurrenceByArea.Deep.MH.final.csv
 
 #3. Generated bootstrapped estimates of diversity metrics. 
-#Code: git_repos/pfx-groundfish/goaTrawl/RScriptsBootstrap.Diversity.Final.R
+#Code: git_repos/pfx-groundfish/goaTrawl/RScripts/Bootstrap.Diversity.Final.R
 #Output: git_repos/pfx-groundfish/DiversityMetrics.Shallow.Bootstrapped.Final
 #Output: git_repos/pfx-groundfish/DiversityMetrics.Deep.Bootstrapped.Final
 
@@ -61,7 +61,7 @@ akmap2 <- ggplot() +
 
 ```
 
-```{r, include=FALSE, echo=FALSE}
+```{r, include=FALSE, echo=FALSE, warning=FALSE, include=FALSE}
 # Adding Study Areas to the map
 discrete_areas1 <- read.csv("../goaTrawl/Output Data/goa_discrete_areas_for_comparison(50_to_150m).csv")
 
@@ -79,7 +79,7 @@ discrete_areas <- discrete_areas1 %>%
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE, include=FALSE}
 
 discrete_areas$area1 <- factor(discrete_areas$area,
                                levels=c('1','2','3','4','5','6','7','8','9','10'))
@@ -103,7 +103,8 @@ ak_areas_all <- akmap2 +
                  annotate("text", x=-151.1, y=57.8, label="7", size=4, color="white") +
                  annotate("text", x=-152.85, y=56.8, label="8", size=4, color="white") +
                  annotate("text", x=-155.5, y=56.45, label="9", size=4, color="white") +
-                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white") 
+                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white") +
+                 
 
 #ak_areas_all
 
@@ -122,7 +123,7 @@ ak_areas_all <- akmap2 +
 ```
 
 
-```{r, fig.cap="Locations of study areas (50-150 m) in Gulf of Alaska.",fig.pos="placehere",echo=FALSE,fig.height=4, fig.width=7}
+```{r, fig.cap="Locations of study areas (50-150 m) in Gulf of Alaska.", fig.pos="placehere", echo=FALSE}
 
 ak_areas_all
 
@@ -156,7 +157,7 @@ theme_boxplot <- function(base_size = 12){
 ```
 
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # Figure 2: 
 # Read in diversity metrics for 10 study areas
 shallowDat <- read.csv("../diversity-data/DiversityMetrics.Shallow.Bootstrapped.final.csv")
@@ -164,7 +165,7 @@ shallowDat$AREA <- as.factor(shallowDat$AREA)
 
 ```
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # Figure 2a: Boxplots Alpha Diversity (exp H')
 
 sp_box1 <- ggplot(data=shallowDat, aes(AREA, y=Eff_Num_Sp)) + 
@@ -181,7 +182,7 @@ sp_box1 <- ggplot(data=shallowDat, aes(AREA, y=Eff_Num_Sp)) +
 
 ```
 
-```{r, include=FALSE, echo=FALSE,results='hide'}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # Figure 2c: Boxplots Beta Diversity 
 
 sp_box2 <- ggplot(data=shallowDat, aes(AREA, y=Exp_B_Div)) +
@@ -216,14 +217,14 @@ sp_box3 <- ggplot(data=shallowDat, aes(AREA, y=Sp_rich)) +
 
 ```
 
-```{r, echo=FALSE, results='hide'}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 source("../diversity_scripts/functional_diversity_metrics.R")
 
 #shallow_FD  # This is the name of the shallow FD boxplot figure from Colette's script.
 
 ```
 
-```{r, fig.cap="Alpha diversity, beta diversity and species richness of the groundfish assemblage in shallow areas of the Gulf of Alaska. The medians and confidence intervals estimated from bootstrap sampling are shown.", echo=FALSE, fig.height=4, fig.width=7}
+```{r, fig.cap="Alpha diversity, beta diversity and species richness of the groundfish assemblage in shallow areas of the Gulf of Alaska. The medians and confidence intervals estimated from bootstrap sampling are shown.", echo=FALSE, fig.height=10, fig.width=12}
 
 sp_box123 <- ggarrange(sp_box1, sp_box3, sp_box2, shallow_FD, ncol=2, nrow=2)
 
@@ -231,16 +232,19 @@ sp_box123
 
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # Figure 3: CV plot to show Portfolio Effect 
 
 
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # Figure 4: NMDS Wisconsin plot
 source("../diversity_scripts/nmds.r")
 
+```
+
+```{r, echo=FALSE, fig.height=10, fig.width=12}
 ordiplot(ordShallowWiscSqrt, type="n", choices=c(1,2), main=NULL, xlab="NMDS 1", ylab="NMDS 2")
 text(ordShallowWiscSqrt, display = "spec", cex = 0.5, col="black")
 # colors from map and other plots ("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
@@ -259,19 +263,44 @@ ordihull(ordShallowWiscSqrt, groups=shallowCPUE_spread3$Area, show.groups=10, co
 
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE, echo=FALSE, results='hide'}
 # Figure 5: Disturbance & Productivity plots
 source("../diversity_scripts/Disturbance_Productivity_Hyp.r")
 
+```
 
-gam1_plot_final <- gam1_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
-                                                        axis.text.x = element_blank())
+```{r, echo=FALSE, fig.height=10, fig.width=12}
+gam1_plot_final <- gam1_plot + labs(title="a.") + 
+                   theme(axis.title.x = element_blank(), axis.text.x = element_blank()) + 
+                   annotate("text", x=0.75, y=13.25, size=3.5, 
+                            label=paste("Adj. R sq. =", signif(summary(gam1c)$r.sq, 3),
+                                         "\np =", signif(summary(gam1c)$s.table[1,4], 3)))
+
+
 gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_blank(), 
                                                         axis.text.x = element_blank(),
-                                                        legend.title = element_blank())                   
-gam3_plot_final <- gam3_plot + labs(title="c.")     
-gam3a_plot_final <- gam3a_plot + labs(title="d.")   
-div_plot4c_final <- div_plot4c + labs(title="e.")
+                                                        legend.title = element_blank()) + 
+                   annotate("text", x=0.2, y=11.5, size=3.5, 
+                            label=paste("Adj. R sq. =", signif(summary(gam2c)$r.sq, 3),
+                                        "\np =", signif(summary(gam2c)$s.table[1,4], 3)))
+
+  
+gam3_plot_final <- gam3_plot + labs(title="c.") + 
+                   annotate("text", x=0.75, y=13.25, size=3.5, 
+                            label=paste("Adj. R sq. =", signif(summary(gam3c)$r.sq, 3),
+                                        "\np =", signif(summary(gam3c)$s.table[1,4], 3)))
+
+gam3a_plot_final <- gam3a_plot + labs(title="d.") + 
+                    annotate("text", x=0.75, y=0.075, size=3.5, 
+                             label=paste("Adj. R sq. =", signif(summary(gam3cc)$r.sq, 3),
+                                         "\np =", signif(summary(gam3cc)$s.table[1,4], 3)))  
+
+div_plot4c_final <- div_plot4c + labs(title="e.") + 
+                    annotate("text", x=1.45, y=14, size=3.5, 
+                             label=paste("Adj. R sq. =", signif(summary(lmfit6)$adj.r.squared, 3),
+                                         "\np =", signif(summary(lmfit6)$coef[2,4], 3))) 
+
+
 
 ffig1 <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
 
@@ -286,7 +315,7 @@ ffig1
 
 
 ## Supplementary Figures:
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height=10, fig.width=12}
 # Supplementary Appendix A1: Hellinger NMDS plot
 ordiplot(ordShallowHellinger, type="n", choices=c(1,2), xlab="NMDS 1", ylab="NMDS 2")
 text(ordShallowHellinger, display = "spec", cex = 0.5, col="black")
@@ -307,7 +336,7 @@ ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=10, c
 ```
 
 
-```{r, echo=FALSE, fig.height=16, fig.width=12}
+```{r, echo=FALSE, fig.height=10, fig.width=12}
 # Supplementary Appendix A2: Productiviy - Disturbance Plots
 
 # source("./diversity_scripts/Disturbance_Productivity_Hyp.R")
@@ -315,7 +344,7 @@ ordihull(ordShallowHellinger, groups=shallowCPUE_spread3$Area, show.groups=10, c
 # making final figure
  div_plot2c_final <- div_plot2c + labs(title="a.") + theme(axis.title.x = element_blank(), 
                                                            axis.text.x = element_blank())
- div_plot2_final <- div_plot3c + labs(title="b.") + theme(legend.title = element_blank()) 
+ div_plot2_final <- div_plot3c + labs(title="b.") 
  
  div_plot3_final <- div_plot4d + labs(title="c.")     
 # div_plot3a_final <- div_plot3a + labs(title="d.")   

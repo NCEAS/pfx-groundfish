@@ -304,8 +304,8 @@ traits_wide[,categ] <- lapply(traits_wide[,categ] , factor)
 
 #traits_wide <- read.csv("traits_wide.csv", header=T)
 # which pairs of (log-transformed) quantitative traits are correlated?
-pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
-names(traits_wide[,quant])
+#pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
+#names(traits_wide[,quant])
 # significant correlations:
 # K, firstMaturityAge, age50percentMaturity, ageMaximum
 # Linfinity, trophicPosition, firstMaturityLength, length50percentMaturity, lengthMaximum
@@ -359,7 +359,7 @@ ft_df <- ft_df %>% dplyr::select(-Species)
 
 #setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
 SPCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
-str(SPCPUEArea)
+#str(SPCPUEArea)
 
 # NB  SPCPUEArea and deepCPUE both have only 53 taxa, not 57. Which ones are missing?
 # spDiffs <- setdiff(traits_wide$Species, deepCPUE$Species); spDiffs

@@ -119,15 +119,15 @@ colors_plot <- c("#49006A","#DD3497","#FA9FB5","#E3C9C6")
 lmfit1 <- lm(Sp_rich_ca~met_ton_km2_ca, data=dist_df_cat_ar)  # lm() fit 
 
 div_plot1 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + 
-             geom_point(size=6) + theme_boxplot() + 
+             geom_point(size=4) + theme_boxplot() + 
              stat_smooth(method="lm", col="blue") + ylab("Species Richness") + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              theme(panel.background = element_blank(), legend.position = "none") +
              scale_color_manual(values=colors_plot) +
-             labs(title=paste("Adj R^2 =",signif(summary(lmfit1)$adj.r.squared, 5),
+             labs(title=paste("Adj R^2 =",signif(summary(lmfit1)$adj.r.squared, 3),
                               #"Intercept =",signif(lmfit1$coef[[1]],5 ),
                               #" Slope =",signif(lmfit1$coef[[2]], 5),
-                              " p =",signif(summary(lmfit1)$coef[2,4], 5)))
+                              " p =",signif(summary(lmfit1)$coef[2,4], 3)))
 
 anova(lmfit1) # anova table of above lm() fit
 
@@ -137,15 +137,15 @@ anova(lmfit1) # anova table of above lm() fit
 lmfit2 <- lm(Eff_Num_Sp_ca~met_ton_km2_ca, data=dist_df_cat_ar)  # lm() fit 
 
 div_plot2 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) +
-             geom_point(size=6) + theme_boxplot() +  
+             geom_point(size=4) + theme_boxplot() +  
              stat_smooth(method="lm", col="blue") + ylab("Alpha Diversity") +
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              theme(panel.background = element_blank(), legend.position = "none") +  
              scale_color_manual(values=colors_plot) +
-             labs(title=paste("Adj R^2 =",signif(summary(lmfit2)$adj.r.squared, 5),
+             labs(title=paste("Adj R^2 =",signif(summary(lmfit2)$adj.r.squared, 3),
                               #"Intercept =",signif(lmfit2$coef[[1]],5 ),
                               #" Slope =",signif(lmfit2$coef[[2]], 5),
-                              " p =",signif(summary(lmfit2)$coef[2,4], 5)))
+                              " p =",signif(summary(lmfit2)$coef[2,4], 3)))
 
 anova(lmfit2) # anova table of above lm() fit
 
@@ -156,16 +156,16 @@ lmfit3 <- lm(Exp_B_Div_ca~met_ton_km2_ca, data=dist_df_cat_ar)  # lm() fit
 
 
 div_plot3 <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + 
-             geom_point(size=6) + theme_boxplot() + scale_color_manual(values=colors_plot) +
+             geom_point(size=4) + theme_boxplot() + scale_color_manual(values=colors_plot) +
              stat_smooth(method="lm", col="blue", size=2) + ylab("Beta Diversity ") + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) +  
              theme(#legend.position = c(1.1,1.2), legend.justification = c(1,1),
                    legend.position = "none",
                    panel.background = element_blank()) + 
-             labs(title=paste("Adj R^2 =", signif(summary(lmfit3)$adj.r.squared, 5),
+             labs(title=paste("Adj R^2 =", signif(summary(lmfit3)$adj.r.squared, 3),
                               #"Intercept =",signif(lmfit3$coef[[1]],5 ),
                               #" Slope =",signif(lmfit3$coef[[2]], 5),
-                              " p =", signif(summary(lmfit3)$coef[2,4], 5)))
+                              " p =", signif(summary(lmfit3)$coef[2,4], 3)))
 
 anova(lmfit3) # anova table of above lm() fit
 
@@ -175,14 +175,14 @@ anova(lmfit3) # anova table of above lm() fit
 lmfit3a <- lm(RaosQ~met_ton_km2_ca, data=dist_df_cat_ar)  # lm() fit 
 
 div_plot3a <- ggplot(dist_df_cat_ar, aes(x=met_ton_km2_ca, y=RaosQ, color=Catch_area)) + 
-              geom_point(size=6) + theme_boxplot() + scale_color_manual(values=colors_plot) +
+              geom_point(size=4) + theme_boxplot() + scale_color_manual(values=colors_plot) +
               stat_smooth(method="lm", col="blue", size=2) + ylab("Functional Diversity ") + 
               xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) +  
               theme(legend.position = "none", panel.background = element_blank()) + 
-              labs(title=paste("Adj R^2 =", signif(summary(lmfit3a)$adj.r.squared, 5),
+              labs(title=paste("Adj R^2 =", signif(summary(lmfit3a)$adj.r.squared, 3),
                                #"Intercept =",signif(lmfit3a$coef[[1]],5 ),
                                #" Slope =",signif(lmfit3a$coef[[2]], 5),
-                               " p =", signif(summary(lmfit3a)$coef[2,4], 5))) 
+                               " p =", signif(summary(lmfit3a)$coef[2,4], 3))) 
 
 anova(lmfit3a) # anova table of above lm() fit
 
@@ -214,12 +214,12 @@ summary(gam1c) #; anova(gam1c)
 
 # ggplot
 gam1_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + 
-             geom_point(size=6) + ylab("Species Richness") + theme_boxplot() +
+             geom_point(size=4) + ylab("Species Richness") + theme_boxplot() +
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              scale_color_manual(values=colors_plot) + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam1c)$r.sq, 4),
+             labs(title=paste("Adj R2 =", signif(summary(gam1c)$r.sq, 3),
                               "p =", signif(summary(gam1c)$s.table[1,4], 3)))
 #gam1_plot
 
@@ -266,13 +266,13 @@ summary(gam2c) #; anova(gam2c)
 
 # ggplot
 gam2_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) + 
-             geom_point(size=6) +  ylab("Alpha Diversity") + 
+             geom_point(size=4) +  ylab("Alpha Diversity") + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() +
              scale_color_manual(values=colors_plot) + 
              theme(legend.position = c(0.87,0.95), panel.background = element_blank(),
                    legend.background = element_rect(fill="transparent")) +
-             labs(title=paste("Adj R2 =", signif(summary(gam2c)$r.sq, 4),
+             labs(title=paste("Adj R2 =", signif(summary(gam2c)$r.sq, 3),
                               "p =", signif(summary(gam2c)$s.table[1,4], 3)))
 
 #gam2_plot
@@ -295,12 +295,12 @@ summary(gam3c) #; anova(gam3c)
 
 # ggplot
 gam3_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + 
-             geom_point(size=6) +  ylab("Beta Diversity") + 
+             geom_point(size=4) +  ylab("Beta Diversity") + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() +
              scale_color_manual(values=colors_plot) + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam3c)$r.sq, 4),
+             labs(title=paste("Adj R2 =", signif(summary(gam3c)$r.sq, 3),
                               "p =", signif(summary(gam3c)$s.table[1,4], 3)))
 
 #gam3_plot
@@ -323,13 +323,13 @@ summary(gam3cc) #; anova(gam3cc)
 
 # ggplot
 gam3a_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=RaosQ, color=Catch_area)) + 
-              geom_point(size=6) +  ylab("Functional Diversity") + 
+              geom_point(size=4) +  ylab("Functional Diversity") + 
               xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) +  
               stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() + 
               scale_color_manual(values=colors_plot) + 
               theme(legend.position = "none", panel.background = element_blank()) +
-              labs(title=paste("Adj R2 =", signif(summary(gam3cc)$r.sq, 4),
-                               "p =", signif(summary(gam3cc)$s.table[1,4], 5)))
+              labs(title=paste("Adj R2 =", signif(summary(gam3cc)$r.sq, 3),
+                               "p =", signif(summary(gam3cc)$s.table[1,4], 3)))
 
 #gam3a_plot
 
@@ -421,10 +421,10 @@ div_plot2c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Sp_rich_mn, color=as.fac
               stat_smooth(method="lm", col="blue", size=2) + ylab("Species Richness") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
               theme(legend.position = "none", panel.background = element_blank()) +
-              labs(title=paste("Adj R^2 =",signif(summary(lmfit4)$adj.r.squared, 5),
+              labs(title=paste("Adj R^2 =",signif(summary(lmfit4)$adj.r.squared, 3),
                                #"Intercept =",signif(lmfit2$coef[[1]],5 ),
                                #" Slope =",signif(lmfit2$coef[[2]], 5),
-                               " p =",signif(summary(lmfit4)$coef[2,4], 5)))
+                               " p =",signif(summary(lmfit4)$coef[2,4], 3)))
 
 anova(lmfit4) # anova table of above lm() fit
 
@@ -435,14 +435,14 @@ anova(lmfit4) # anova table of above lm() fit
 lmfit5 <- lm(Eff_Num_Sp_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
 
 div_plot3c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Eff_Num_Sp_mn, color=as.factor(AREA1))) + 
-              geom_point(size=4) + scale_color_manual(values=pinks) + theme_boxplot() +
+              geom_point(size=4) + scale_color_manual(values=pinks, name="Study\nArea") + theme_boxplot() +
               stat_smooth(method="lm", col="blue", size=2) + ylab("Alpha Diversity") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
               theme(legend.position = "right", panel.background = element_blank()) +
-              labs(title=paste("Adj R^2 =",signif(summary(lmfit5)$adj.r.squared, 5),
+              labs(title=paste("Adj R^2 =",signif(summary(lmfit5)$adj.r.squared, 3),
                                #"Intercept =",signif(lmfit2$coef[[1]],5 ),
                                #" Slope =",signif(lmfit2$coef[[2]], 5),
-                               " p =",signif(summary(lmfit5)$coef[2,4], 5)))
+                               " p =",signif(summary(lmfit5)$coef[2,4], 3)))
 
 anova(lmfit5) # anova table of above lm() fit
 
@@ -453,16 +453,16 @@ anova(lmfit5) # anova table of above lm() fit
 lmfit6 <- lm(Exp_B_Div_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
 
 div_plot4c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=as.factor(AREA1))) + 
-              geom_point(size=4) + theme_boxplot() + scale_color_manual(values=pinks, name="Local\nArea") + 
+              geom_point(size=4) + theme_boxplot() + scale_color_manual(values=pinks, name="Study\nArea") + 
               stat_smooth(method="lm", col="blue", size=2) + ylab("Beta Diversity") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")"))) + 
               theme(legend.position = c(1,0), legend.justification = c(0,0),
                     legend.background = element_rect(fill="transparent"), 
                     panel.background = element_blank()) +
-              labs(title=paste("Adj R^2 =",signif(summary(lmfit6)$adj.r.squared, 5),
+              labs(title=paste("Adj R^2 =",signif(summary(lmfit6)$adj.r.squared, 3),
                                #"Intercept =",signif(lmfit2$coef[[1]],5 ),
                                #" Slope =",signif(lmfit2$coef[[2]], 5),
-                               " p =",signif(summary(lmfit6)$coef[2,4], 5)))
+                               " p =",signif(summary(lmfit6)$coef[2,4], 3)))
 
 anova(lmfit6) # anova table of above lm() fit
 
@@ -476,10 +476,10 @@ div_plot4d <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=RaosQ, color=as.factor(A
               stat_smooth(method="lm", col="blue", size=2) + ylab("Functional Diversity") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")"))) + 
               theme(legend.position = "none", panel.background = element_blank()) +
-              labs(title=paste("Adj R^2 =",signif(summary(lmfit6b)$adj.r.squared, 5),
+              labs(title=paste("Adj R^2 =",signif(summary(lmfit6b)$adj.r.squared, 3),
                                #"Intercept =",signif(lmfit6b$coef[[1]],5 ),
                                #" Slope =",signif(lmfit6b$coef[[2]], 5),
-                               " p =",signif(summary(lmfit6b)$coef[2,4], 5)))
+                               " p =",signif(summary(lmfit6b)$coef[2,4], 3)))
 
 anova(lmfit6b) # anova table of above lm() fit
 
@@ -509,7 +509,7 @@ gam4_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Sp_rich_mn, color=as
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Species Richness") +
              xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam4a)$r.sq, 4),
+             labs(title=paste("Adj R2 =", signif(summary(gam4a)$r.sq, 3),
                               "p =", signif(summary(gam4a)$s.table[1,4], 3)))
 #gam4_plot
 
@@ -529,7 +529,7 @@ gam5_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Eff_Num_Sp_mn, color
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Alpha Diversity") +
              xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam5a)$r.sq, 4),
+             labs(title=paste("Adj R2 =", signif(summary(gam5a)$r.sq, 3),
                               "p =", signif(summary(gam5a)$s.table[1,4], 3)))
 #gam5_plot
 
@@ -549,7 +549,7 @@ gam6_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Beta Diversity") +
              xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam6a)$r.sq, 4),
+             labs(title=paste("Adj R2 =", signif(summary(gam6a)$r.sq, 3),
                               "p =", signif(summary(gam6a)$s.table[1,4], 3)))
 #gam6_plot
 
@@ -566,10 +566,11 @@ summary(gam7a) #; anova(gam7a)
 # ggplot
 gam7_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=RaosQ, color=as.factor(AREA1))) + 
              geom_point(size=4) + scale_color_manual(values=pinks) + theme_boxplot() +
-             stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Functional Diversity") +
+             stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + 
+             ylab("Functional Diversity") +
              xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam7a)$r.sq, 4),
+             labs(title=paste("Adj R2 =", signif(summary(gam7a)$r.sq, 3),
                               "p =", signif(summary(gam7a)$s.table[1,4], 3)))
 #gam7_plot
 
