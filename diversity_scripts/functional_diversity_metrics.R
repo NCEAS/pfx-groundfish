@@ -13,7 +13,7 @@ library(gridExtra)
 
 
 # load the functional trait data from local source in our repository:
-traits_df <- read.csv("./diversity-data/Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
+traits_df <- read.csv("../diversity-data/Groundfish-Functional-Diversity-Traits.csv", header=T, stringsAsFactors=FALSE)
 
 # or load it from our google drive:
 #URL_traits <- "https://drive.google.com/uc?export=download&id=0B1XbkXxdfD7uV0h5SG1UeC1lbjg"
@@ -174,7 +174,7 @@ maturity_df1 <- maturity_df %>%
 ###############
 
 # pull in additional K & L_infinity values from Ben Williams:
-KL_df <- read.csv("./diversity-data/linf_k.csv", header=T, stringsAsFactors = F)
+KL_df <- read.csv("../diversity-data/linf_k.csv", header=T, stringsAsFactors = F)
 
 KL_df1 <- KL_df %>%
           dplyr::select(-X, -common.name) %>%
@@ -358,7 +358,7 @@ ft_df <- ft_df %>% dplyr::select(-Species)
 #View(SPCPUEArea)
 
 #setwd("~/Google Drive/GoA project/pfx-groundfish/diversity-data")
-SPCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
+SPCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
 str(SPCPUEArea)
 
 # NB  SPCPUEArea and deepCPUE both have only 53 taxa, not 57. Which ones are missing?

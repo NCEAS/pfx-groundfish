@@ -11,7 +11,7 @@ library(vegan) ; library(mvnormtest) ; library(plyr) ; library(dplyr) ; library(
 
 
 # load & prep look-up table of common names
-common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
+common <- read.csv("../diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
            dplyr::select(database.name, common.name) %>%
@@ -23,7 +23,7 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 
 
 # load mean annual CPUE data for Shallow Areas (these are Ole's 11 areas)
-shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
+shallowCPUEArea <- read.csv("../diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
                     dplyr::filter(area != "Total", area != "8") %>% # remove regional totals and Ole's area 8
