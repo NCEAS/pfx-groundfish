@@ -18,8 +18,8 @@ library(plyr); library(dplyr); library(tidyr); library(ggplot2)
 common <- read.csv("./diversity-data/trawl_species_control_file.csv", header = T, stringsAsFactors = FALSE)
 
 common1 <- common %>%
-  select(database.name, common.name) %>%
-  rename(Species = database.name)
+           select(database.name, common.name) %>%
+           rename(Species = database.name)
 for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
   if(common1$Species[i] == "Dusky.and.Dark.Rockfish") {common1$common.name[i] <- "Sebastes 1"}
   if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
@@ -28,6 +28,7 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
 
 # load area file
 area <- read.csv("./spatial-portfolio-project/local-community-area.csv", header = T, stringsAsFactors = F)
+
 
 ```
 
@@ -38,21 +39,21 @@ area <- read.csv("./spatial-portfolio-project/local-community-area.csv", header 
 shallowCPUEArea1 <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
 # extract Atheresthes.stomias, 1984:
 shallowCPUEArea1.test <- shallowCPUEArea1 %>%
-  filter(Species == "Atheresthes.stomias", year == 1984) %>%
-  filter(area != "Total") %>%
-  #summarize(tot = sum(Mean.totalDensity)) # yields tot = 599.8305
-  summarise(tot = mean(Mean.totalDensity))
+                         filter(Species == "Atheresthes.stomias", year == 1984) %>%
+                         filter(area != "Total") %>%
+                         #summarize(tot = sum(Mean.totalDensity)) # yields tot = 599.8305
+                         summarise(tot = mean(Mean.totalDensity))
 View(shallowCPUEArea1.test) # Total should be 49.69839
 
-
-Albatrossia.pectoralis
+#Albatrossia.pectoralis
 # extract Albatrossia.pectoralis, 1993:
 shallowCPUEArea1.test1 <- shallowCPUEArea1 %>%
-  filter(Species == "Albatrossia.pectoralis", year == 1993) %>%
-  filter(area != "Total") %>%
-  #summarize(tot = sum(Mean.totalDensity)) # yields tot = 1.3499e-05
-  summarise(tot = mean(Mean.totalDensity))
+                          filter(Species == "Albatrossia.pectoralis", year == 1993) %>%
+                          filter(area != "Total") %>%
+                          #summarize(tot = sum(Mean.totalDensity)) # yields tot = 1.3499e-05
+                          summarise(tot = mean(Mean.totalDensity))
 View(shallowCPUEArea1.test1) # Total should be 1.58e-06
+
 
 
 
@@ -61,13 +62,14 @@ shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Shallo
 
 
 shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
-  select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
-  #filter(area != "8") %>% # remove Ole's area 8
-  #mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 but removing 8
-  mutate(area = revalue(area, c("Total" = "Region"))) %>%
-  left_join(area, by = "area") #%>%
-  #filter(area != "Region") %>% # run as needed for analyses below
-  #mutate(area = as.numeric(area))
+                    select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
+                    #filter(area != "8") %>% # remove Ole's area 8
+                    #mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 but removing 8
+                    #mutate(area = revalue(area, c("Total" = "Region"))) %>%
+                    mutate(area = as.character(area)) %>%
+                    left_join(area, by = "area") #%>%
+                    #filter(area != "Region") %>% # run as needed for analyses below
+                    #mutate(area = as.numeric(area))
 
 
 ```
@@ -81,41 +83,52 @@ The regional community does indeed show greater stability than local communities
 
 # Shallow areas:
 CV_shallow <- shallowCPUEArea2 %>% 
-  group_by(area, year) %>%
-  summarise(total = sum(Mean.totalDensity)) %>%
-  ungroup() %>%
+              group_by(area, year) %>%
+              summarise(total = sum(Mean.totalDensity)) %>%
+              ungroup() %>%
   
-  group_by(area) %>%
-  summarise(CV = sd(total) / mean(total)) %>%
-  ungroup() %>%
+              group_by(area) %>%
+              summarise(CV = sd(total) / mean(total)) %>%
+              ungroup() %>%
   
-  left_join(area, by = "area") # add area data
+              left_join(area, by = "area") # add area data
+
+CV_region <- shallowCPUEArea2 %>% 
+             group_by(year) %>%
+             summarise(total = sum(Mean.totalDensity)) %>%
+             ungroup() %>%
+             
+             summarize(CV = sd(total) / mean(total))
+             
+
+CV_shallow2 <- CV_shallow %>%
+               bind_rows(CV_region) %>% 
+               mutate(area = ifelse(is.na(area), "Region", area))
 
 # mean CV of shallow local areas
-# CV_shallow %>%
-#   filter(area != "Total") %>%
-#   summarise(mean = mean(CV), sd = sd(CV))
+ CV_shallow2 %>%
+   filter(area != "Region") %>%
+   summarise(mean = mean(CV), sd = sd(CV))
 # 0.171/0.073 # ratio of mean local / regional = 2.342 for shallow areas
-
+# 0.174/0.079 # ratio of mean local / regional = 2.202 for shallow areas  # Rachael's results
 
 # plot on a log scale
-CV_shallow_plot <- ggplot(data=CV_shallow, aes(x=area, y = CV)) + 
-  geom_point(aes(y = CV), size=5) +
+CV_shallow_plot <- ggplot(data=CV_shallow2, aes(x=area, y = CV)) + 
+                   geom_point(aes(y = CV), size=5) +
   
-  theme(panel.background = element_blank(),
-        axis.line.x = element_line(color="black"),
-        axis.line.y = element_line(color="black"),
-        axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
-        axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
-        axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
-        axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
-        plot.title = element_text(size=18)) +
-  
-  scale_x_discrete(limits=c(1:10, "Region")) +
+                   theme(panel.background = element_blank(),
+                         axis.line.x = element_line(color="black"),
+                         axis.line.y = element_line(color="black"),
+                         axis.text.x = element_text(margin=margin(5,0,0,0), size=12), 
+                         axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
+                         axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
+                         axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
+                         plot.title = element_text(size=18)) +
+                   
+                   scale_x_discrete(limits=c(1:10, "Region")) +
+                   scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) +
+                   labs(x = "Local Community", y = "CV (Total CPUE)", title = "Shallow Areas")
 
-  scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) +
-  
-  labs(x = "Local Community", y = "CV (Total CPUE)", title = "Shallow Areas")
 
 ```
 
