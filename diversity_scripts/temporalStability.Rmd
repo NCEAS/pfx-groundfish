@@ -123,12 +123,13 @@ CV_shallow_plot <- ggplot(data=CV_shallow2, aes(x=area, y = CV)) +
                          axis.text.y = element_text(margin=margin(0,5,0,0), size=12),
                          axis.title.x=element_text(size=12, margin=margin(15,0,0,0)),
                          axis.title.y=element_text(size=12, angle=90, margin=margin(0,15,0,0)),
-                         plot.title = element_text(size=18)) +
+                         plot.title = element_blank()) +
                    
                    scale_x_discrete(limits=c(1:10, "Region")) +
                    scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) +
                    labs(x = "Local Community", y = "CV (Total CPUE)", title = "Shallow Areas")
 
+CV_shallow_plot
 
 ```
 

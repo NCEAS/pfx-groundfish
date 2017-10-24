@@ -574,6 +574,10 @@ gam7_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=RaosQ, color=as.fact
                               "p =", signif(summary(gam7a)$s.table[1,4], 3)))
 #gam7_plot
 
+AIC(gam4, lmfit4)
+AIC(gam5, lmfit5)
+AIC(gam6, lmfit6)
+AIC(gam7, lmfit6b)
 
 
 # arranging above plots
@@ -603,7 +607,7 @@ prod_fish_over <- fish_over %>%
                   full_join(prod_over, by="Year")
 
 ppfp <- ggplot(data=prod_fish_over, aes(x=ann_mn_fish, y=ann_mn_chl)) + 
-        geom_point(size=3) + geom_text(aes(label=Year), hjust=-0.25, vjust=0) + 
+        geom_point(size=3) + geom_text(aes(label=Year), hjust=0.25, vjust=-0.55) + 
         theme_boxplot() + xlab("Annual mean fishing pressure") + ylab("Annual mean Chla")
 ppfp
 
