@@ -39,7 +39,7 @@ library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ; library(rgda
 library(sp) ; library(maptools) ; library(raster) ; library(ggplot2) ;  library(rgeos) ; 
 library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ; library(extrafont) ; 
 library(vegan) ; library(scales) ; library(gridExtra) ; library(RColorBrewer) ; 
-library(GISTools) ; library(egg)
+library(GISTools) ; library(egg) 
 
 ```
 
@@ -94,16 +94,16 @@ ak_areas_all <- akmap2 +
                                fill=area1)) + 
                  scale_color_manual(values=pinks, name="Study Area", guide=FALSE) +
                  scale_fill_manual(values=pinks, name="Study Area", guide=FALSE) +
-                 annotate("text", x=-146, y=59.9, label="1", size=4) + 
-                 annotate("text", x=-147.6, y=59.6, label="2", size=4) +
-                 annotate("text", x=-148.55, y=59.4, label="3", size=4) +
-                 annotate("text", x=-149.5, y=59.4, label="4", size=4) +
-                 annotate("text", x=-152.1, y=58.8, label="5", size=4) +
-                 annotate("text", x=-150.3, y=58.4, label="6", size=4) +
-                 annotate("text", x=-151.1, y=57.8, label="7", size=4, color="white") +
-                 annotate("text", x=-152.85, y=56.8, label="8", size=4, color="white") +
-                 annotate("text", x=-155.5, y=56.45, label="9", size=4, color="white") +
-                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white") +
+                 annotate("text", x=-146, y=59.9, label="1", size=4, fontface="bold") + 
+                 annotate("text", x=-147.6, y=59.6, label="2", size=4, fontface="bold") +
+                 annotate("text", x=-148.55, y=59.4, label="3", size=4, fontface="bold") +
+                 annotate("text", x=-149.5, y=59.4, label="4", size=4, fontface="bold") +
+                 annotate("text", x=-152.1, y=58.8, label="5", size=4, fontface="bold") +
+                 annotate("text", x=-150.3, y=58.4, label="6", size=4, fontface="bold") +
+                 annotate("text", x=-151.1, y=57.8, label="7", size=4, color="white", fontface="bold") +
+                 annotate("text", x=-152.85, y=56.8, label="8", size=4, color="white", fontface="bold") +
+                 annotate("text", x=-155.5, y=56.45, label="9", size=4, color="white", fontface="bold") +
+                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white", fontface="bold") +
                  annotate("segment", x=-156.25, y=54, xend=-156.25, yend=57.5, color="black", 
                           linetype="dashed", size=1) + 
                  annotate("segment", x=-149, y=58.8, xend=-149, yend=59.9, color="black", 
@@ -118,13 +118,18 @@ ak_areas_all <- akmap2 +
                           linetype="dashed", size=1) + 
                  annotate("segment", x=-153.35, y=58.45, xend=-153.35, yend=58.75, color="black", 
                           linetype="dashed", size=1) + 
-                 geom_label(aes(x=-158, y=54.5, label="AP"), fill="white", fontface="bold") + 
-                 geom_label(aes(x=-151, y=56.5, label="K"), fill="white", fontface="bold") + 
-                 geom_label(aes(x=-152.5, y=59.5, label="CI"), fill="white", fontface="bold") + 
-                 geom_label(aes(x=-144, y=59.5, label="PWS"), fill="white", fontface="bold")
+                 annotate("text", x=-164, y=61.5, label="N", size=8, fontface="bold", color="black") + 
+                 geom_segment(aes(x=-164,xend=-164,y=61.2,yend=61.8), size=1.5,
+                              arrow=arrow(length = unit(0.5, "cm"))) +
+                 geom_label(aes(x=-158, y=54.5, label="AP"), fill="white", fontface="bold", size=6) + 
+                 geom_label(aes(x=-151, y=56.5, label="K"), fill="white", fontface="bold", size=6) + 
+                 geom_label(aes(x=-152.5, y=59.5, label="CI"), fill="white", fontface="bold", size=6) + 
+                 geom_label(aes(x=-144, y=59.5, label="PWS"), fill="white", fontface="bold", size=6) + 
+                 theme(axis.text=element_text(size=15),
+                       axis.title=element_text(size=15))
   
 
-ak_areas_all
+#ak_areas_all 
 
 
 ```
