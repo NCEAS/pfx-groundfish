@@ -25,51 +25,27 @@ for (i in 1:nrow(common1)) { # add common names for Sebastes 1 & 2
   if(common1$Species[i] == "Rougheye.and.Blackspotted.Rockfish") {common1$common.name[i] <- "Sebastes 2"}
 }
 
-
-# load area file
-area <- read.csv("./spatial-portfolio-project/local-community-area.csv", header = T, stringsAsFactors = F)
-
-
 ```
 
 ```{r,  include=FALSE, echo=FALSE, results='hide'}
-# load & prep mean annual CPUE data for Shallow Areas:
 
-# test how "Total" was calculated in the first dataset which included Total
-shallowCPUEArea1 <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.csv", header = T, stringsAsFactors = FALSE)
-# extract Atheresthes.stomias, 1984:
-shallowCPUEArea1.test <- shallowCPUEArea1 %>%
-                         filter(Species == "Atheresthes.stomias", year == 1984) %>%
-                         filter(area != "Total") %>%
-                         #summarize(tot = sum(Mean.totalDensity)) # yields tot = 599.8305
-                         summarise(tot = mean(Mean.totalDensity))
-View(shallowCPUEArea1.test) # Total should be 49.69839
+# load & prep mean annual CPUE data
 
-#Albatrossia.pectoralis
-# extract Albatrossia.pectoralis, 1993:
-shallowCPUEArea1.test1 <- shallowCPUEArea1 %>%
-                          filter(Species == "Albatrossia.pectoralis", year == 1993) %>%
-                          filter(area != "Total") %>%
-                          #summarize(tot = sum(Mean.totalDensity)) # yields tot = 1.3499e-05
-                          summarise(tot = mean(Mean.totalDensity))
-View(shallowCPUEArea1.test1) # Total should be 1.58e-06
+# load file for local communities:
+shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE)
+shallowCPUEArea1 <- shallowCPUEArea %>% 
+                    select(-area_alph, -oldArea) %>%
+                    mutate(area = as.character(area))
+
+# load file for Regional metacommunity:
+shallowCPUETot <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.All.csv", header = T, stringsAsFactors = FALSE) 
 
 
-
-
-shallowCPUEArea <- read.csv("./diversity-data/All_sp_index_meanCPUEByArea.Shallow.MH.final.csv", header = T, stringsAsFactors = FALSE) # note areas have been renumbered here
-# NB there is no Total area
-
-
-shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # merge common names onto SPCPUEArea
+# merge and clean up the files:
+shallowCPUEArea2 <- bind_rows(shallowCPUEArea1, shallowCPUETot) %>% # merge local and metacommunity files
+                    left_join(common1, by = "Species") %>% # merge common names onto SPCPUEArea
                     select(area, Mean.totalDensity, SD.totalDensity, year, Species, common.name) %>%
-                    #filter(area != "8") %>% # remove Ole's area 8
-                    #mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) %>% # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 but removing 8
-                    #mutate(area = revalue(area, c("Total" = "Region"))) %>%
-                    mutate(area = as.character(area)) %>%
-                    left_join(area, by = "area") #%>%
-                    #filter(area != "Region") %>% # run as needed for analyses below
-                    #mutate(area = as.numeric(area))
+                    mutate(area = revalue(area, c("Total" = "Region")))
 
 
 ```
@@ -81,7 +57,7 @@ The regional community does indeed show greater stability than local communities
 
 ```{r, echo=F, fig.height=3.5, fig.width=8}
 
-# Shallow areas:
+# Calculate CV
 CV_shallow <- shallowCPUEArea2 %>% 
               group_by(area, year) %>%
               summarise(total = sum(Mean.totalDensity)) %>%
@@ -89,31 +65,18 @@ CV_shallow <- shallowCPUEArea2 %>%
   
               group_by(area) %>%
               summarise(CV = sd(total) / mean(total)) %>%
-              ungroup() %>%
-  
-              left_join(area, by = "area") # add area data
+              ungroup()
 
-CV_region <- shallowCPUEArea2 %>% 
-             group_by(year) %>%
-             summarise(total = sum(Mean.totalDensity)) %>%
-             ungroup() %>%
-             
-             summarize(CV = sd(total) / mean(total))
-             
 
-CV_shallow2 <- CV_shallow %>%
-               bind_rows(CV_region) %>% 
-               mutate(area = ifelse(is.na(area), "Region", area))
-
-# mean CV of shallow local areas
- CV_shallow2 %>%
+# mean CV of local areas
+ CV_shallow %>%
    filter(area != "Region") %>%
    summarise(mean = mean(CV), sd = sd(CV))
-# 0.171/0.073 # ratio of mean local / regional = 2.342 for shallow areas
-# 0.174/0.079 # ratio of mean local / regional = 2.202 for shallow areas  # Rachael's results
+0.1744/0.0845 # ratio of mean local CV / regional CV = 2.06
+
 
 # plot on a log scale
-CV_shallow_plot <- ggplot(data=CV_shallow2, aes(x=area, y = CV)) + 
+CV_shallow_plot <- ggplot(data=CV_shallow, aes(x=area, y = CV)) + 
                    geom_point(aes(y = CV), size=5) +
   
                    theme(panel.background = element_blank(),
