@@ -92,7 +92,7 @@ CV_shallow_plot <- ggplot(data=CV_shallow, aes(x=area, y = CV)) +
                    scale_y_log10(breaks = c(0.07, 0.08, 0.09, 0.1, 0.15, 0.2)) +
                    labs(x = "Local Community", y = "CV (Total CPUE)", title = "Shallow Areas")
 
-CV_shallow_plot
+#CV_shallow_plot
 
 ```
 

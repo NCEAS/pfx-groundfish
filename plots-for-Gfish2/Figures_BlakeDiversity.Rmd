@@ -257,7 +257,12 @@ sp_box123
 
 ```{r, include=FALSE, echo=FALSE, results='hide'}
 # Figure 3: CV plot to show Portfolio Effect 
+source("../diversity_scripts/temporalStability.r")
 
+```
+
+```{r, echo=FALSE, fig.height=10, fig.width=12}
+CV_shallow_plot
 
 ```
 
