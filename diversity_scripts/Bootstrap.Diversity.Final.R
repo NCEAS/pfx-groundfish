@@ -53,15 +53,15 @@ gamma.mom <- function(MEAN,SD){
 
 #hist(X)
 
-setwd("~/Documents/git_repos/pfx-groundfish")
+#setwd("~/Documents/git_repos/pfx-groundfish")
 
 ### Read in Data
 #shallow areas
-#uncondDat<-read.csv("All_sp_index_meanCPUEByArea.Shallow.MH.final.csv")  #Ole's data file
-#occDat<-read.csv("All_sp_index_occurrenceByArea.Shallow.MH.final.csv")  #Ole's data file
+uncondDat<-read.csv("All_sp_index_meanCPUEByArea.Shallow.MH.final.csv")  #Ole's data file
+occDat<-read.csv("All_sp_index_occurrenceByArea.Shallow.MH.final.csv")  #Ole's data file
 #deep areas
-uncondDat<-read.csv("All_sp_index_meanCPUEByArea.Deep.MH.final.csv")
-occDat<-read.csv("All_sp_index_occurrenceByArea.Deep.MH.final.csv")
+#uncondDat<-read.csv("All_sp_index_meanCPUEByArea.Deep.MH.final.csv")
+#occDat<-read.csv("All_sp_index_occurrenceByArea.Deep.MH.final.csv")
 
 ####### These files were used when we combined combined shallow areas 7, 8, 9
 #uncondDat<-read.csv("All_sp_index_meanCPUEByArea.Shallow.combined.MH.csv")
