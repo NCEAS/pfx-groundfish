@@ -78,10 +78,10 @@ ak_areas_all <- akmap4 +
                  annotate("text", x=-164, y=61.5, label="N", size=8, fontface="bold", color="black") + 
                  geom_segment(aes(x=-164,xend=-164,y=61.2,yend=61.8), size=1.5,
                               arrow=arrow(length = unit(0.5, "cm"))) +
-                 geom_label(aes(x=-158, y=54.5, label="AP"), fill="white", fontface="bold", size=6) + 
-                 geom_label(aes(x=-151, y=56.5, label="K"), fill="white", fontface="bold", size=6) + 
-                 geom_label(aes(x=-152.5, y=59.5, label="CI"), fill="white", fontface="bold", size=6) + 
-                 geom_label(aes(x=-144, y=59.5, label="PWS"), fill="white", fontface="bold", size=6) + 
+                 annotate("text", x=-158, y=54.5, label="AP", fontface="bold", size=6) + 
+                 annotate("text", x=-151, y=56.5, label="K", fontface="bold", size=6) + 
+                 annotate("text", x=-152.5, y=59.5, label="CI", fontface="bold", size=6) + 
+                 annotate("text", x=-144, y=59.5, label="PWS", fontface="bold", size=6) + 
                  theme(axis.text=element_text(size=15),
                        axis.title=element_text(size=15))
   
