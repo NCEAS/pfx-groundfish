@@ -616,7 +616,7 @@ range(shallowRao2$RaosQ) #; range(deepRao2$RaosQ)
 
 shallow_FD <- ggplot(data=shallowRao2, aes(x = AREA, y = RaosQ)) + 
               geom_boxplot() + theme_boxplot() + 
-              ylab("Rao's Q") + #xlab("Area (West <-> East)") + 
+              ylab("Rao's Q") + xlab("Area (West - East)") + 
               xlim("10", "9", "8", "7", "6", "5", "4", "3", "2", "1") + 
               #ylim(0.95, 2.6) + # ylim for log-transformed uncorrelated quantitative traits
               ylim(0.035, 0.084) + # ylim for 4 log-transformed uncorrelated quantitative & 3 categorial traits
@@ -624,7 +624,7 @@ shallow_FD <- ggplot(data=shallowRao2, aes(x = AREA, y = RaosQ)) +
               #ylim(0.035, 0.073) + # ylim for all log-transformed quantitative & categorial traits with sufficient data
               theme(legend.position="none", plot.background=element_blank(),
                     axis.text.x = element_text(size=15),
-                    axis.title.x=element_blank(),
+                   # axis.title.x=element_blank(),
                     plot.title=element_text(colour="black", size=15,
                                             hjust=0.04, vjust=0.5, face="bold"))
 #shallow_FD

@@ -57,7 +57,7 @@ source("../diversity_scripts/functional_diversity_metrics.R")
 theme_boxplot <- function(base_size = 12){
   theme_bw(base_size) %+replace%
     theme(legend.key.size=unit(13,"points"),
-          legend.text=element_text(size=I(11)),
+          legend.text=element_text(size=I(13)),
           legend.key=element_blank(),
           #legend.title=element_blank(),
           #legend.position="none",
@@ -67,12 +67,12 @@ theme_boxplot <- function(base_size = 12){
           axis.ticks.length=unit(1,"mm"),
           axis.text.x = element_text(margin=margin(5,0,0,0)),
           axis.text.y = element_text(margin=margin(0,5,0,0)),
-          axis.text=element_text(size=11),
-          axis.title.x=element_text(size=13, margin=margin(15,0,0,0)), 
-          axis.title.y=element_text(size=13, angle=90, margin=margin(0,15,0,0)), 
+          axis.text=element_text(size=13),
+          axis.title.x=element_text(size=15, margin=margin(15,0,0,0)), 
+          axis.title.y=element_text(size=15, angle=90, margin=margin(0,15,0,0)), 
           panel.grid.major=element_blank(),
           panel.grid.minor=element_blank(),
-          strip.text.x=element_text(size=14),
+          strip.text.x=element_text(size=15),
           strip.background=element_rect(colour='black', fill='white'),
           #axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
           axis.line = element_line(colour = 'black', size=0.5, linetype='solid')
@@ -234,6 +234,10 @@ summary(gam1c) #; anova(gam1c)
 
 #AIC(gam1, gam1a, gam1b, gam1c)
 
+stats_gam1 <-c(paste("Adj. R sq. =", signif(summary(gam1c)$r.sq, 4)))#, 
+             #  paste("p =", signif(summary(gam1c)$s.table[1,4], 3)))
+# since p value is very very small and rounds to zero, have to manually add p value
+
 # ggplot
 gam1_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, color=Catch_area)) + 
              geom_point(size=6) + ylab("Species Richness") + theme_boxplot() +
@@ -241,8 +245,10 @@ gam1_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Sp_rich_ca, col
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              scale_color_manual(values=colors_plot) + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam1c)$r.sq, 4),
-                              "p =", signif(summary(gam1c)$s.table[1,4], 3)))
+             # labs(title=paste("Adj R2 =", signif(summary(gam1c)$r.sq, 4),
+             #                  "p =", signif(summary(gam1c)$s.table[1,4], 3)))
+             annotate("text", x = 0.75, y = 13, size = 5, label = stats_gam1) + 
+             annotate("text", x = 0.75, y = 0.96*13, size = 5, label = "p < 0.00001")
 #gam1_plot
 
 ```
@@ -289,6 +295,11 @@ summary(gam2c) #; anova(gam2c)
 
 
 # ggplot
+stats_gam2 <- c(paste("Adj. R sq. =", signif(summary(gam2c)$r.sq, 4)))#,
+               # paste("p =", signif(summary(gam2c)$s.table[1,4], 3)))
+# since p is much smaller than 1 and rounds to zero, have to manually add p value
+
+
 gam2_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, color=Catch_area)) + 
              geom_point(size=6) +  ylab("Alpha Diversity") + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
@@ -296,10 +307,14 @@ gam2_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Eff_Num_Sp_ca, 
              scale_color_manual(values=colors_plot) + 
              theme(legend.position = c(0.87,0.95), panel.background = element_blank(),
                    legend.background = element_rect(fill="transparent")) +
-             labs(title=paste("Adj R2 =", signif(summary(gam2c)$r.sq, 4),
-                              "p =", signif(summary(gam2c)$s.table[1,4], 3)))
+             # labs(title=paste("Adj R2 =", signif(summary(gam2c)$r.sq, 4),
+             #                  "p =", signif(summary(gam2c)$s.table[1,4], 3)))
+             annotate("text", x = 0.20, y = 11.5, size = 5, label = stats_gam2) +
+             annotate("text", x = 0.20, y = 0.95*11.5, size = 5, label = "p < 0.00001")
              
 #gam2_plot
+
+
 
 
 ```
@@ -320,16 +335,23 @@ summary(gam3c) #; anova(gam3c)
 #AIC(gam3, gam3a, gam3b, gam3c, gam3d)
 
 # ggplot
+stats_gam3 <- c(paste("Adj. R sq. =", signif(summary(gam3c)$r.sq, 4)))#,
+               # paste("p =", signif(summary(gam3c)$s.table[1,4], 3)))
+# since p is much less than one and p rounds to zero, manually adding the p value
+
+
 gam3_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=Exp_B_Div_ca, color=Catch_area)) + 
              geom_point(size=6) +  ylab("Beta Diversity") + 
              xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) + 
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() +
              scale_color_manual(values=colors_plot) + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam3c)$r.sq, 4),
-                              "p =", signif(summary(gam3c)$s.table[1,4], 3)))
-             
+             # labs(title=paste("Adj R2 =", signif(summary(gam3c)$r.sq, 4),
+             #                  "p =", signif(summary(gam3c)$s.table[1,4], 3)))
+             annotate("text", x = 0.75, y = 13.1, size = 5, label = stats_gam3)  +
+             annotate("text", x = 0.75, y = 0.95*13, size = 5, label = "p < 0.00001")
 #gam3_plot
+
 
 
 ```
@@ -350,15 +372,23 @@ summary(gam3cc) #; anova(gam3cc)
 #AIC(gam3a, gam3aa, gam3bb, gam3cc)
 
 # ggplot
+stats_gam3a <- c(paste("Adj. R sq. =", signif(summary(gam3cc)$r.sq, 4)))#,
+                # paste("p =", signif(summary(gam3cc)$s.table[1,4], 5)))
+# p value is much less than 1 and rounds to zero, so have to manually add p value
+
+
+
 gam3a_plot <- ggplot(data=dist_df_cat_ar, aes(x=met_ton_km2_ca, y=RaosQ, color=Catch_area)) + 
               geom_point(size=6) +  ylab("Functional Diversity") + 
               xlab(expression(paste("Fishing Pressure (metric tonnes ", ~km^-2,")"))) +  
               stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + theme_boxplot() + 
               scale_color_manual(values=colors_plot) + 
               theme(legend.position = "none", panel.background = element_blank()) +
-              labs(title=paste("Adj R2 =", signif(summary(gam3cc)$r.sq, 4),
-                               "p =", signif(summary(gam3cc)$s.table[1,4], 5)))
-             
+              # labs(title=paste("Adj R2 =", signif(summary(gam3cc)$r.sq, 4),
+              #                  "p =", signif(summary(gam3cc)$s.table[1,4], 5)))
+              annotate("text", x = 0.75, y = 0.078, size = 5, label = stats_gam3a) +
+              annotate("text", x = 0.75, y = 0.96*0.078, size = 5, label = "p < 0.00001")
+  
 #gam3a_plot
 
 
@@ -487,16 +517,23 @@ anova(lmfit5) # anova table of above lm() fit
 
 lmfit6 <- lm(Exp_B_Div_mn~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
 
+stats_lmfit6 <- c(paste("Adj. R sq. =",signif(summary(lmfit6)$adj.r.squared, 5)),
+                  paste(" p =",signif(summary(lmfit6)$coef[2,4], 5)))      
+
 div_plot4c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=as.factor(AREA1))) + 
-              geom_point(size=6) + theme_boxplot() + scale_color_manual(values=pinks, name="Local\nArea") + 
+              geom_point(size=6) + theme_boxplot() + 
+              scale_color_manual(values=pinks, name="Study \nArea") + 
               stat_smooth(method="lm", col="blue", size=2) + ylab("Beta Diversity") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")"))) + 
-              theme(legend.position = c(1,0), legend.justification = c(0,0),
-                    legend.background = element_rect(fill="transparent"), panel.background = element_blank()) +
-              labs(title=paste("Adj R^2 =",signif(summary(lmfit6)$adj.r.squared, 5),
-                               #"Intercept =",signif(lmfit2$coef[[1]],5 ),
-                               #" Slope =",signif(lmfit2$coef[[2]], 5),
-                               " p =",signif(summary(lmfit6)$coef[2,4], 5)))
+              theme(legend.position = c(0.98,0), legend.justification = c(0,0),
+                    legend.background = element_rect(fill="transparent"), 
+                    panel.background = element_blank()) +
+              # labs(title=paste("Adj R^2 =",signif(summary(lmfit6)$adj.r.squared, 5),
+              #                  #"Intercept =",signif(lmfit2$coef[[1]],5 ),
+              #                  #" Slope =",signif(lmfit2$coef[[2]], 5),
+              #                  " p =",signif(summary(lmfit6)$coef[2,4], 5)))
+              annotate("text", x = 1.65, y = c(14.6, 0.95*14.5), size = 5, label = stats_lmfit6 )
+  
 
 anova(lmfit6) # anova table of above lm() fit
 

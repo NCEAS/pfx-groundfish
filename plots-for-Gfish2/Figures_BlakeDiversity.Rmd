@@ -185,13 +185,13 @@ shallowDat$AREA <- as.factor(shallowDat$AREA)
 #Boxplots Alpha Diversity Shallow Areas (exp H'):
 sp_box1 <- ggplot(data=shallowDat, aes(AREA, y=Eff_Num_Sp)) + 
            geom_boxplot() + theme_boxplot() + 
-           theme(axis.title.x=element_blank())+
            #xlab("Area (West <-> East)") +
            ylab("Alpha Diversity (exp H')") +
            xlim("10","9","8","7","6","5","4","3","2","1") + #shallow areas
            #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
            theme(legend.position="none", plot.background=element_blank(),
                  axis.text.x=element_text(size=15),
+                 axis.title.x=element_blank(),
                  plot.title=element_text(colour="black", size=15,
                                          hjust=0.04, vjust=0.5, face="bold"))
 ```
@@ -204,8 +204,8 @@ sp_box1
 #Boxplots Beta Diversity Shallow Areas:
 sp_box2 <- ggplot(data=shallowDat, aes(AREA, y=Exp_B_Div)) +
            geom_boxplot() + theme_boxplot() + 
-           theme(axis.title.x=element_blank())+
-           #xlab("Area (West <-> East)") +
+         #  theme(axis.title.x=element_blank())+
+           xlab("Area (West - East)") +
            ylab("Beta Diversity") +
            xlim("10","9","8","7","6","5","4","3","2","1") + #shallow areas
            #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
@@ -223,12 +223,12 @@ sp_box2
 #Boxplots Species Richness shallow areas:
 sp_box3 <- ggplot(data=shallowDat, aes(AREA, y=Sp_rich)) + 
            geom_boxplot() + theme_boxplot() + #xlab("Area (West <-> East)") +
-           theme(axis.title.x=element_blank())+
            ylab("Species Richness") +
            xlim("10","9","8","7","6","5","4","3","2","1") + 
            #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
            theme(legend.position="none", plot.background=element_blank(),
                  axis.text.x=element_text(size=15),
+                 axis.title.x=element_blank(),
                  plot.title=element_text(colour="black", size=15,
                                          hjust=0.04, vjust=0.5, face="bold"))
 ```
