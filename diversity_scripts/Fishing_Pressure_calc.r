@@ -45,7 +45,7 @@ theme_boxplot <- function(base_size = 12){
 ### Examine fish catches by stat6 area to include information 
 catch <- read.csv("../goaTrawl/_fishing areas gfish/pounds_by_stat6.csv")
 # this is the total catch of groundfish
-# From Eric
+# From Eric Ward:
 # Yep -- I did it by permit, with only the "B" "C" and "M" permits. So it should be only longline and
 # trawl, but would include a number of species as bycatch (including very small amounts of salmon, etc)
 # Codes here:  #   https://www.cfec.state.ak.us/misc/FshyDesC.htm

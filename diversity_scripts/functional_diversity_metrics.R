@@ -304,8 +304,8 @@ traits_wide[,categ] <- lapply(traits_wide[,categ] , factor)
 
 #traits_wide <- read.csv("traits_wide.csv", header=T)
 # which pairs of (log-transformed) quantitative traits are correlated?
-pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
-names(traits_wide[,quant])
+#pairs.panels(traits_wide[,quant],smooth=F,density=T,ellipses=F,lm=T,digits=3,scale=T)
+#names(traits_wide[,quant])
 # significant correlations:
 # K, firstMaturityAge, age50percentMaturity, ageMaximum
 # Linfinity, trophicPosition, firstMaturityLength, length50percentMaturity, lengthMaximum

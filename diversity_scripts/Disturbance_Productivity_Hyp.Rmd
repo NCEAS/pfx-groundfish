@@ -108,12 +108,12 @@ dist_df <- dist_df %>% full_join(shallowRao2, by=c("Year", "AREA")) %>% filter(c
 # average to catch area for each year...
 dist_df_cat_ar <- dist_df %>%
                   dplyr::select(-AREA, -Simp, -Invsimp) %>%
-                  group_by(Catch_area, Year) %>%
-                  summarize(Eff_Num_Sp_ca = mean(Eff_Num_Sp),
-                            Sp_rich_ca = mean(Sp_rich),
-                            Exp_B_Div_ca = mean(Exp_B_Div),
-                            met_ton_km2_ca = mean(met_ton_km2),
-                            RaosQ = mean(RaosQ)) %>%
+                  dplyr::group_by(Catch_area, Year) %>%
+                  mutate(Eff_Num_Sp_ca = mean(Eff_Num_Sp), 
+                         Sp_rich_ca = mean(Sp_rich),
+                         Exp_B_Div_ca = mean(Exp_B_Div),
+                         met_ton_km2_ca = mean(met_ton_km2),
+                         RaosQ = mean(RaosQ)) %>%
                   ungroup() %>%
                   arrange(Catch_area, Year)
 
