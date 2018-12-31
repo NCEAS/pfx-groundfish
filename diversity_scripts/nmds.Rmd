@@ -58,10 +58,17 @@ shallowCPUEArea2 <- left_join(shallowCPUEArea, common1, by = "Species") %>% # me
 
 ```{r, echo=FALSE}
 options(pillar.sigfig = 7)
+
+shallowCPUEArea2a <- shallowCPUEArea %>% 
+                     left_join(common1, by = "Species") %>% # merge common names onto SPCPUEArea
+                     dplyr::filter(area != "8") %>% # remove Ole's area 8
+                     # renumber (old = new) shallow areas to account for splitting area 7 into 7, 8, 9 
+                     mutate(area = revalue(area, c("9"="8", "10"="9", "11"="10"))) 
+
 #which are the most dominant species?
-s <- shallowCPUEArea2 %>%
+s <- shallowCPUEArea2a %>%
      filter(area == "Total") %>%
-     group_by(common.name) %>%
+     group_by(Species, common.name) %>%
      dplyr::summarize(sum(Mean.totalDensity)) %>%
      ungroup() %>%
      arrange(desc(`sum(Mean.totalDensity)`))
