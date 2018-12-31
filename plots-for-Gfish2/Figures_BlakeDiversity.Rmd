@@ -1,7 +1,7 @@
 ---
 title: "Figures for Blake et al. diversity paper"
 author: "started by M. Hunsicker, revised by R.E. Blake"
-date: "started 10/24/2016, revised 8/8/2017"
+date: "started 10/24/2016, revised 8/8/2017, revised 12/31/2018"
 output:
   pdf_document: 
   fig_height: 4
@@ -39,7 +39,7 @@ library(plyr) ; library(dplyr); library(tidyr) ; library(stringr) ; library(rgda
 library(sp) ; library(maptools) ; library(raster) ; library(ggplot2) ;  library(rgeos) ; 
 library(maps) ; library(mapdata) ; library(mapproj) ; library(httr) ; library(extrafont) ; 
 library(vegan) ; library(scales) ; library(gridExtra) ; library(RColorBrewer) ; 
-library(GISTools) ; library(egg)
+library(GISTools) ; library(egg) ; library(marmap)
 
 ```
 
@@ -55,15 +55,18 @@ ak_areas_all
 ```{r map, cache=FALSE, echo=FALSE, warning=FALSE, include=FALSE}
 # Figure 1: Map of shallow and deep study areas overlaid with EVOS slick 
 #Map plotted in Lat Long:
-ak <- map_data('worldHires','USA:Alaska')
+ak <- fortify(maps::map('worldHires','USA:Alaska', plot=FALSE, fill=TRUE))
 
-akmap2 <- ggplot() + 
-          geom_polygon(data=ak, aes(long,lat,group=group), fill=8, 
-                       color="black") +
+# get bathymetry
+ak_bathy <- getNOAA.bathy(-165, -142, 54, 62, res=1, keep=TRUE)
+
+akmap4 <- autoplot(ak_bathy, geom=c("raster", "contour"), coast=FALSE) +
+          scale_fill_gradient2(low="deepskyblue4", mid="lightskyblue4", high="white", guide=FALSE) +
+          geom_polygon(data=ak, aes(long,lat,group=group), fill=8, color="black") +
           xlab(expression(paste(Longitude^o,~'W'))) +
           ylab(expression(paste(Latitude^o,~'N'))) +
-          coord_map(xlim=c(-190, -125), ylim=c(50, 72)) +
-          theme(panel.background=element_rect(fill='aliceblue')) 
+          coord_cartesian(xlim=c(-165, -142), ylim=c(54, 62))
+  
 
 ```
 
@@ -94,32 +97,46 @@ pinks <- c("#FFE6DA", "#E3C9C6", "#FCC5C0", "#FA9FB5", "#F768A1",
 #blues <- c("#9ECAE1", "#6BAED6", "#4292C6", "#2171B5", "#084594")
 #Colors1 <- c(pinks, blues)
 
-ak_areas_all <- akmap2 +
+ak_areas_all <- akmap4 +
                 geom_point(data=discrete_areas, 
-                           aes(LONGITUDE, LATITUDE, color=area1,
-                               fill=area1)) + 
+                           aes(LONGITUDE, LATITUDE, color=area1#,fill=area1
+                               )) + 
                  scale_color_manual(values=pinks, name="Study Area", guide=FALSE) +
-                 scale_fill_manual(values=pinks, name="Study Area", guide=FALSE) +
-                 annotate("text", x=-146, y=59.9, label="1", size=4) + 
-                 annotate("text", x=-147.6, y=59.6, label="2", size=4) +
-                 annotate("text", x=-148.55, y=59.4, label="3", size=4) +
-                 annotate("text", x=-149.5, y=59.4, label="4", size=4) +
-                 annotate("text", x=-152.1, y=58.8, label="5", size=4) +
-                 annotate("text", x=-150.3, y=58.4, label="6", size=4) +
-                 annotate("text", x=-151.1, y=57.8, label="7", size=4, color="white") +
-                 annotate("text", x=-152.85, y=56.8, label="8", size=4, color="white") +
-                 annotate("text", x=-155.5, y=56.45, label="9", size=4, color="white") +
-                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white") #+
-                # annotate("text", x=-153.9, y=58.1, label="11", size=4) +
-                # annotate("text", x=-150, y=58, label="12", size=4) +
-                # annotate("text", x=-156.3, y=56, label="13", size=4, color="white") +
-                # annotate("text", x=-158.5, y=55.25, label="14", size=4, color="white") 
-               #  theme(legend.key.size=unit(11,"points"),
-              #         legend.text=element_text(size=9),
-              #         legend.key=element_rect(fill="white"),
-              #         legend.justification=c(1,0), 
-              #         legend.position=c(1,0)) +
-              #   guides(color=guide_legend(ncol=2))
+                # scale_fill_manual(values=pinks, name="Study Area", guide=FALSE) +
+                 annotate("text", x=-146, y=59.9, label="1", size=4, fontface="bold") + 
+                 annotate("text", x=-147.6, y=59.6, label="2", size=4, fontface="bold") +
+                 annotate("text", x=-148.55, y=59.4, label="3", size=4, fontface="bold") +
+                 annotate("text", x=-149.5, y=59.4, label="4", size=4, fontface="bold") +
+                 annotate("text", x=-152.1, y=58.8, label="5", size=4, fontface="bold") +
+                 annotate("text", x=-150.3, y=58.4, label="6", size=4, fontface="bold") +
+                 annotate("text", x=-151.1, y=57.8, label="7", size=4, color="white", fontface="bold") +
+                 annotate("text", x=-152.85, y=56.8, label="8", size=4, color="white", fontface="bold") +
+                 annotate("text", x=-155.5, y=56.45, label="9", size=4, color="white", fontface="bold") +
+                 annotate("text", x=-157.25, y=55.75, label="10", size=4, color="white", fontface="bold") +
+                 annotate("segment", x=-156.25, y=54, xend=-156.25, yend=57.5, color="black", 
+                          linetype="dashed", size=1) + 
+                 annotate("segment", x=-149, y=58.8, xend=-149, yend=59.9, color="black", 
+                          linetype="dashed", size=1) + 
+                 annotate("segment", x=-149, y=58.95, xend=-142, yend=59.2, color="black", 
+                          linetype="dashed", size=1) + 
+                 annotate("segment", x=-149, y=58.8, xend=-151.25, yend=58.75, color="black", 
+                          linetype="dashed", size=1) + 
+                 annotate("segment", x=-151.25, y=58.75, xend=-151.25, yend=58.45, color="black", 
+                          linetype="dashed", size=1) + 
+                 annotate("segment", x=-151.25, y=58.45, xend=-153.35, yend=58.45, color="black", 
+                          linetype="dashed", size=1) + 
+                 annotate("segment", x=-153.35, y=58.45, xend=-153.35, yend=58.75, color="black", 
+                          linetype="dashed", size=1) + 
+                 annotate("text", x=-164, y=61.5, label="N", size=8, fontface="bold", color="black") + 
+                 geom_segment(aes(x=-164,xend=-164,y=61.2,yend=61.8), size=1.5,
+                              arrow=arrow(length = unit(0.5, "cm"))) +
+                 annotate("text", x=-158, y=54.5, label="AP", fontface="bold", size=6) + 
+                 annotate("text", x=-151, y=56.5, label="K", fontface="bold", size=6) + 
+                 annotate("text", x=-152.5, y=59.5, label="CI", fontface="bold", size=6) + 
+                 annotate("text", x=-144, y=59.5, label="PWS", fontface="bold", size=6) + 
+                 theme(axis.text=element_text(size=15),
+                       axis.title=element_text(size=15))
+  
 #ak_areas_all
 
 
