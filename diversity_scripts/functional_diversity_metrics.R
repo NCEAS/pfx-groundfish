@@ -1,5 +1,6 @@
 # Functional Diversity Metrics Processing Script
 # Colette Ward, Feb 29 2016
+# modified by Rachael Blake most recently in December 2018
 
 # load packages
 library(httr)

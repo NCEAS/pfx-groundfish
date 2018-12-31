@@ -1,7 +1,7 @@
 ---
 title: "Groundfish multivariate analyses - Comparing Areas By Year"
-author: "Colette Ward"
-date: "May 6, 2016"
+author: "Colette Ward and Rachael Blake"
+date: "May 6, 2016, revised December 2018"
 output: pdf_document
 ---
 
