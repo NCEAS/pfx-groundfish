@@ -10,6 +10,7 @@ library(psych)
 library(FD)
 library(ggplot2)
 library(gridExtra)
+library(tidyverse)
 
 
 # load the functional trait data from local source in our repository:
@@ -30,7 +31,7 @@ traits_df <- read.csv("./diversity-data/Groundfish-Functional-Diversity-Traits.c
 # minor dataframe cleaning:
 
 traits_df1 <- traits_df %>%
-              dplyr::select(-reference, -database, -lengthType, -comments, -common.name) %>% # drop unnecessary columns
+              dplyr::select(-reference, -database, -lengthType, -comments) %>% # drop unnecessary columns
               mutate(genus.species = revalue(genus.species, c("Clupea pallasii" = "Clupea pallasi", # make Species names match those in CPUE file
                                                               "Sebastes group 1" = "Dusky and Dark Rockfish", 
                                                               "Sebastes group 2" = "Rougheye and Blackspotted Rockfish", 
@@ -123,7 +124,8 @@ max_df1 <- max_df %>%
            group_by(Species, trait, location) %>%
            summarise_all(funs(max(., na.rm = TRUE))) %>%
            ungroup %>%
-           dplyr::rename(estimate = estimate1)
+           dplyr::rename(estimate = estimate1) %>%
+           mutate_if(is.numeric, as.character)
 
 
 
@@ -137,11 +139,12 @@ depth_df1 <- depth_df %>%
              rowwise() %>%
              mutate(estimate3 = estimate2.num-estimate1.num) %>% # calculate breadth of depth range
              ungroup() %>%
-             dplyr::select(-region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
+             dplyr::select(-region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num, -common.name) %>%
              dplyr::rename(estimate = estimate3) %>%
              group_by(Species, trait, gender, location) %>%
              summarise_all(funs(mean)) %>% # calculate means of depth range breadth for each taxa / gender / location combination
-             ungroup() 
+             ungroup() %>%
+             mutate_if(is.numeric, as.character)
   
 
 
@@ -162,11 +165,12 @@ maturity_df1 <- maturity_df %>%
                 rowwise() %>%
                 mutate(estimate3 = mean(c(estimate1.num, estimate2.num), na.rm=T)) %>% # calculate mean of the 2 estimates
                 ungroup() %>%
-                dplyr::select( -region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num) %>%
+                dplyr::select( -region, -estimate, -estimate1, -estimate2, -estimate1.num, -estimate2.num, -common.name) %>%
                 dplyr::rename(estimate = estimate3) %>%
                 group_by(Species, trait, gender, location) %>%
                 summarise_all(funs(mean(., na.rm = TRUE))) %>% # calculate means of all estimates for each taxa / gender / location combination
-                ungroup() 
+                ungroup() %>%
+                mutate_if(is.numeric, as.character)
 # warning re NAs is OK; it's just reporting that estimate2 is NA when the original cell is a single value rather than a range
 
 
@@ -203,7 +207,8 @@ dCoef_df <- read.csv(file=textConnection(dCoef1),stringsAsFactors=FALSE)
 dCoef1 <- dCoef_df %>% 
           filter(Model == "pos") %>% # use positive model (vs binomial presence/absence)
           dplyr::rename(estimate = Mean) %>%
-          dplyr::select(Species, estimate)
+          dplyr::select(Species, estimate) %>%
+           mutate_if(is.numeric, as.character)
 
 for(i in 1:nrow(dCoef1)) { # add columns for trait, gender, location
   dCoef1$trait[[i]] <- "depthCoefPos"
@@ -216,7 +221,7 @@ for(i in 1:nrow(dCoef1)) { # add columns for trait, gender, location
 
 # bind these dfs together 
 # This creates a dataframe of all the functional trait data we have. These are summarized values - ie means, maxima, etc
-traits_df3 <- rbind(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1, dCoef1) #KL_df1,
+traits_df3 <- dplyr::bind_rows(horPos_df1, substrate_df1, trChr_df1, max_df1, depth_df1, maturity_df1, dCoef1) #KL_df1,
 
 
 
@@ -263,7 +268,7 @@ diffsOther_df <- left_join(diffs_df, other_df, by = c("Species", "trait", "gende
 
 # now merge the table with non-GoA trait data onto the table with GoA data: 
 traits_df4 <- left_join(traitsGoA_df, diffsOther_df, by = c("Species", "trait", "gender")) %>% 
-              transmute(Species, trait, gender, 
+              transmute(Species, common.name, trait, gender, 
                         location = ifelse(is.na(location.x), location.y, location.x),
                         estimate = ifelse(is.na(estimate.x), estimate.y, estimate.x)) %>%
               filter(!is.na(estimate)) # remove rows for which there is no data from either GoA or "other" for some of the desired trait-gender combinations
