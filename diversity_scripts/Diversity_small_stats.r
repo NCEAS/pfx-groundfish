@@ -62,8 +62,48 @@ TukeyHSD(RaoQ2, ordered=TRUE)
 
 
 
+#####
+# average the diversity metrics to get mean per area per year so that there's the same number of samples
+# as for Rao's Q data
+
+shallowDat3 <- shallowDat2 %>% 
+               select(-Gamma, -SW, -Simp, -Exp_G_DivBoot, -AREA_group, -AREA_fac) %>% 
+               group_by(AREA, YEAR) %>% 
+               summarize_each(funs = "mean")  %>%
+               mutate(AREA_group = ifelse(AREA %in% c(1:7), "low", "high"),
+                      AREA_fac = as.factor(AREA)) %>% 
+               ungroup() %>% 
+               group_by(AREA_group) %>% 
+               mutate(sp_rich_group_mn = mean(Sp_rich)) %>% 
+               ungroup()
 
 
+# test differences again, but using dummy area variable
+sprich3 <- aov(Sp_rich~AREA_group, data=shallowDat3)
+anova(sprich3)
+TukeyHSD(sprich3, ordered=TRUE)
+
+alpha3 <- aov(Eff_Num_Sp~AREA_group, data=shallowDat3)
+anova(alpha3)
+TukeyHSD(alpha3, ordered=TRUE)
+
+beta3 <- aov(Exp_B_Div~AREA_group, data=shallowDat3)
+anova(beta3)
+TukeyHSD(beta3, ordered=TRUE)
+
+
+# test differences again, but using dummy area variable
+sprich4 <- aov(Sp_rich~AREA_fac, data=shallowDat3)
+anova(sprich4)
+TukeyHSD(sprich4, ordered=TRUE)
+
+alpha4 <- aov(Eff_Num_Sp~AREA_fac, data=shallowDat3)
+anova(alpha4)
+TukeyHSD(alpha4, ordered=TRUE)
+
+beta4 <- aov(Exp_B_Div~AREA_fac, data=shallowDat3)
+anova(beta4)
+TukeyHSD(beta4, ordered=TRUE)
 
 
 

@@ -452,11 +452,11 @@ ggarrange(gam1_plot, gam2_plot, gam3_plot, gam3a_plot, ncol=2, nrow=2)
 # write.csv(prod_df_chlyr, "./diversity-data/Productivity_gfish_areas_yr.csv", row.names=F)
 # write.csv(prod_df_chlmth, "./diversity-data/Productivity_gfish_areas_mth.csv", row.names=F)
 
-prod_chl_yr <- read.csv("../diversity-data/Productivity_gfish_areas_yr.csv")
+prod_chl_yr_b <- read.csv("../diversity-data/Productivity_gfish_areas_yr.csv")
 prod_chl_mth <- read.csv("../diversity-data/Productivity_gfish_areas_mth.csv")
 
 # add in the functional diversity data
-prod_chl_yr <- prod_chl_yr %>%
+prod_chl_yr <- prod_chl_yr_b %>%
                dplyr::rename(AREA=area) %>%
                dplyr::mutate(AREA=as.factor(AREA)) %>%
                full_join(shallowRao2, by=c("AREA", "Year")) %>%
@@ -682,16 +682,33 @@ gam2_plot_final <- gam2_plot + labs(title="b.") + theme(axis.title.x = element_b
                                                         legend.title = element_blank())                   
 gam3_plot_final <- gam3_plot + labs(title="c.")     
 gam3a_plot_final <- gam3a_plot + labs(title="d.")   
-div_plot4c_final <- div_plot4c + labs(title="e.")
+div_plot4c_final <- div_plot4c + labs(title="e.") + theme(plot.margin=unit(c(0.75,1.35,0.75,1), "cm"),
+                                                          legend.title = element_blank()) # respectively: top, right, bottom, left)
 
 ffig <- ggarrange(gam1_plot_final, gam2_plot_final, gam3_plot_final, gam3a_plot_final, div_plot4c_final, ncol=2, nrow=3)
 
 ffig
 
-tiff("ffig.tif", units="in", width=8.5, height=11, res=600)
+# tiff("ffig.tif", units="in", width=8.5, height=11, res=300)
 
 ```
 
+```{r, echo=FALSE, fig.height=16, fig.width=12}
+# final supplementary figure
+
+gam4_plot_final <- gam4_plot + labs(title="a.") + theme(axis.title.x = element_blank(), 
+                                                        axis.text.x = element_blank())
+gam5_plot_final <- gam5_plot + labs(title="b.") + theme(legend.title = element_blank())                   
+div_plot4d_final <- div_plot4d + labs(title="c.")     
+
+
+supfig <- ggarrange(gam4_plot_final, gam5_plot_final, div_plot4d_final, ncol=2, nrow=2)
+
+supfig
+
+# tiff("supfig.tif", units="in", width=8.5, height=11, res=300)
+
+```
 
 ```{r, echo=FALSE, include=FALSE}
 # correlation between primary productivity and fishing pressure
