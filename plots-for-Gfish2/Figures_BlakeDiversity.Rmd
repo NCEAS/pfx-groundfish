@@ -45,9 +45,10 @@ library(GISTools) ; library(egg) ; library(marmap)
 
 ```{r loadMapData, message=FALSE, echo=FALSE, warning=FALSE}
 # Map of area locations
-source("../diversity_scripts/Plotting_Exxon_Gfish_Areas.Rmd")
+# source("../diversity_scripts/Plotting_Exxon_Gfish_Areas.Rmd")
+# seems like sourcing a Rmd used to work but doesn't now. 
 
-ak_areas_all
+# ak_areas_all
 
 ```
 
@@ -172,7 +173,7 @@ theme_boxplot <- function(base_size = 12){
           legend.key=element_blank(),
           legend.title=element_blank(),
           legend.background=element_rect(colour="white", fill="transparent"),
-          plot.margin=unit(c(0.5,1,0.5,1), "lines"),  
+          plot.margin=unit(c(0.5,1,0.5,1), "lines"),
           panel.border=element_blank(),
           panel.spacing=unit(0,"lines"),
           panel.background=element_blank(),
@@ -181,12 +182,13 @@ theme_boxplot <- function(base_size = 12){
           axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
           axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
           axis.ticks.length=unit(1,"mm"),
-          axis.text.x = element_text(margin=margin(5,0,0,0), size=15), 
+          axis.text.x = element_text(margin=margin(5,0,0,0), size=15),
           axis.text.y = element_text(margin=margin(0,5,0,0), size=15),
           axis.title.x=element_text(size=15, margin=margin(15,0,0,0)),
           axis.title.y=element_text(size=15, angle=90, margin=margin(0,15,0,0)),
           strip.text.x=element_text(size=14),
-          strip.background=element_rect(colour="black", fill='white'))
+          strip.background=element_rect(colour="black", fill='white')
+          )
 }
 ```
 
@@ -209,6 +211,8 @@ sp_box1 <- ggplot(data=shallowDat, aes(AREA, y=Eff_Num_Sp)) +
            theme(legend.position="none", plot.background=element_blank(),
                  axis.text.x=element_text(size=15),
                  axis.title.x=element_blank(),
+                 axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+                 axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
                  plot.title=element_text(colour="black", size=15,
                                          hjust=0.04, vjust=0.5, face="bold"))
 ```
@@ -228,6 +232,8 @@ sp_box2 <- ggplot(data=shallowDat, aes(AREA, y=Exp_B_Div)) +
            #  scale_fill_manual(values=barcolor) + ylim(0,0.5) +
            theme(legend.position="none", plot.background=element_blank(),
                  axis.text.x=element_text(size=15),
+                 axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+                 axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
                  plot.title=element_text(colour="black", size=15,
                                          hjust=0.04, vjust=0.5, face="bold"))
 ```
@@ -246,6 +252,8 @@ sp_box3 <- ggplot(data=shallowDat, aes(AREA, y=Sp_rich)) +
            theme(legend.position="none", plot.background=element_blank(),
                  axis.text.x=element_text(size=15),
                  axis.title.x=element_blank(),
+                 axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+                 axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
                  plot.title=element_text(colour="black", size=15,
                                          hjust=0.04, vjust=0.5, face="bold"))
 ```

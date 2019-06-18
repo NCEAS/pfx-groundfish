@@ -532,7 +532,7 @@ div_plot4c <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=Exp_B_Div_mn, color=as.f
               #                  #"Intercept =",signif(lmfit2$coef[[1]],5 ),
               #                  #" Slope =",signif(lmfit2$coef[[2]], 5),
               #                  " p =",signif(summary(lmfit6)$coef[2,4], 5)))
-              annotate("text", x = 1.65, y = c(14.6, 0.95*14.5), size = 5, label = stats_lmfit6 )
+              annotate("text", x = 1.65, y = c(14.6, 0.95*14.5), size = 5, label = stats_lmfit6)
   
 
 anova(lmfit6) # anova table of above lm() fit
@@ -545,15 +545,19 @@ anova(lmfit6) # anova table of above lm() fit
 
 lmfit6b <- lm(RaosQ~chl_mg_m3_mn, data=prod_chl_yr)  # lm() fit 
 
+stats_lmfit6b <- c(paste("Adj. R sq. =",signif(summary(lmfit6b)$adj.r.squared, 5)),
+                  paste(" p =",signif(summary(lmfit6b)$coef[2,4], 3)))    
+
 div_plot4d <- ggplot(prod_chl_yr, aes(x=chl_mg_m3_mn, y=RaosQ, color=as.factor(AREA1))) + 
               geom_point(size=6) + scale_color_manual(values=pinks) + theme_boxplot() +
               stat_smooth(method="lm", col="blue", size=2) + ylab("Functional Diversity") +
               xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")"))) + 
               theme(legend.position = "none", panel.background = element_blank()) +
-              labs(title=paste("Adj R^2 =",signif(summary(lmfit6b)$adj.r.squared, 5),
-                               #"Intercept =",signif(lmfit6b$coef[[1]],5 ),
-                               #" Slope =",signif(lmfit6b$coef[[2]], 5),
-                               " p =",signif(summary(lmfit6b)$coef[2,4], 5)))
+              # labs(title=paste("Adj R^2 =",signif(summary(lmfit6b)$adj.r.squared, 5),
+              #                  #"Intercept =",signif(lmfit6b$coef[[1]],5 ),
+              #                  #" Slope =",signif(lmfit6b$coef[[2]], 5),
+              #                  " p =",signif(summary(lmfit6b)$coef[2,4], 5)))
+              annotate("text", x = 1.65, y = c(0.09, 0.95*0.09), size = 5, label = stats_lmfit6b)
 
 anova(lmfit6b) # anova table of above lm() fit
 
@@ -580,14 +584,19 @@ gam4a <- gam(Sp_rich_mn~s(chl_mg_m3_mn, k=4), data=prod_chl_yr, family=gaussian)
 
 summary(gam4a) #; anova(gam4a)
 
+stats_gam4a <- c(paste("Adj. R sq. =", signif(summary(gam4a)$r.sq, 4)),
+                 paste("p =", signif(summary(gam4a)$s.table[1,4], 3)))
+
 # ggplot
 gam4_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Sp_rich_mn, color=as.factor(AREA1))) +
              geom_point(size=6) + scale_color_manual(values=pinks) + theme_boxplot() +
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Species Richness") +
              xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam4a)$r.sq, 4),
-                              "p =", signif(summary(gam4a)$s.table[1,4], 3)))
+             # labs(title=paste("Adj R2 =", signif(summary(gam4a)$r.sq, 4),
+             #                  "p =", signif(summary(gam4a)$s.table[1,4], 3)))
+             annotate("text", x = 2.25, y = 13, size = 5, label = stats_gam4a[1]) +
+             annotate("text", x = 2.25, y = 0.95*13, size = 5, label = stats_gam4a[2])
 #gam4_plot
 
 
@@ -602,14 +611,19 @@ gam5a <- gam(Eff_Num_Sp_mn~s(chl_mg_m3_mn, k=4), data=prod_chl_yr, family=gaussi
 
 summary(gam5a) #; anova(gam5a)
 
+stats_gam5a <- c(paste("Adj. R sq. =", signif(summary(gam5a)$r.sq, 4)),
+                 paste("p =", signif(summary(gam5a)$s.table[1,4], 3)))
+
 # ggplot
 gam5_plot <- ggplot(data=prod_chl_yr, aes(x=chl_mg_m3_mn, y=Eff_Num_Sp_mn, color=as.factor(AREA1))) + 
              geom_point(size=6) + scale_color_manual(values=pinks) + theme_boxplot() +
              stat_smooth(method="gam", formula=y ~ s(x, k=4), col="red", size=2) + ylab("Alpha Diversity") +
              xlab(expression(paste("Primary Productivity (chla mg ", ~m^3,")")))  + 
              theme(legend.position = "none", panel.background = element_blank()) +
-             labs(title=paste("Adj R2 =", signif(summary(gam5a)$r.sq, 4),
-                              "p =", signif(summary(gam5a)$s.table[1,4], 3)))
+             # labs(title=paste("Adj R2 =", signif(summary(gam5a)$r.sq, 4),
+             #                  "p =", signif(summary(gam5a)$s.table[1,4], 3)))
+             annotate("text", x = 2.25, y = 12.5, size = 5, label = stats_gam5a[1]) +
+             annotate("text", x = 2.25, y = 0.95*12.5, size = 5, label = stats_gam5a[2])
 #gam5_plot
 
 
@@ -730,8 +744,9 @@ prod_fish_over <- fish_over %>%
                   full_join(prod_over, by="Year")
 
 ppfp <- ggplot(data=prod_fish_over, aes(x=ann_mn_fish, y=ann_mn_chl)) + 
-        geom_point(size=3) + geom_text(aes(label=Year), hjust=-0.25, vjust=0) + 
-        theme_boxplot() + xlab("Annual mean fishing pressure") + ylab("Annual mean Chla")
+        geom_point(size=3) + geom_text(aes(label=Year), hjust=0.5, vjust=-1) + 
+        theme_boxplot() + xlab("Annual mean fishing pressure") + 
+        ylab("Annual mean chlorophyll a") + theme(plot.margin=unit(c(1,1.35,0.75,1), "cm"))
 ppfp
 
 ```
